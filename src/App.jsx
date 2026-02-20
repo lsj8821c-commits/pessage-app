@@ -5,12 +5,13 @@ import {
   TrendingUp, Heart, Settings, LogOut, Mail, Lock, UserPlus, Globe, Trophy, 
   Smartphone, Moon, Check, Flame, CupSoda, Info, BookOpen, Quote, Layers, 
   Map as MapIcon, List, X, Maximize2, Music, ThermometerSnowflake, Leaf, Calendar,
-  Smartphone as WatchIcon, RefreshCw
+  Smartphone as WatchIcon, RefreshCw, Image as ImageIcon
 } from 'lucide-react';
 
 /**
  * ============================================================
  * ☁️ SANITY CMS CONFIGURATION (Project ID: 1pnkcp2x)
+ * 디렉터님의 실제 Sanity 프로젝트 정보를 반영했습니다.
  * ============================================================
  */
 const SANITY_CONFIG = {
@@ -21,7 +22,8 @@ const SANITY_CONFIG = {
 };
 
 /**
- * 🔑 API Key Secure Access (Vercel 환경 변수 연동)
+ * 🔑 API Key Secure Access
+ * Vercel 배포 시 VITE_ 키를 읽어오는 표준 방식입니다.
  */
 const getSafeApiKey = () => {
   try {
@@ -33,7 +35,7 @@ const getSafeApiKey = () => {
 
 const apiKey = getSafeApiKey();
 
-// CMS 데이터 로딩 전 보여줄 기본 데이터 (백업/로딩용)
+// CMS 데이터 로딩 전 보여줄 기본 데이터 (백업 및 로딩 가이드용)
 const INITIAL_CONTENT = {
   articles: [
     { 
@@ -42,13 +44,11 @@ const INITIAL_CONTENT = {
       subtitle: "Season 01: The Mist", 
       category: "ESSAY", 
       date: "2026.02.20", 
-      content: "데이터를 불러오는 중입니다...",
+      content: "데이터를 불러오는 중입니다. Sanity Studio에서 첫 번째 저널을 발행해 보세요.",
       excerpt: "안개는 시야를 가리지만, 대신 발끝의 감각을 선명하게 만듭니다." 
     }
   ],
-  routes: [
-    { id: 'loading', type: 'ORIGINAL', region: 'SEOUL', name: "Loading Routes...", location: "Updating...", distance: "0.0km", lat: 37.5665, lng: 126.9780, description: "Sanity에서 데이터를 가져오고 있습니다.", icon: Coffee }
-  ],
+  routes: [],
   gearItems: [],
   races: [
     { id: 'r-1', name: 'Trans Jeju 100K', date: '2026-10-12', type: 'TRAIL', description: '한국 최대의 울트라 트레일 대제전.' },
@@ -62,6 +62,7 @@ const INITIAL_CONTENT = {
   ]
 };
 
+// --- 디자인 시스템 컬러 ---
 const colors = {
   bg: 'bg-[#121212]',
   card: 'bg-[#1c1c1c]',
@@ -72,17 +73,25 @@ const colors = {
 };
 
 export default function App() {
-  // --- States ---
+  // --- 콘텐츠 상태 ---
   const [siteContent, setSiteContent] = useState(INITIAL_CONTENT);
+  
+  // --- UI & 유저 상태 ---
   const [activeTab, setActiveTab] = useState('journal');
   const [scrolled, setScrolled] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [authMode, setAuthMode] = useState(null); 
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [userStats, setUserStats] = useState({ score: 84, mileage: "32.4k", level: "Intermediate" });
+  
+  // --- 시계 연동 및 데이터 전송 상태 ---
   const [isWatchConnected, setIsWatchConnected] = useState(false);
   const [connectedDevice, setConnectedDevice] = useState(null); 
   const [isWatchModalOpen, setIsWatchModalOpen] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncSuccess, setSyncSuccess] = useState(false);
+
+  // --- 탐색 및 지도 상태 ---
   const [selectedArticle, setSelectedArticle] = useState(null);
   const [selectedRoute, setSelectedRoute] = useState(null);
   const [routeViewMode, setRouteViewMode] = useState('LIST'); 
@@ -93,48 +102,64 @@ export default function App() {
   const mapRef = useRef(null);
   const leafletMap = useRef(null);
   const markerGroupRef = useRef(null);
-  const [raceTypeFilter, setRaceTypeFilter] = useState('ALL');
-  const [aiResponse, setAiResponse] = useState(null);
+
+  // --- AI 및 소셜 상태 ---
   const [isAiLoading, setIsAiLoading] = useState(false);
+  const [aiResponse, setAiResponse] = useState(null);
   const [socialTarget, setSocialTarget] = useState("");
 
   /**
    * 🔄 SANITY REAL-TIME DATA FETCHING
-   * Sanity API를 통해 직접 데이터를 요청합니다.
+   * Sanity 클라우드에서 최신 데이터를 실시간으로 가져옵니다.
    */
   useEffect(() => {
     const fetchCmsData = async () => {
-      // GROQ 쿼리: 저널, 루트, 기어 데이터를 한 번에 요청
+      // 1pnkcp2x 프로젝트에서 데이터를 가져오기 위한 쿼리
       const query = encodeURIComponent(`{
         "articles": *[_type == "journal"] | order(publishedAt desc),
-        "routes": *[_type == "route"],
+        "routes": *[_type == "route"] {
+           ...,
+           "gpxUrl": gpxFile.asset->url,
+           "gallery": images[].asset->url
+        },
         "gearItems": *[_type == "gear"]
       }`);
       
-      const url = `https://${SANITY_CONFIG.projectId}.api.sanity.io/v${SANITY_CONFIG.apiVersion}/data/query/${SANITY_CONFIG.dataset}?query=${query}`;
+      const endpoint = `https://${SANITY_CONFIG.projectId}.api.sanity.io/v2024-02-20/data/query/production?query=${query}`;
 
       try {
-        const response = await fetch(url);
-        const data = await response.json();
-        
-        if (data.result) {
+        const response = await fetch(endpoint);
+        const result = await response.json();
+        if (result.result) {
           setSiteContent(prev => ({
             ...prev,
-            articles: data.result.articles.length > 0 ? data.result.articles : prev.articles,
-            routes: data.result.routes.length > 0 ? data.result.routes : prev.routes,
-            gearItems: data.result.gearItems.length > 0 ? data.result.gearItems : prev.gearItems,
+            articles: result.result.articles.length > 0 ? result.result.articles : prev.articles,
+            routes: result.result.routes.length > 0 ? result.result.routes : prev.routes,
+            gearItems: result.result.gearItems.length > 0 ? result.result.gearItems : prev.gearItems,
           }));
-          console.log("PESSAGE CMS Sync Complete.");
         }
-      } catch (error) {
-        console.error("CMS Sync Error: ", error);
+      } catch (e) {
+        console.warn("CMS Sync Error. Sanity 관리 페이지에서 CORS 설정을 확인해주세요.");
       }
     };
 
     fetchCmsData();
   }, []);
 
-  // --- Helpers ---
+  // --- GPX 전송 핸들러 ---
+  const handleSyncGPX = (gpxUrl) => {
+    if (!isLoggedIn) { setAuthMode('login'); return; }
+    setIsSyncing(true);
+    setSocialTarget("GPX DATA");
+    // 실제 워치 전송 시뮬레이션
+    setTimeout(() => {
+      setIsSyncing(false);
+      setSyncSuccess(true);
+      setTimeout(() => setSyncSuccess(false), 3000);
+    }, 2000);
+  };
+
+  // --- 헬퍼 함수: 타입별 스타일 ---
   const getTypeColor = (type) => {
     switch(type) {
       case 'TRAIL': return colors.trail.accent;
@@ -153,19 +178,7 @@ export default function App() {
     }
   };
 
-  const groupedRaces = () => {
-    const filtered = siteContent.races.filter(r => raceTypeFilter === 'ALL' || r.type === raceTypeFilter);
-    const sorted = [...filtered].sort((a, b) => new Date(a.date) - new Date(b.date));
-    const groups = {};
-    sorted.forEach(race => {
-      const month = new Date(race.date).toLocaleString('en-US', { month: 'long', year: 'numeric' }).toUpperCase();
-      if (!groups[month]) groups[month] = [];
-      groups[month].push(race);
-    });
-    return groups;
-  };
-
-  // --- Effects for UI & Map ---
+  // --- 외부 라이브러리 및 맵 초기화 ---
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50);
     window.addEventListener('scroll', handleScroll);
@@ -193,9 +206,9 @@ export default function App() {
       }
       updateMapMarkers();
     } else if (leafletMap.current && (activeTab !== 'routes' || routeViewMode !== 'MAP')) {
-      leafletMap.current.remove(); leafletMap.current = null; markerGroupRef.current = null;
+      leafletMap.current.remove(); leafletMap.current = null;
     }
-  }, [activeTab, routeViewMode, isMapLoaded, routeTypeFilter, routeRegionFilter]);
+  }, [activeTab, routeViewMode, isMapLoaded, routeTypeFilter, routeRegionFilter, siteContent.routes]);
 
   const updateMapMarkers = () => {
     if (!leafletMap.current || !markerGroupRef.current) return;
@@ -215,22 +228,25 @@ export default function App() {
     }
   };
 
-  // --- Handlers ---
+  // --- 소셜 로그인 시뮬레이션 ---
   const handleSocialLogin = (platform) => {
     setIsAiLoading(true); setSocialTarget(platform.toUpperCase());
-    setTimeout(() => { setIsLoggedIn(true); setAuthMode(null); setIsAiLoading(false); setSocialTarget(""); if(platform === 'google') setUserStats({ score: 92, mileage: "45.0k", level: "Elite" }); }, 1500);
+    setTimeout(() => {
+      setIsLoggedIn(true); setAuthMode(null); setIsAiLoading(false); setSocialTarget("");
+      if(platform === 'google') setUserStats({ score: 92, mileage: "45.0k", level: "Elite" });
+    }, 1500);
   };
+
   const handleLogout = () => { setIsLoggedIn(false); setIsProfileOpen(false); setActiveTab('journal'); setAuthMode(null); setIsWatchConnected(false); setConnectedDevice(null); };
-  const handleAuthSubmit = (e) => { e.preventDefault(); setIsAiLoading(true); setSocialTarget("PESSAGE Account"); setTimeout(() => { setIsLoggedIn(true); setAuthMode(null); setIsAiLoading(false); setSocialTarget(""); }, 1200); };
   const connectDevice = (brand) => { setIsAiLoading(true); setSocialTarget(`${brand.toUpperCase()} Sync`); setTimeout(() => { setConnectedDevice(brand); setIsWatchConnected(true); setIsWatchModalOpen(false); setIsAiLoading(false); setSocialTarget(""); }, 1500); };
 
   const generateRecoveryPlan = async () => {
-    if (!apiKey) { setAiResponse("환경 변수 인식이 필요합니다. Vercel 배포 시 꼭 Redeploy를 해주세요."); return; }
+    if (!apiKey) { setAiResponse("환경 변수 인식이 필요합니다. Vercel에서 Redeploy를 완료했는지 확인해주세요."); return; }
     setIsAiLoading(true);
     try {
       const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contents: [{ parts: [{ text: `현재 리커버리 점수 ${userStats.score}. 러너를 위한 정밀 리커버리 리추얼 조언해줘.` }] }] })
+        body: JSON.stringify({ contents: [{ parts: [{ text: `현재 리커버리 점수 ${userStats.score}. 러너를 위한 정교한 회복 가이드 제안해줘.` }] }] })
       });
       const data = await response.json();
       setAiResponse(data.candidates?.[0]?.content?.parts?.[0]?.text || "분석 실패");
@@ -269,11 +285,11 @@ export default function App() {
         </div>
       )}
 
-      {/* Loading Overlay */}
-      {isAiLoading && socialTarget && (
+      {/* Syncing Overlay */}
+      {(isAiLoading || isSyncing) && socialTarget && (
         <div className="fixed inset-0 z-[3000] bg-black/80 backdrop-blur-sm flex flex-col items-center justify-center animate-in fade-in">
           <Loader2 size={32} className="animate-spin text-white mb-6" />
-          <p className="text-[10px] uppercase tracking-[0.4em] font-bold tracking-widest">{socialTarget} AUTHENTICATING...</p>
+          <p className="text-[10px] uppercase tracking-[0.4em] font-bold tracking-widest">{socialTarget} TRANSFERRING...</p>
         </div>
       )}
 
@@ -297,11 +313,6 @@ export default function App() {
         {authMode ? (
           <section className="pt-32 px-6 max-w-sm mx-auto animate-in fade-in text-center">
              <h2 className="text-3xl font-light italic mb-10 text-white">Membership</h2>
-             <form onSubmit={handleAuthSubmit} className="space-y-4 mb-10">
-                <input type="email" placeholder="EMAIL" className="w-full bg-[#1c1c1c] border border-[#262626] py-4 px-4 text-[10px] tracking-widest outline-none focus:border-white/30 transition-colors text-white" required />
-                <input type="password" placeholder="PASSWORD" className="w-full bg-[#1c1c1c] border border-[#262626] py-4 px-4 text-[10px] tracking-widest outline-none focus:border-white/30 transition-colors text-white" required />
-                <button type="submit" className="w-full bg-white text-black py-4 font-bold text-[12px] uppercase tracking-widest active:scale-95 transition-transform">Login</button>
-             </form>
              <div className="space-y-3">
                 <button onClick={() => handleSocialLogin('kakao')} className="w-full py-3 bg-[#FEE500] text-black text-[10px] font-bold tracking-widest rounded-sm shadow-lg active:scale-95 transition-transform">KAKAO</button>
                 <button onClick={() => handleSocialLogin('naver')} className="w-full py-3 bg-[#03C75A] text-white text-[10px] font-bold tracking-widest rounded-sm shadow-lg active:scale-95 transition-transform">NAVER</button>
@@ -326,7 +337,7 @@ export default function App() {
                 {selectedArticle ? (
                   <div className="pt-28 px-6 max-w-2xl mx-auto">
                     <button onClick={() => setSelectedArticle(null)} className="flex items-center gap-2 text-[#737373] text-[10px] uppercase tracking-widest mb-10 hover:text-white transition-colors"><ArrowLeft size={14} /> Back</button>
-                    <h2 className="text-4xl font-light italic mb-8 text-white">{selectedArticle.title}</h2>
+                    <h2 className="text-4xl font-light italic mb-8 leading-tight text-white">{selectedArticle.title}</h2>
                     <p className="text-lg leading-relaxed text-[#d4d4d4] font-light whitespace-pre-line mb-20">{selectedArticle.content}</p>
                   </div>
                 ) : (
@@ -334,7 +345,9 @@ export default function App() {
                     <div>
                       <p className="text-[12px] tracking-[0.4em] uppercase mb-4 text-[#a3a3a3]">Season 01: The Mist</p>
                       <h2 className="text-5xl md:text-7xl font-light italic tracking-tight leading-tight mb-12 text-white">Finding Clarity <br/> in the Grey.</h2>
-                      <button onClick={() => setSelectedArticle(siteContent.articles[0])} className="text-[11px] uppercase tracking-[0.3em] border-b border-white/30 pb-1 hover:border-white transition-colors text-white">Read Journal</button>
+                      {siteContent.articles.length > 0 && (
+                        <button onClick={() => setSelectedArticle(siteContent.articles[0])} className="text-[11px] uppercase tracking-[0.3em] border-b border-white/30 pb-1 hover:border-white transition-colors text-white">Read Journal</button>
+                      )}
                     </div>
                   </div>
                 )}
@@ -351,11 +364,32 @@ export default function App() {
                       <div>
                         <span className={`text-[10px] px-3 py-1 rounded-full border mb-3 inline-block uppercase font-bold tracking-widest ${getTypeBorder(selectedRoute.type)} ${getTypeColor(selectedRoute.type)}`}>{selectedRoute.type}</span>
                         <h2 className="text-4xl font-light italic leading-tight text-white">{selectedRoute.name}</h2>
-                        <p className="text-[#737373] text-sm mt-1">{selectedRoute.location}</p>
+                        <p className="text-[#737373] text-sm mt-1">{selectedRoute.region}</p>
                       </div>
                       <p className="text-2xl font-light tracking-tighter text-white">{selectedRoute.distance}</p>
                     </div>
+                    
+                    {/* ✅ 코스 이미지 갤러리 (Sanity 데이터 기반) */}
+                    {selectedRoute.gallery && selectedRoute.gallery.length > 0 && (
+                      <div className="grid grid-cols-2 gap-2 mb-10">
+                        {selectedRoute.gallery.map((imgUrl, i) => (
+                           <div key={i} className="aspect-[4/3] bg-[#1c1c1c] border border-white/5 rounded-sm overflow-hidden">
+                             <img src={imgUrl} alt={`Route ${i}`} className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-500" />
+                           </div>
+                        ))}
+                      </div>
+                    )}
+
                     <p className="text-lg leading-relaxed text-[#d4d4d4] font-light mb-16">{selectedRoute.description}</p>
+                    
+                    {/* ✅ GPX 워치 전송 연동 버튼 */}
+                    <button 
+                      onClick={() => handleSyncGPX(selectedRoute.gpxUrl)}
+                      className={`w-full py-4 rounded-full text-[12px] uppercase font-bold transition-all flex items-center justify-center gap-3 ${syncSuccess ? 'bg-green-600' : 'bg-white text-black'}`}
+                    >
+                      {syncSuccess ? <CheckCircle2 size={16}/> : <Watch size={16}/>}
+                      {isSyncing ? 'TRANSFERRING GPX...' : syncSuccess ? 'Synced to Watch' : 'Sync GPX to Device'}
+                    </button>
                   </div>
                 ) : (
                   <>
@@ -371,11 +405,6 @@ export default function App() {
                       <div className="flex gap-6 border-b border-white/5 pb-4 mb-6">
                         {['ALL', 'ORIGINAL', 'TRAIL', 'ROAD'].map(type => (
                           <button key={type} onClick={() => setRouteTypeFilter(type)} className={`text-[10px] uppercase tracking-[0.3em] font-bold transition-all ${routeTypeFilter === type ? 'text-white border-b border-white pb-4 -mb-4' : 'text-[#404040] hover:text-white'}`}>{type}</button>
-                        ))}
-                      </div>
-                      <div className="flex gap-6 border-b border-white/5 pb-4">
-                        {['ALL', 'SEOUL', 'JEJU', 'GYEONGGI'].map(r => (
-                          <button key={r} onClick={() => setRouteRegionFilter(r)} className={`text-[10px] uppercase tracking-[0.3em] font-bold transition-all ${routeRegionFilter === r ? 'text-white border-b border-white pb-4 -mb-4' : 'text-[#404040] hover:text-white'}`}>{r}</button>
                         ))}
                       </div>
                     </div>
@@ -399,7 +428,7 @@ export default function App() {
                           .map(route => (
                           <div key={route._id || route.id} onClick={() => setSelectedRoute(route)} className="p-6 bg-[#1c1c1c] border border-white/5 rounded-sm flex justify-between items-center cursor-pointer hover:border-white/20 transition-all group">
                              <div>
-                                <p className={`text-[9px] uppercase font-bold mb-1 tracking-widest ${getTypeColor(route.type)}`}>{route.type} / {route.location || route.region}</p>
+                                <p className={`text-[9px] uppercase font-bold mb-1 tracking-widest ${getTypeColor(route.type)}`}>{route.type} / {route.region}</p>
                                 <h4 className="text-xl font-light italic group-hover:text-white text-white">{route.name}</h4>
                              </div>
                              <span className="text-2xl font-light tracking-tighter group-hover:text-white text-white">{route.distance}</span>
@@ -412,65 +441,19 @@ export default function App() {
               </section>
             )}
 
-            {/* SESSIONS TAB */}
-            {activeTab === 'sessions' && (
-              <section className="pt-28 px-6 max-w-4xl mx-auto animate-in slide-in-from-bottom-4">
-                <div className="mb-12"><h2 className="text-3xl font-light italic mb-6 text-white">Race & Narrative</h2></div>
-                {Object.entries(groupedRaces()).map(([month, monthRaces]) => (
-                  <div key={month} className="mb-20">
-                    <div className="flex items-center gap-4 mb-8">
-                      <Calendar size={14} className="text-[#404040]" />
-                      <h3 className="text-[11px] uppercase tracking-[0.4em] font-bold text-[#525252]">{month}</h3>
-                      <div className="h-[1px] bg-white/5 flex-1"></div>
-                    </div>
-                    <div className="space-y-12">
-                      {monthRaces.map(race => (
-                        <div key={race.id} className="group border-l border-white/5 pl-8 relative">
-                          <div className={`absolute left-[-4px] top-0 w-2 h-2 rounded-full ${race.type === 'TRAIL' ? 'bg-orange-400' : 'bg-blue-400'}`}></div>
-                          <h4 className="text-3xl font-light italic mb-4 text-white">{race.name}</h4>
-                          <p className="text-sm text-[#a3a3a3] font-light max-w-xl mb-6">{race.description}</p>
-                          <button onClick={() => generateRecoveryPlan()} className="flex items-center gap-2 bg-white/10 px-6 py-3 text-[10px] uppercase tracking-widest hover:bg-white hover:text-black transition-all text-white">AI Strategy</button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </section>
-            )}
-
-            {/* GEAR TAB */}
-            {activeTab === 'gear' && (
-              <section className="pt-28 px-6 max-w-4xl mx-auto animate-in slide-in-from-bottom-4">
-                <h2 className="text-3xl font-light italic mb-12 text-center text-white">Essential Tools</h2>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-16">
-                  {siteContent.gearItems.map(item => (
-                      <div key={item._id || item.id} className="group flex flex-col animate-in fade-in text-left">
-                        <div className="aspect-[4/5] bg-[#1c1c1c] border border-white/5 rounded-sm flex items-center justify-center mb-5 overflow-hidden group-hover:border-white/20 transition-all cursor-pointer text-[#333] text-[9px] uppercase tracking-widest italic">{item.imageLabel || "[Image]"}</div>
-                        <div className="flex flex-col">
-                           <p className={`text-[8px] uppercase font-bold tracking-widest mb-1 ${item.category === 'TRAIL' ? 'text-orange-400' : 'text-blue-400'}`}>{item.category} / {item.brand}</p>
-                           <h3 className="text-sm font-medium italic mb-2 text-white">{item.name}</h3>
-                           <p className="text-[10px] text-[#737373] leading-relaxed line-clamp-3 italic">"{item.note}"</p>
-                        </div>
-                      </div>
-                    ))}
-                </div>
-              </section>
-            )}
-
             {/* RITUAL TAB */}
             {activeTab === 'recovery' && (
               <section className="px-6 pt-28 max-w-3xl mx-auto animate-in slide-in-from-bottom-4">
                 <h2 className="text-3xl font-light italic mb-10 text-center text-white">Recovery Ritual</h2>
                 {isLoggedIn && isWatchConnected ? (
-                  <div className="animate-in fade-in">
+                  <div className="animate-in fade-in text-center">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-                       <div className="bg-[#1c1c1c] p-6 border border-white/5 text-center rounded-sm shadow-xl"><p className="text-[10px] uppercase mb-4 text-[#737373] tracking-widest font-bold">Recovery Score</p><div className="text-6xl font-light mb-2 text-white">{userStats.score}</div><p className="text-[9px] text-green-400 uppercase font-bold tracking-widest">Optimal</p></div>
-                       <div className="bg-[#1c1c1c] p-6 border border-white/5 text-center rounded-sm shadow-xl"><p className="text-[10px] uppercase mb-4 text-[#737373] tracking-widest font-bold">Data Source</p><div className="text-2xl font-light uppercase tracking-tighter mt-4 text-white">{connectedDevice?.toUpperCase()}</div></div>
-                       <div className="bg-[#1c1c1c] p-6 border border-white/5 text-center rounded-sm shadow-xl"><p className="text-[10px] uppercase mb-4 text-[#737373] tracking-widest font-bold">Last Sync</p><div className="text-2xl font-light italic mt-4 text-white">Just Now</div></div>
+                       <div className="bg-[#1c1c1c] p-6 border border-white/5 rounded-sm shadow-xl"><p className="text-[10px] uppercase mb-4 text-[#737373] tracking-widest font-bold">Recovery Score</p><div className="text-6xl font-light mb-2 text-white">{userStats.score}</div><p className="text-[9px] text-green-400 uppercase font-bold tracking-widest">Optimal</p></div>
+                       <div className="bg-[#1c1c1c] p-6 border border-white/5 rounded-sm shadow-xl"><p className="text-[10px] uppercase mb-4 text-[#737373] tracking-widest font-bold">Data Source</p><div className="text-2xl font-light uppercase tracking-tighter mt-4 text-white">{connectedDevice?.toUpperCase()}</div></div>
+                       <div className="bg-[#1c1c1c] p-6 border border-white/5 rounded-sm shadow-xl"><p className="text-[10px] uppercase mb-4 text-[#737373] tracking-widest font-bold">Last Sync</p><div className="text-2xl font-light italic mt-4 text-white">Just Now</div></div>
                     </div>
                     <button onClick={generateRecoveryPlan} className="w-full py-4 bg-white text-black font-bold uppercase text-[12px] tracking-[0.2em] active:scale-[0.98] transition-transform">Get AI Ritual</button>
-                    {aiResponse && <div className="mt-8 text-sm italic text-[#d4d4d4] border-t border-white/5 pt-6 animate-in slide-in-from-bottom-2 leading-relaxed">"{aiResponse}"</div>}
-                    <div className="mt-12 p-6 bg-[#1c1c1c] border border-white/5 rounded-sm flex items-center justify-between"><div className="flex items-center gap-4 text-[#525252]"><WatchIcon size={18} /><span className="text-[10px] uppercase tracking-widest font-bold">Connected: {connectedDevice?.toUpperCase()}</span></div><button onClick={() => setIsWatchModalOpen(true)} className="text-[9px] uppercase tracking-widest text-[#c2410c] font-bold">Change</button></div>
+                    {aiResponse && <div className="mt-8 text-sm italic text-[#d4d4d4] border-t border-white/5 pt-6 animate-in slide-in-from-bottom-2 leading-relaxed text-left">"{aiResponse}"</div>}
                   </div>
                 ) : (
                   <div className="text-center py-24 border border-dashed border-white/10 rounded-sm">
