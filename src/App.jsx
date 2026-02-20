@@ -89,7 +89,7 @@ export default function App() {
   const [selectedArticle, setSelectedArticle] = useState(null);
   const [selectedRoute, setSelectedRoute] = useState(null);
   
-  // 필터 상태들 복구
+  // 필터 상태들
   const [routeViewMode, setRouteViewMode] = useState('LIST'); 
   const [routeTypeFilter, setRouteTypeFilter] = useState('ALL');
   const [routeRegionFilter, setRouteRegionFilter] = useState('ALL');
@@ -99,6 +99,8 @@ export default function App() {
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [aiResponse, setAiResponse] = useState(null);
   const [activeAiTarget, setActiveAiTarget] = useState(null);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncSuccess, setSyncSuccess] = useState(false);
   const [cmsError, setCmsError] = useState(null);
   const [currentOrigin, setCurrentOrigin] = useState("");
 
@@ -145,6 +147,42 @@ export default function App() {
     fetchCmsData();
   }, []);
 
+  // --- 워치 연결 핸들러 ---
+  const connectDevice = (brand) => {
+    setIsAiLoading(true);
+    // 실제 연결 시뮬레이션
+    setTimeout(() => {
+      setConnectedDevice(brand);
+      setIsWatchModalOpen(false);
+      setIsAiLoading(false);
+    }, 1500);
+  };
+
+  // --- GPX 전송 핸들러 ---
+  const handleSyncGPX = (targetId) => {
+    if (!isLoggedIn) { 
+      setActiveTab('journal'); 
+      return; 
+    }
+    if (!connectedDevice) {
+      setIsWatchModalOpen(true);
+      return;
+    }
+    
+    setActiveAiTarget(targetId);
+    setIsSyncing(true);
+    setSyncSuccess(false);
+    
+    setTimeout(() => {
+      setIsSyncing(false);
+      setSyncSuccess(true);
+      setTimeout(() => {
+        setSyncSuccess(false);
+        setActiveAiTarget(null);
+      }, 3000);
+    }, 2000);
+  };
+
   // --- AI 전략 생성 ---
   const generateAiContent = async (target, prompt) => {
     if (!apiKey) return;
@@ -177,7 +215,6 @@ export default function App() {
     </button>
   );
 
-  // --- 레이스 그룹화 헬퍼 ---
   const groupedRaces = () => {
     const filtered = siteContent.races.filter(r => raceTypeFilter === 'ALL' || r.type === raceTypeFilter);
     const groups = {};
@@ -206,10 +243,47 @@ export default function App() {
         </div>
       )}
 
+      {/* ⌚ Device Connection Modal (복구됨) */}
+      {isWatchModalOpen && (
+        <div className="fixed inset-0 z-[2000] bg-black/90 backdrop-blur-md flex items-center justify-center p-6 animate-in fade-in">
+          <div className="max-w-sm w-full bg-[#1c1c1c] border border-white/10 p-8 rounded-sm shadow-2xl">
+            <h3 className="text-xl font-light italic mb-8 text-center text-white">Connect Device</h3>
+            <div className="space-y-3">
+              {['Garmin', 'COROS', 'Apple Watch'].map(brand => (
+                <button key={brand} onClick={() => connectDevice(brand)} className="w-full flex justify-between items-center p-5 bg-white/5 border border-white/5 hover:border-white/20 transition-all">
+                  <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-white">{brand}</span>
+                  <ChevronRight size={14} className="text-[#525252]" />
+                </button>
+              ))}
+            </div>
+            <button onClick={() => setIsWatchModalOpen(false)} className="w-full mt-10 text-[9px] uppercase tracking-widest text-[#444] hover:text-white">Close</button>
+          </div>
+        </div>
+      )}
+
+      {/* 🔄 Syncing/Loading Overlay */}
+      {(isAiLoading || isSyncing) && (
+        <div className="fixed inset-0 z-[3000] bg-black/80 backdrop-blur-sm flex flex-col items-center justify-center animate-in fade-in">
+          <Loader2 size={32} className="animate-spin text-white mb-6" />
+          <p className="text-[10px] uppercase tracking-[0.4em] font-bold tracking-widest text-white">DATA SYNCING...</p>
+        </div>
+      )}
+
       {/* 헤더 */}
       <header className={`fixed top-0 w-full z-[1000] transition-all duration-500 px-6 py-4 flex justify-between items-center ${scrolled ? 'bg-black/80 backdrop-blur-md' : 'bg-transparent'}`}>
         <h1 className="text-2xl font-bold tracking-[0.2em] italic cursor-pointer" onClick={() => {setActiveTab('journal'); setSelectedArticle(null);}}>PESSAGE</h1>
-        <button onClick={() => setIsLoggedIn(!isLoggedIn)} className={isLoggedIn ? "text-white" : "text-[#525252]"}><User size={22} /></button>
+        <div className="flex gap-4 items-center">
+          {isLoggedIn ? (
+            <>
+              <div className={`text-[10px] tracking-widest uppercase px-3 py-1 rounded-full border transition-all ${connectedDevice ? 'border-green-500/30 text-green-400 bg-green-500/5' : 'border-white/10 text-[#525252]'}`}>
+                {connectedDevice ? connectedDevice.toUpperCase() : 'DISCONNECTED'}
+              </div>
+              <button onClick={() => setIsLoggedIn(!isLoggedIn)} className="p-1 text-[#a3a3a3] hover:text-white transition-all"><User size={22} /></button>
+            </>
+          ) : (
+            <button onClick={() => setIsLoggedIn(true)} className="text-[11px] uppercase bg-white text-black px-5 py-2 rounded-full font-bold shadow-lg active:scale-95 transition-transform">JOIN</button>
+          )}
+        </div>
       </header>
 
       <main className="pb-32">
@@ -247,7 +321,7 @@ export default function App() {
           </section>
         )}
 
-        {/* ROUTES TAB (복구된 필터링 탭 포함) */}
+        {/* ROUTES TAB */}
         {activeTab === 'routes' && (
           <section className="pt-28 px-6 max-w-4xl mx-auto animate-in slide-in-from-bottom-4">
             {selectedRoute ? (
@@ -274,8 +348,12 @@ export default function App() {
 
                 <div className="mb-20"><EditorialRenderer blocks={selectedRoute.description} /></div>
 
-                <button className={`w-full py-4 rounded-full font-bold uppercase text-[12px] tracking-widest transition-all ${selectedRoute.gpxUrl ? 'bg-white text-black active:scale-95 shadow-xl' : 'bg-white/5 text-[#444] cursor-not-allowed'}`}>
-                  {selectedRoute.gpxUrl ? 'Sync GPX to Watch' : 'No GPX Available'}
+                <button 
+                  onClick={() => handleSyncGPX(selectedRoute._id)}
+                  className={`w-full py-4 rounded-full font-bold uppercase text-[12px] tracking-widest transition-all flex items-center justify-center gap-2 ${activeAiTarget === selectedRoute._id && syncSuccess ? 'bg-green-600' : 'bg-white text-black active:scale-95 shadow-xl disabled:bg-white/5 disabled:text-[#444]'}`}
+                >
+                  {activeAiTarget === selectedRoute._id && syncSuccess ? <CheckCircle2 size={16} /> : <Watch size={16} />}
+                  {activeAiTarget === selectedRoute._id && syncSuccess ? 'Synced to Watch' : 'Sync GPX to Device'}
                 </button>
                 <div className="h-40" />
               </div>
@@ -289,7 +367,7 @@ export default function App() {
                     </div>
                  </div>
 
-                 {/* 🏷️ Routes Filters (Type & Region) */}
+                 {/* Filters */}
                  <div className="mb-10">
                     <div className="flex gap-6 border-b border-white/5 pb-4 mb-6 overflow-x-auto whitespace-nowrap">
                         {['ALL', 'ORIGINAL', 'TRAIL', 'ROAD'].map(t => (
@@ -326,13 +404,11 @@ export default function App() {
           </section>
         )}
 
-        {/* SESSIONS TAB (복구된 필터링 탭 포함) */}
+        {/* SESSIONS TAB */}
         {activeTab === 'sessions' && (
           <section className="pt-28 px-6 max-w-4xl mx-auto animate-in slide-in-from-bottom-4">
             <div className="mb-12">
               <h2 className="text-3xl font-light italic mb-6">Race & Narrative</h2>
-              
-              {/* 🏷️ Race Sub-Tabs */}
               <div className="flex gap-6 border-b border-white/5 pb-4 mb-10 overflow-x-auto whitespace-nowrap">
                 {['ALL', 'TRAIL', 'ROAD'].map(type => (
                   <button key={type} onClick={() => setRaceTypeFilter(type)} className={`text-[10px] uppercase tracking-[0.3em] font-bold transition-all ${raceTypeFilter === type ? 'text-white border-b border-white pb-4 -mb-4' : 'text-[#404040]'}`}>{type}</button>
@@ -354,9 +430,16 @@ export default function App() {
                            <div className={`absolute left-[-4px] top-0 w-2 h-2 rounded-full ${race.type === 'TRAIL' ? 'bg-orange-400' : 'bg-blue-400'}`}></div>
                            <h3 className="text-3xl font-light italic mb-4">{race.name}</h3>
                            <p className="text-sm text-[#737373] font-light leading-relaxed max-w-xl mb-8">{race.description}</p>
-                           <button onClick={() => generateAiContent(race.name, `${race.name} 대회를 위한 레이스 전략.`)} className="flex items-center gap-2 bg-white/10 px-6 py-3 text-[10px] uppercase tracking-widest hover:bg-white hover:text-black transition-all">
-                             <Sparkles size={12} /> AI Strategy
-                           </button>
+                           <div className="flex gap-3">
+                              <button onClick={() => generateAiContent(race.name, `${race.name} 전략`)} className="flex items-center gap-2 bg-white/10 px-6 py-3 text-[10px] uppercase tracking-widest hover:bg-white hover:text-black transition-all"><Sparkles size={12} /> AI Strategy</button>
+                              <button 
+                                onClick={() => handleSyncGPX(race._id)}
+                                className={`flex items-center gap-2 py-3 px-6 text-[10px] uppercase tracking-widest border border-[#262626] transition-all ${activeAiTarget === race._id && syncSuccess ? 'bg-green-600 border-none' : 'hover:border-white'}`}
+                              >
+                                {activeAiTarget === race._id && syncSuccess ? <CheckCircle2 size={12} /> : <Watch size={12} />}
+                                {activeAiTarget === race._id && syncSuccess ? 'Synced' : 'Sync GPX'}
+                              </button>
+                           </div>
                            {activeAiTarget === race.name && aiResponse && (
                              <div className="mt-8 p-6 bg-white/5 border border-white/5 rounded-sm italic text-sm text-[#d4d4d4] font-light leading-relaxed">"{aiResponse}"</div>
                            )}
@@ -369,13 +452,11 @@ export default function App() {
           </section>
         )}
 
-        {/* GEAR TAB (복구된 필터링 탭 포함) */}
+        {/* GEAR TAB */}
         {activeTab === 'gear' && (
           <section className="pt-28 px-6 max-w-4xl mx-auto animate-in fade-in">
             <div className="mb-12 flex flex-col md:flex-row justify-between items-end gap-6">
               <div><h2 className="text-3xl font-light italic mb-2">Essential Tools</h2><p className="text-[#525252] text-xs italic tracking-wide">에디터의 취향과 신뢰가 깃든 도구들에 대한 사설.</p></div>
-              
-              {/* 🏷️ Gear Filters */}
               <div className="flex gap-4 border-b border-white/5 pb-1 overflow-x-auto whitespace-nowrap">
                 {['ALL', 'TRAIL', 'ROAD', 'NUTRITION'].map(cat => (
                   <button key={cat} onClick={() => setGearFilter(cat)} className={`text-[9px] uppercase tracking-widest font-bold transition-all ${gearFilter === cat ? 'text-white border-b border-white pb-2' : 'text-[#404040]'}`}>{cat}</button>
@@ -384,9 +465,7 @@ export default function App() {
             </div>
 
             <div className="space-y-32">
-              {siteContent.gearItems
-                .filter(item => gearFilter === 'ALL' || item.category === gearFilter)
-                .map(item => (
+              {siteContent.gearItems.filter(item => gearFilter === 'ALL' || item.category === gearFilter).map(item => (
                 <div key={item._id} className="flex flex-col md:flex-row gap-12 items-start group">
                   <div className="w-full md:w-1/2 aspect-[4/5] bg-[#1c1c1c] border border-white/5 overflow-hidden rounded-sm">
                     {item.image && <img src={urlFor(item.image)} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-1000" alt={item.name} />}
@@ -410,11 +489,25 @@ export default function App() {
           <section className="px-6 pt-28 max-w-3xl mx-auto text-center animate-in slide-in-from-bottom-4">
             <h2 className="text-3xl font-light italic mb-10">Recovery Ritual</h2>
             <div className="py-24 border border-dashed border-white/10 rounded-sm relative bg-white/[0.02]">
-              <Zap size={48} className="mx-auto mb-6 text-[#333] animate-pulse"/>
-              <p className="text-sm text-[#737373] mb-10 leading-relaxed font-light">워치 데이터를 동기화하여 <br/>오늘의 컨디션에 맞는 리추얼을 분석하세요.</p>
-              <button onClick={() => generateAiContent('recovery', 'Patrick의 최적 리커버리 리추얼.')} className="px-12 py-4 bg-white text-black font-bold text-[11px] uppercase tracking-widest rounded-full shadow-2xl active:scale-95 transition-transform">Get AI Ritual</button>
-              {activeAiTarget === 'recovery' && aiResponse && (
-                <div className="mt-12 text-sm italic text-[#d4d4d4] font-light leading-relaxed max-w-md mx-auto">"{aiResponse}"</div>
+              {connectedDevice ? (
+                <div className="animate-in fade-in">
+                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
+                      <div className="bg-[#1c1c1c] p-6 border border-white/5 rounded-sm"><p className="text-[10px] uppercase tracking-widest text-[#737373] mb-4 font-bold">Recovery Score</p><div className="text-6xl font-light mb-2">84</div><p className="text-[9px] text-green-400 uppercase font-bold tracking-widest">Optimal</p></div>
+                      <div className="bg-[#1c1c1c] p-6 border border-white/5 rounded-sm"><p className="text-[10px] uppercase tracking-widest text-[#737373] mb-4 font-bold">Data Source</p><div className="text-2xl font-light uppercase tracking-tighter mt-4">{connectedDevice}</div></div>
+                      <div className="bg-[#1c1c1c] p-6 border border-white/5 rounded-sm"><p className="text-[10px] uppercase tracking-widest text-[#737373] mb-4 font-bold">Last Sync</p><div className="text-2xl font-light italic mt-4">Just Now</div></div>
+                   </div>
+                   <button onClick={() => generateAiContent('recovery', 'Recovery Ritual 조언')} className="px-12 py-4 bg-white text-black font-bold text-[11px] uppercase tracking-widest rounded-full shadow-2xl active:scale-95 transition-transform">Get AI Ritual</button>
+                   {activeAiTarget === 'recovery' && aiResponse && (
+                     <div className="mt-12 text-sm italic text-[#d4d4d4] font-light leading-relaxed max-w-md mx-auto">"{aiResponse}"</div>
+                   )}
+                   <button onClick={() => setIsWatchModalOpen(true)} className="mt-12 text-[10px] uppercase tracking-widest text-[#525252] hover:text-white block mx-auto underline underline-offset-4">Change Device</button>
+                </div>
+              ) : (
+                <div className="animate-in fade-in">
+                   <Zap size={48} className="mx-auto mb-6 text-[#333] animate-pulse"/>
+                   <p className="text-sm text-[#737373] mb-10 leading-relaxed font-light">워치 데이터를 동기화하여 <br/>오늘의 컨디션에 맞는 리추얼을 분석하세요.</p>
+                   <button onClick={() => setIsWatchModalOpen(true)} className="px-12 py-4 bg-white text-black font-bold text-[11px] uppercase tracking-widest rounded-full shadow-2xl active:scale-95 transition-transform">Connect Watch</button>
+                </div>
               )}
             </div>
           </section>
