@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { 
   Compass, ShoppingBag, Wind, User, MapPin, ArrowRight, ChevronRight, Activity, 
   Flag, Watch, CheckCircle2, Sparkles, Loader2, Zap, Coffee, ArrowLeft, Download, 
@@ -178,26 +178,8 @@ export default function App() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // --- 3. 지도 초기화 및 업데이트 (핵심 수정) ---
-  useEffect(() => {
-    if (activeTab === 'routes' && routeViewMode === 'MAP' && isMapLoaded && mapRef.current) {
-      const L = window.L;
-      if (!leafletMap.current) {
-        const map = L.map(mapRef.current, { center: [36.5, 127.8], zoom: 7, zoomControl: false, attributionControl: false });
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 20 }).addTo(map);
-        leafletMap.current = map;
-        markerGroupRef.current = L.layerGroup().addTo(map);
-        
-        // 렌더링 직후 지도 크기 재계산 (회색 화면 방지)
-        setTimeout(() => map.invalidateSize(), 200);
-      }
-      updateMapMarkers();
-    } else if (leafletMap.current && (activeTab !== 'routes' || routeViewMode !== 'MAP')) {
-      leafletMap.current.remove(); leafletMap.current = null;
-    }
-  }, [activeTab, routeViewMode, isMapLoaded, routeTypeFilter, routeRegionFilter, siteContent.routes]);
-
-  const updateMapMarkers = () => {
+  // --- 3. 마커 업데이트 로직 (useCallback으로 최적화) ---
+  const updateMapMarkers = useCallback(() => {
     if (!leafletMap.current || !markerGroupRef.current) return;
     const L = window.L;
     markerGroupRef.current.clearLayers();
@@ -222,9 +204,32 @@ export default function App() {
         leafletMap.current.fitBounds(bounds, { padding: [50, 50], maxZoom: 12 });
       }
     }
-  };
+  }, [siteContent.routes, routeTypeFilter, routeRegionFilter]);
 
-  // --- 4. 이벤트 핸들러 ---
+  // --- 4. 지도 초기화 및 업데이트 ---
+  useEffect(() => {
+    let mapTimer;
+    if (activeTab === 'routes' && routeViewMode === 'MAP' && isMapLoaded && mapRef.current) {
+      const L = window.L;
+      if (!leafletMap.current) {
+        const map = L.map(mapRef.current, { center: [36.5, 127.8], zoom: 7, zoomControl: false, attributionControl: false });
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 20 }).addTo(map);
+        leafletMap.current = map;
+        markerGroupRef.current = L.layerGroup().addTo(map);
+        
+        // 중요: 렌더링 직후 지도 크기 재계산 (회색 화면 방지)
+        mapTimer = setTimeout(() => {
+          if (leafletMap.current) leafletMap.current.invalidateSize();
+        }, 300);
+      }
+      updateMapMarkers();
+    } else if (leafletMap.current && (activeTab !== 'routes' || routeViewMode !== 'MAP')) {
+      leafletMap.current.remove(); leafletMap.current = null;
+    }
+    return () => clearTimeout(mapTimer);
+  }, [activeTab, routeViewMode, isMapLoaded, updateMapMarkers]);
+
+  // --- 5. 이벤트 핸들러 ---
   const handleSocialLogin = (platform) => {
     setIsAiLoading(true);
     setTimeout(() => { setIsLoggedIn(true); setAuthMode(null); setIsAiLoading(false); }, 1500);
@@ -440,7 +445,7 @@ export default function App() {
                     </div>
 
                     {routeViewMode === 'MAP' ? (
-                      <div className="relative animate-in fade-in">
+                      <div className="relative animate-in fade-in duration-500">
                         <div ref={mapRef} className="w-full aspect-[4/5] md:aspect-[16/9] bg-[#121212] rounded-sm overflow-hidden border border-white/5 shadow-2xl" />
                         {mapPopup && (
                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 bg-black border border-white/20 p-6 rounded-sm shadow-2xl z-[2000] animate-in zoom-in-95 text-center">
@@ -457,7 +462,7 @@ export default function App() {
                         {siteContent.routes.filter(r => (routeTypeFilter === 'ALL' || r.type === routeTypeFilter) && (routeRegionFilter === 'ALL' || r.region === routeRegionFilter)).map(route => (
                           <div key={route._id} onClick={() => setSelectedRoute(route)} className="p-8 bg-[#1c1c1c] border border-white/5 flex justify-between items-center cursor-pointer hover:border-white/20 transition-all group rounded-sm shadow-lg">
                               <div>
-                                <p className={`text-[9px] uppercase font-bold tracking-widest mb-1 ${route.type === 'TRAIL' ? 'text-orange-400' : 'text-blue-400'}`}>{route.type} / {route.region}</p>
+                                <p className={`text-[9px] uppercase font-bold mb-1 tracking-widest ${route.type === 'TRAIL' ? 'text-orange-400' : 'text-blue-400'}`}>{route.type} / {route.region}</p>
                                 <h4 className="text-2xl font-light italic group-hover:text-white transition-colors">{route.name}</h4>
                               </div>
                               <span className="text-xl font-light text-[#525252] group-hover:text-white">{route.distance}</span>
