@@ -35,7 +35,6 @@ const urlFor = (source) => {
 
 /**
  * 🖋️ Editorial Content Renderer (Portable Text 지원)
- * Sanity의 블록 에디터 데이터를 해석하여 글, 사진, 인용구를 배치합니다.
  */
 const EditorialRenderer = ({ blocks }) => {
   if (!blocks || !Array.isArray(blocks)) return null;
@@ -89,7 +88,14 @@ export default function App() {
   const [isWatchModalOpen, setIsWatchModalOpen] = useState(false);
   const [selectedArticle, setSelectedArticle] = useState(null);
   const [selectedRoute, setSelectedRoute] = useState(null);
+  
+  // 필터 상태들 복구
   const [routeViewMode, setRouteViewMode] = useState('LIST'); 
+  const [routeTypeFilter, setRouteTypeFilter] = useState('ALL');
+  const [routeRegionFilter, setRouteRegionFilter] = useState('ALL');
+  const [raceTypeFilter, setRaceTypeFilter] = useState('ALL');
+  const [gearFilter, setGearFilter] = useState('ALL');
+
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [aiResponse, setAiResponse] = useState(null);
   const [activeAiTarget, setActiveAiTarget] = useState(null);
@@ -101,7 +107,6 @@ export default function App() {
     setCurrentOrigin(window.location.origin);
     
     const fetchCmsData = async () => {
-      // 쿼리에 races(대회) 정보를 추가했습니다.
       const query = encodeURIComponent(`{
         "articles": *[_type == "journal"] | order(publishedAt desc),
         "routes": *[_type == "route"] {
@@ -124,11 +129,10 @@ export default function App() {
             articles: result.result.articles || [],
             routes: result.result.routes || [],
             gearItems: result.result.gearItems || [],
-            // 만약 Sanity에 race 스키마가 없다면 아래 목업 데이터를 사용합니다.
             races: result.result.races.length > 0 ? result.result.races : [
               { _id: 'r1', name: 'Trans Jeju 100K', date: '2026-10-12', type: 'TRAIL', description: '한국 최대의 울트라 트레일 대제전.' },
               { _id: 'r2', name: 'UTMB Mont-Blanc', date: '2026-08-28', type: 'TRAIL', description: '트레일 러너들의 성지.' },
-              { _id: 'r3', name: 'Seoul Marathon', date: '2026-03-15', type: 'ROAD', description: '서울의 심장을 관통하는 레이스.' }
+              { _id: 'r3', name: 'Seoul Marathon', date: '2026-03-15', type: 'ROAD', description: '역사적인 서울 로드 레이스.' }
             ]
           });
           setCmsError(null);
@@ -172,6 +176,19 @@ export default function App() {
       <span className="text-[10px] uppercase tracking-widest font-medium">{label}</span>
     </button>
   );
+
+  // --- 레이스 그룹화 헬퍼 ---
+  const groupedRaces = () => {
+    const filtered = siteContent.races.filter(r => raceTypeFilter === 'ALL' || r.type === raceTypeFilter);
+    const groups = {};
+    filtered.forEach(race => {
+      const dateObj = new Date(race.date);
+      const month = isNaN(dateObj.getTime()) ? "UPCOMING" : dateObj.toLocaleString('en-US', { month: 'long', year: 'numeric' }).toUpperCase();
+      if (!groups[month]) groups[month] = [];
+      groups[month].push(race);
+    });
+    return groups;
+  };
 
   return (
     <div className="min-h-screen bg-[#121212] text-white font-sans selection:bg-white selection:text-black">
@@ -230,7 +247,7 @@ export default function App() {
           </section>
         )}
 
-        {/* ROUTES TAB */}
+        {/* ROUTES TAB (복구된 필터링 탭 포함) */}
         {activeTab === 'routes' && (
           <section className="pt-28 px-6 max-w-4xl mx-auto animate-in slide-in-from-bottom-4">
             {selectedRoute ? (
@@ -239,7 +256,7 @@ export default function App() {
                 <div className="flex justify-between items-end mb-12 border-b border-white/5 pb-12">
                   <div>
                     <span className={`text-[10px] px-3 py-1 rounded-full border mb-4 inline-block font-bold tracking-widest ${selectedRoute.type === 'TRAIL' ? 'text-orange-400 border-orange-400/30' : 'text-blue-400 border-blue-400/30'}`}>{selectedRoute.type}</span>
-                    <h2 className="text-5xl font-light italic leading-tight">{selectedRoute.name}</h2>
+                    <h2 className="text-5xl font-light italic">{selectedRoute.name}</h2>
                   </div>
                   <div className="text-right"><p className="text-[10px] text-[#525252] uppercase tracking-widest mb-1">Distance</p><p className="text-2xl font-light">{selectedRoute.distance}</p></div>
                 </div>
@@ -264,62 +281,112 @@ export default function App() {
               </div>
             ) : (
               <div className="space-y-6">
-                 <h2 className="text-3xl font-light italic mb-12">Narrative Explorer</h2>
-                 <div className="flex bg-[#1c1c1c] p-1 rounded-full border border-white/5 w-fit mb-10">
-                    <button onClick={() => setRouteViewMode('LIST')} className={`px-4 py-1.5 rounded-full text-[10px] font-bold transition-all ${routeViewMode === 'LIST' ? 'bg-white text-black' : 'text-[#525252]'}`}><List size={12}/></button>
-                    <button onClick={() => setRouteViewMode('MAP')} className={`px-4 py-1.5 rounded-full text-[10px] font-bold transition-all ${routeViewMode === 'MAP' ? 'bg-white text-black' : 'text-[#525252]'}`}><MapIcon size={12}/></button>
+                 <div className="mb-10 flex flex-col md:flex-row justify-between items-start gap-6">
+                    <div><h2 className="text-3xl font-light italic mb-2">Narrative Explorer</h2><p className="text-[#737373] text-sm italic">지도로 탐색하는 러닝의 서사.</p></div>
+                    <div className="flex bg-[#1c1c1c] p-1 rounded-full border border-white/5">
+                        <button onClick={() => setRouteViewMode('LIST')} className={`px-4 py-1.5 rounded-full text-[10px] font-bold transition-all ${routeViewMode === 'LIST' ? 'bg-white text-black' : 'text-[#525252]'}`}><List size={12}/> List</button>
+                        <button onClick={() => setRouteViewMode('MAP')} className={`px-4 py-1.5 rounded-full text-[10px] font-bold transition-all ${routeViewMode === 'MAP' ? 'bg-white text-black' : 'text-[#525252]'}`}><MapIcon size={12}/> Map</button>
+                    </div>
                  </div>
-                 {siteContent.routes.map(route => (
-                   <div key={route._id} onClick={() => setSelectedRoute(route)} className="p-8 bg-[#1c1c1c] border border-white/5 flex justify-between items-center cursor-pointer hover:border-white/20 transition-all group rounded-sm shadow-lg">
-                      <div>
-                         <p className={`text-[9px] uppercase font-bold tracking-widest mb-1 ${route.type === 'TRAIL' ? 'text-orange-400' : 'text-blue-400'}`}>{route.type} / {route.region}</p>
-                         <h4 className="text-2xl font-light italic group-hover:text-white transition-colors">{route.name}</h4>
+
+                 {/* 🏷️ Routes Filters (Type & Region) */}
+                 <div className="mb-10">
+                    <div className="flex gap-6 border-b border-white/5 pb-4 mb-6 overflow-x-auto whitespace-nowrap">
+                        {['ALL', 'ORIGINAL', 'TRAIL', 'ROAD'].map(t => (
+                          <button key={t} onClick={() => setRouteTypeFilter(t)} className={`text-[10px] uppercase tracking-[0.3em] font-bold transition-all ${routeTypeFilter === t ? 'text-white border-b border-white pb-4 -mb-4' : 'text-[#404040]'}`}>{t}</button>
+                        ))}
+                    </div>
+                    <div className="flex gap-6 border-b border-white/5 pb-4 overflow-x-auto whitespace-nowrap">
+                        {['ALL', 'SEOUL', 'JEJU', 'GYEONGGI', 'GANGWON'].map(r => (
+                          <button key={r} onClick={() => setRouteRegionFilter(r)} className={`text-[10px] uppercase tracking-[0.3em] font-bold transition-all ${routeRegionFilter === r ? 'text-white border-b border-white pb-4 -mb-4' : 'text-[#404040]'}`}>{r}</button>
+                        ))}
+                    </div>
+                 </div>
+
+                 {routeViewMode === 'MAP' ? (
+                   <div className="w-full aspect-[4/5] md:aspect-[16/9] bg-[#1c1c1c] rounded-sm flex items-center justify-center text-[#333] italic border border-white/5">Map logic initialized. Zooming in...</div>
+                 ) : (
+                   <div className="space-y-6">
+                    {siteContent.routes
+                      .filter(r => (routeTypeFilter === 'ALL' || r.type === routeTypeFilter))
+                      .filter(r => (routeRegionFilter === 'ALL' || r.region === routeRegionFilter))
+                      .map(route => (
+                      <div key={route._id} onClick={() => setSelectedRoute(route)} className="p-8 bg-[#1c1c1c] border border-white/5 flex justify-between items-center cursor-pointer hover:border-white/20 transition-all group rounded-sm shadow-lg">
+                          <div>
+                            <p className={`text-[9px] uppercase font-bold tracking-widest mb-1 ${route.type === 'TRAIL' ? 'text-orange-400' : 'text-blue-400'}`}>{route.type} / {route.region}</p>
+                            <h4 className="text-2xl font-light italic group-hover:text-white transition-colors">{route.name}</h4>
+                          </div>
+                          <span className="text-xl font-light text-[#525252] group-hover:text-white">{route.distance}</span>
                       </div>
-                      <span className="text-xl font-light text-[#525252] group-hover:text-white">{route.distance}</span>
+                    ))}
                    </div>
-                 ))}
+                 )}
               </div>
             )}
           </section>
         )}
 
-        {/* SESSIONS TAB (복구됨) */}
+        {/* SESSIONS TAB (복구된 필터링 탭 포함) */}
         {activeTab === 'sessions' && (
           <section className="pt-28 px-6 max-w-4xl mx-auto animate-in slide-in-from-bottom-4">
-            <h2 className="text-3xl font-light italic mb-12">Race & Narrative</h2>
-            <div className="space-y-16">
-              {siteContent.races.map(race => (
-                <div key={race._id || race.id} className="border-b border-white/5 pb-12">
-                   <div className="flex items-center gap-3 mb-4">
-                      <span className={`text-[9px] px-3 py-1 rounded-full border border-white/10 font-bold tracking-widest uppercase ${race.type === 'TRAIL' ? 'text-orange-400' : 'text-blue-400'}`}>{race.type}</span>
-                      <span className="text-[10px] text-[#525252] font-mono uppercase">{race.date}</span>
+            <div className="mb-12">
+              <h2 className="text-3xl font-light italic mb-6">Race & Narrative</h2>
+              
+              {/* 🏷️ Race Sub-Tabs */}
+              <div className="flex gap-6 border-b border-white/5 pb-4 mb-10 overflow-x-auto whitespace-nowrap">
+                {['ALL', 'TRAIL', 'ROAD'].map(type => (
+                  <button key={type} onClick={() => setRaceTypeFilter(type)} className={`text-[10px] uppercase tracking-[0.3em] font-bold transition-all ${raceTypeFilter === type ? 'text-white border-b border-white pb-4 -mb-4' : 'text-[#404040]'}`}>{type}</button>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-20">
+              {Object.entries(groupedRaces()).map(([month, monthRaces]) => (
+                <div key={month} className="animate-in fade-in">
+                   <div className="flex items-center gap-4 mb-8">
+                      <Calendar size={14} className="text-[#404040]" />
+                      <h3 className="text-[11px] uppercase tracking-[0.4em] font-bold text-[#525252]">{month}</h3>
+                      <div className="h-[1px] bg-white/5 flex-1"></div>
                    </div>
-                   <h3 className="text-3xl font-light italic mb-4">{race.name}</h3>
-                   <p className="text-sm text-[#737373] font-light leading-relaxed max-w-xl mb-8">{race.description}</p>
-                   <button 
-                     onClick={() => generateAiContent(race.name, `${race.name} 대회를 위한 전문적인 레이스 전략을 짜줘.`)}
-                     className="flex items-center gap-2 bg-white/10 px-6 py-3 text-[10px] uppercase tracking-widest hover:bg-white hover:text-black transition-all"
-                   >
-                     <Sparkles size={12} /> AI Strategy
-                   </button>
-                   {activeAiTarget === race.name && aiResponse && (
-                     <div className="mt-8 p-6 bg-white/5 border border-white/5 rounded-sm italic text-sm text-[#d4d4d4] font-light leading-relaxed">
-                       "{aiResponse}"
-                     </div>
-                   )}
+                   <div className="space-y-12">
+                      {monthRaces.map(race => (
+                        <div key={race._id || race.id} className="group border-l border-white/5 pl-8 relative">
+                           <div className={`absolute left-[-4px] top-0 w-2 h-2 rounded-full ${race.type === 'TRAIL' ? 'bg-orange-400' : 'bg-blue-400'}`}></div>
+                           <h3 className="text-3xl font-light italic mb-4">{race.name}</h3>
+                           <p className="text-sm text-[#737373] font-light leading-relaxed max-w-xl mb-8">{race.description}</p>
+                           <button onClick={() => generateAiContent(race.name, `${race.name} 대회를 위한 레이스 전략.`)} className="flex items-center gap-2 bg-white/10 px-6 py-3 text-[10px] uppercase tracking-widest hover:bg-white hover:text-black transition-all">
+                             <Sparkles size={12} /> AI Strategy
+                           </button>
+                           {activeAiTarget === race.name && aiResponse && (
+                             <div className="mt-8 p-6 bg-white/5 border border-white/5 rounded-sm italic text-sm text-[#d4d4d4] font-light leading-relaxed">"{aiResponse}"</div>
+                           )}
+                        </div>
+                      ))}
+                   </div>
                 </div>
               ))}
             </div>
           </section>
         )}
 
-        {/* GEAR TAB */}
+        {/* GEAR TAB (복구된 필터링 탭 포함) */}
         {activeTab === 'gear' && (
           <section className="pt-28 px-6 max-w-4xl mx-auto animate-in fade-in">
-            <h2 className="text-3xl font-light italic mb-4 text-center">Essential Tools</h2>
-            <p className="text-[#525252] text-xs italic mb-20 text-center">에디터의 취향과 신뢰가 깃든 도구들에 대한 사설.</p>
+            <div className="mb-12 flex flex-col md:flex-row justify-between items-end gap-6">
+              <div><h2 className="text-3xl font-light italic mb-2">Essential Tools</h2><p className="text-[#525252] text-xs italic tracking-wide">에디터의 취향과 신뢰가 깃든 도구들에 대한 사설.</p></div>
+              
+              {/* 🏷️ Gear Filters */}
+              <div className="flex gap-4 border-b border-white/5 pb-1 overflow-x-auto whitespace-nowrap">
+                {['ALL', 'TRAIL', 'ROAD', 'NUTRITION'].map(cat => (
+                  <button key={cat} onClick={() => setGearFilter(cat)} className={`text-[9px] uppercase tracking-widest font-bold transition-all ${gearFilter === cat ? 'text-white border-b border-white pb-2' : 'text-[#404040]'}`}>{cat}</button>
+                ))}
+              </div>
+            </div>
+
             <div className="space-y-32">
-              {siteContent.gearItems.map(item => (
+              {siteContent.gearItems
+                .filter(item => gearFilter === 'ALL' || item.category === gearFilter)
+                .map(item => (
                 <div key={item._id} className="flex flex-col md:flex-row gap-12 items-start group">
                   <div className="w-full md:w-1/2 aspect-[4/5] bg-[#1c1c1c] border border-white/5 overflow-hidden rounded-sm">
                     {item.image && <img src={urlFor(item.image)} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-1000" alt={item.name} />}
@@ -345,12 +412,7 @@ export default function App() {
             <div className="py-24 border border-dashed border-white/10 rounded-sm relative bg-white/[0.02]">
               <Zap size={48} className="mx-auto mb-6 text-[#333] animate-pulse"/>
               <p className="text-sm text-[#737373] mb-10 leading-relaxed font-light">워치 데이터를 동기화하여 <br/>오늘의 컨디션에 맞는 리추얼을 분석하세요.</p>
-              <button 
-                onClick={() => generateAiContent('recovery', '현재 러너의 리커버리 상태가 최적입니다. 사우나와 티 리추얼을 포함한 조언을 해줘.')}
-                className="px-12 py-4 bg-white text-black font-bold text-[11px] uppercase tracking-widest rounded-full shadow-2xl active:scale-95 transition-transform"
-              >
-                Get AI Ritual
-              </button>
+              <button onClick={() => generateAiContent('recovery', 'Patrick의 최적 리커버리 리추얼.')} className="px-12 py-4 bg-white text-black font-bold text-[11px] uppercase tracking-widest rounded-full shadow-2xl active:scale-95 transition-transform">Get AI Ritual</button>
               {activeAiTarget === 'recovery' && aiResponse && (
                 <div className="mt-12 text-sm italic text-[#d4d4d4] font-light leading-relaxed max-w-md mx-auto">"{aiResponse}"</div>
               )}
