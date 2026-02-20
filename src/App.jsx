@@ -157,7 +157,7 @@ export default function App() {
     fetchCmsData();
   }, []);
 
-  // --- 2. 라이브러리 및 스크롤 감지 ---
+  // --- 2. 라이브러리 주입 및 스크롤 ---
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50);
     window.addEventListener('scroll', handleScroll);
@@ -169,7 +169,8 @@ export default function App() {
     if (!document.getElementById('leaflet-js')) {
       const script = document.createElement('script'); script.id = 'leaflet-js';
       script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
-      script.async = true; script.onload = () => setIsMapLoaded(true);
+      script.async = true; 
+      script.onload = () => setIsMapLoaded(true);
       document.head.appendChild(script);
     } else {
       setIsMapLoaded(true);
@@ -178,17 +179,24 @@ export default function App() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // --- 3. 마커 업데이트 로직 (useCallback으로 최적화) ---
+  // --- 3. 마커 업데이트 로직 ---
   const updateMapMarkers = useCallback(() => {
     if (!leafletMap.current || !markerGroupRef.current) return;
     const L = window.L;
     markerGroupRef.current.clearLayers();
     
-    const filtered = siteContent.routes.filter(r => (routeTypeFilter === 'ALL' || r.type === routeTypeFilter) && (routeRegionFilter === 'ALL' || r.region === routeRegionFilter));
+    // Sanity에서 가져온 실제 routes 데이터 필터링
+    const filtered = siteContent.routes.filter(r => 
+      (routeTypeFilter === 'ALL' || r.type === routeTypeFilter) && 
+      (routeRegionFilter === 'ALL' || r.region === routeRegionFilter)
+    );
     
     if (filtered.length > 0) {
       const bounds = L.latLngBounds();
       filtered.forEach(route => {
+        // 좌표가 없는 경우 스킵 (안전장치)
+        if (!route.lat || !route.lng) return;
+
         const pinColor = route.type === 'TRAIL' ? '#fb923c' : route.type === 'ROAD' ? '#60a5fa' : '#ffffff';
         const customIcon = L.divIcon({ 
           className: 'custom-pin', 
@@ -200,33 +208,53 @@ export default function App() {
         markerGroupRef.current.addLayer(marker);
         bounds.extend([route.lat, route.lng]);
       });
+      
+      // 필터가 적용되었거나 마커가 적을 때 시점 자동 조절
       if (routeRegionFilter !== 'ALL' || routeTypeFilter !== 'ALL') {
         leafletMap.current.fitBounds(bounds, { padding: [50, 50], maxZoom: 12 });
       }
     }
   }, [siteContent.routes, routeTypeFilter, routeRegionFilter]);
 
-  // --- 4. 지도 초기화 및 업데이트 ---
+  // --- 4. 지도 초기화 및 라이프사이클 관리 (핵심 수정) ---
   useEffect(() => {
-    let mapTimer;
     if (activeTab === 'routes' && routeViewMode === 'MAP' && isMapLoaded && mapRef.current) {
       const L = window.L;
+      
+      // 1. 지도 인스턴스 생성
       if (!leafletMap.current) {
-        const map = L.map(mapRef.current, { center: [36.5, 127.8], zoom: 7, zoomControl: false, attributionControl: false });
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 20 }).addTo(map);
+        const map = L.map(mapRef.current, { 
+          center: [36.5, 127.8], 
+          zoom: 7, 
+          zoomControl: false, 
+          attributionControl: false 
+        });
+        
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { 
+          maxZoom: 20 
+        }).addTo(map);
+        
         leafletMap.current = map;
         markerGroupRef.current = L.layerGroup().addTo(map);
-        
-        // 중요: 렌더링 직후 지도 크기 재계산 (회색 화면 방지)
-        mapTimer = setTimeout(() => {
-          if (leafletMap.current) leafletMap.current.invalidateSize();
-        }, 300);
       }
+      
+      // 2. 마커 업데이트
       updateMapMarkers();
+      
+      // 3. 상자 크기 재인식 (중요: 시간차를 두고 2번 실행하여 안정성 확보)
+      const t1 = setTimeout(() => { if (leafletMap.current) leafletMap.current.invalidateSize(); }, 100);
+      const t2 = setTimeout(() => { if (leafletMap.current) leafletMap.current.invalidateSize(); }, 600);
+      
+      return () => {
+        clearTimeout(t1);
+        clearTimeout(t2);
+      };
     } else if (leafletMap.current && (activeTab !== 'routes' || routeViewMode !== 'MAP')) {
-      leafletMap.current.remove(); leafletMap.current = null;
+      // 탭을 벗어나거나 모드를 바꿀 때 완전히 제거 후 재생성 준비
+      leafletMap.current.remove();
+      leafletMap.current = null;
+      markerGroupRef.current = null;
     }
-    return () => clearTimeout(mapTimer);
   }, [activeTab, routeViewMode, isMapLoaded, updateMapMarkers]);
 
   // --- 5. 이벤트 핸들러 ---
@@ -260,7 +288,7 @@ export default function App() {
       onClick={() => { setActiveTab(id); setSelectedArticle(null); setSelectedRoute(null); setAiResponse(null); setActiveAiTarget(null); setAuthMode(null); setIsProfileOpen(false); }} 
       className={`flex flex-col items-center gap-1 transition-all duration-300 ${activeTab === id && !authMode ? 'text-white' : 'text-[#525252] hover:text-white'}`}
     >
-      <Icon size={20} strokeWidth={activeTab === id ? 2.5 : 1.5} />
+      <Icon size={20} strokeWidth={activeTab === id && !authMode ? 2.5 : 1.5} />
       <span className="text-[10px] uppercase tracking-widest font-medium">{label}</span>
     </button>
   );
@@ -445,7 +473,7 @@ export default function App() {
                     </div>
 
                     {routeViewMode === 'MAP' ? (
-                      <div className="relative animate-in fade-in duration-500">
+                      <div className="relative animate-in fade-in duration-500 min-h-[400px]">
                         <div ref={mapRef} className="w-full aspect-[4/5] md:aspect-[16/9] bg-[#121212] rounded-sm overflow-hidden border border-white/5 shadow-2xl" />
                         {mapPopup && (
                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 bg-black border border-white/20 p-6 rounded-sm shadow-2xl z-[2000] animate-in zoom-in-95 text-center">
@@ -455,19 +483,21 @@ export default function App() {
                               <button onClick={() => setMapPopup(null)} className="mt-4 text-[10px] text-[#444] uppercase hover:text-white transition-colors">Close</button>
                            </div>
                         )}
-                        <p className="mt-4 text-[10px] text-[#525252] italic text-center">핀을 클릭하여 코스 상세 내용을 확인하세요.</p>
+                        {!siteContent.routes.length && <div className="absolute inset-0 flex items-center justify-center text-[#333] italic">No routes loaded from Sanity.</div>}
                       </div>
                     ) : (
                       <div className="space-y-6">
-                        {siteContent.routes.filter(r => (routeTypeFilter === 'ALL' || r.type === routeTypeFilter) && (routeRegionFilter === 'ALL' || r.region === routeRegionFilter)).map(route => (
+                        {siteContent.routes.length > 0 ? siteContent.routes.filter(r => (routeTypeFilter === 'ALL' || r.type === routeTypeFilter) && (routeRegionFilter === 'ALL' || r.region === routeRegionFilter)).map(route => (
                           <div key={route._id} onClick={() => setSelectedRoute(route)} className="p-8 bg-[#1c1c1c] border border-white/5 flex justify-between items-center cursor-pointer hover:border-white/20 transition-all group rounded-sm shadow-lg">
                               <div>
-                                <p className={`text-[9px] uppercase font-bold mb-1 tracking-widest ${route.type === 'TRAIL' ? 'text-orange-400' : 'text-blue-400'}`}>{route.type} / {route.region}</p>
+                                <p className={`text-[9px] uppercase font-bold tracking-widest mb-1 ${route.type === 'TRAIL' ? 'text-orange-400' : 'text-blue-400'}`}>{route.type} / {route.region}</p>
                                 <h4 className="text-2xl font-light italic group-hover:text-white transition-colors">{route.name}</h4>
                               </div>
                               <span className="text-xl font-light text-[#525252] group-hover:text-white">{route.distance}</span>
                           </div>
-                        ))}
+                        )) : (
+                          <div className="py-20 text-center text-[#333] italic">Waiting for Sanity Data...</div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -503,7 +533,7 @@ export default function App() {
                                   <button onClick={() => handleSyncGPX(race._id)} className={`flex items-center gap-2 py-3 px-6 text-[10px] uppercase tracking-widest border border-[#262626] transition-all ${activeAiTarget === race._id && syncSuccess ? 'bg-green-600 border-none' : ''}`}>{activeAiTarget === race._id && syncSuccess ? <CheckCircle2 size={12} /> : <Watch size={12} />} {activeAiTarget === race._id && syncSuccess ? 'Synced' : 'Sync GPX'}</button>
                                </div>
                                {activeAiTarget === race.name && aiResponse && (
-                                 <div className="mt-8 p-6 bg-white/5 border border-white/5 rounded-sm italic text-sm text-[#d4d4d4] leading-relaxed">"{aiResponse}"</div>
+                                 <div className="mt-8 p-6 bg-white/5 border border-white/5 rounded-sm italic text-sm text-[#d4d4d4] font-light leading-relaxed">"{aiResponse}"</div>
                                )}
                             </div>
                           ))}
