@@ -28,9 +28,9 @@ const colors = {
 
 /**
  * 🔑 API Key 설정
- * 특정 환경에서 import.meta 오류가 발생하므로, 
- * Vercel 환경 변수를 사용하지 않고 직접 입력하거나 빈 문자열로 유지합니다.
- * AI 기능을 테스트하려면 아래 따옴표 안에 API 키를 직접 넣으셔도 됩니다.
+ * 컴파일 오류를 방지하기 위해 직접적인 import.meta 참조를 제거했습니다.
+ * Vercel 배포 환경에서 작동하게 하려면 배포 설정에서 환경 변수를 관리하거나 
+ * 테스트 시 아래 변수에 키를 직접 입력하세요.
  */
 const apiKey = ""; 
 
@@ -80,7 +80,7 @@ export default function App() {
   ];
 
   const routesData = [
-    { id: 'orig-1', type: 'ORIGINAL', region: 'SEOUL', name: "Espresso Run", location: "Hannam, Seoul", distance: "5.0km", lat: 37.534, lng: 127.002, description: "새벽의 정적을 뚫고 한남동을 달립니다. 코스의 끝에는 에스프레소 바가 기다립니다.", icon: Coffee },
+    { id: 'orig-1', type: 'ORIGINAL', region: 'SEOUL', name: "Espresso Run", location: "Hannam, Seoul", distance: "5.0km", lat: 37.534, lng: 127.002, description: "새벽의 정적을 뚫고 한남동을 달립니다.", icon: Coffee },
     { id: 'trail-1', type: 'TRAIL', region: 'SEOUL', name: "Misty Hidden Wall", location: "Bukhansan, Seoul", distance: "12.4km", lat: 37.649, lng: 126.979, description: "북한산의 거친 암릉 코스." },
     { id: 'road-1', type: 'ROAD', region: 'SEOUL', name: "City Pulse Line", location: "Banpo, Seoul", distance: "8.2km", lat: 37.511, lng: 126.996, description: "한강의 밤바람을 느끼는 시티런." }
   ];
@@ -127,9 +127,7 @@ export default function App() {
       script.async = true;
       script.onload = () => setIsMapLoaded(true);
       document.head.appendChild(script);
-    } else {
-      setIsMapLoaded(true);
-    }
+    } else { setIsMapLoaded(true); }
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
@@ -145,9 +143,7 @@ export default function App() {
       }
       updateMapMarkers();
     } else if (leafletMap.current && (activeTab !== 'routes' || routeViewMode !== 'MAP')) {
-      leafletMap.current.remove(); 
-      leafletMap.current = null;
-      markerGroupRef.current = null;
+      leafletMap.current.remove(); leafletMap.current = null; markerGroupRef.current = null;
     }
   }, [activeTab, routeViewMode, isMapLoaded, routeTypeFilter, routeRegionFilter]);
 
@@ -174,45 +170,37 @@ export default function App() {
   const handleAuthSubmit = (e) => { e.preventDefault(); setIsAiLoading(true); setTimeout(() => { setIsLoggedIn(true); setAuthMode(null); setIsAiLoading(false); }, 1000); };
   const handleSyncToWatch = (id) => { if(!isLoggedIn) { setAuthMode('login'); return; } setIsSyncing(true); setTimeout(() => { setIsSyncing(false); setSyncSuccess(true); setIsWatchConnected(true); setTimeout(() => setSyncSuccess(false), 3000); }, 1500); };
 
-  // --- 개인 맞춤형 AI 전략 생성 (Gemini API 호출) ---
+  // --- AI 전략 생성 ---
   const generateRaceStrategy = async (raceName) => {
     if (!isLoggedIn) { setAuthMode('login'); return; }
-    if (!apiKey) { setAiResponse("API 키가 설정되어 있지 않습니다."); return; }
-    setActiveAiTarget(raceName);
-    setIsAiLoading(true);
-    
-    const personalContext = `사용자 상태: 리커버리 스코어 ${userStats.score}/100, 주간 마일리지 ${userStats.mileage}.`;
+    if (!apiKey) { setAiResponse("환경 변수(VITE_GEMINI_API_KEY) 또는 API 키 설정을 확인해주세요."); return; }
+    setActiveAiTarget(raceName); setIsAiLoading(true);
+    const personalContext = `사용자 상태: 리커버리 점수 ${userStats.score}/100, 주간 마일리지 ${userStats.mileage}.`;
     const prompt = `${personalContext} 이 사용자가 '${raceName}' 대회에 출전합니다. 최적의 레이스 전략을 제안해줘.`;
-
     try {
       const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
-          systemInstruction: { parts: [{ text: "PESSAGE 매거진 수석 에디터 톤으로 전문적이고 우아하게 답변하세요." }] }
+          systemInstruction: { parts: [{ text: "PESSAGE 매거진 수석 에디터 톤으로 답변하세요." }] }
         })
       });
       const data = await response.json();
-      setAiResponse(data.candidates?.[0]?.content?.parts?.[0]?.text || "분석 실패");
-    } catch (e) {
-      setAiResponse("AI 서비스 연결 실패");
-    } finally {
-      setIsAiLoading(false);
-    }
+      setAiResponse(data.candidates?.[0]?.content?.parts?.[0]?.text || "분석 결과가 없습니다.");
+    } catch (e) { setAiResponse("AI 서비스 연결 실패"); } finally { setIsAiLoading(false); }
   };
 
   const generateRecoveryPlan = async () => {
-    if (!apiKey) { setAiResponse("API 키가 필요합니다."); return; }
+    if (!apiKey) { setAiResponse("API 키 설정이 필요합니다."); return; }
     setIsAiLoading(true);
     try {
       const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contents: [{ parts: [{ text: "맞춤형 회복 리추얼 제안." }] }] })
+        body: JSON.stringify({ contents: [{ parts: [{ text: `현재 점수 ${userStats.score}, 고강도 훈련 후 회복 리추얼 제안.` }] }] })
       });
       const data = await resp.json();
       setAiResponse(data.candidates?.[0]?.content?.parts?.[0]?.text || "분석 실패");
-    } catch (e) { setAiResponse("AI 오류"); } finally { setIsAiLoading(false); }
+    } catch (e) { setAiResponse("AI 연결 오류"); } finally { setIsAiLoading(false); }
   };
 
   const NavItem = ({ id, icon: Icon, label }) => (
@@ -252,7 +240,6 @@ export default function App() {
                 <input type="password" placeholder="PASSWORD" className="w-full bg-[#1c1c1c] border border-[#262626] py-4 px-4 text-[10px] tracking-widest outline-none focus:border-white/30 transition-colors" required />
                 <button type="submit" className="w-full bg-white text-black py-4 font-bold text-[12px] uppercase tracking-widest transition-transform active:scale-[0.98]">Login</button>
              </form>
-             
              <div className="space-y-3">
                 <p className="text-[9px] uppercase tracking-[0.3em] text-[#444] mb-6">Or continue with</p>
                 <div className="grid grid-cols-1 gap-3">
@@ -261,7 +248,6 @@ export default function App() {
                    <button onClick={handleAuthSubmit} className="w-full py-3 bg-white text-black text-[10px] font-bold tracking-widest border border-white/10 rounded-sm">GOOGLE</button>
                 </div>
              </div>
-             
              <button onClick={() => setAuthMode(null)} className="mt-12 text-[10px] uppercase text-[#444] hover:text-white transition-colors underline underline-offset-4">Cancel</button>
           </section>
         ) : isProfileOpen && isLoggedIn ? (
@@ -309,7 +295,7 @@ export default function App() {
                       <p className="text-2xl font-light tracking-tighter">{selectedRoute.distance}</p>
                     </div>
                     <p className="text-lg leading-relaxed text-[#d4d4d4] font-light mb-16">{selectedRoute.description}</p>
-                    <button onClick={() => handleSyncToWatch(selectedRoute.id)} className={`w-full py-4 rounded-full text-[12px] uppercase font-bold transition-all ${activeAiTarget === selectedRoute.id && syncSuccess ? 'bg-green-600' : 'bg-white text-black'}`}>
+                    <button onClick={() => handleSyncToWatch(selectedRoute.id)} className={`w-full py-4 rounded-full text-[12px] uppercase font-bold transition-all ${syncSuccess ? 'bg-green-600' : 'bg-white text-black'}`}>
                       {isSyncing ? 'SYNCING...' : syncSuccess ? 'Synced to Watch' : 'Sync to Device'}
                     </button>
                   </div>
@@ -330,7 +316,7 @@ export default function App() {
                     {routeViewMode === 'MAP' ? (
                       <div ref={mapRef} className="w-full aspect-[4/5] md:aspect-[16/9] bg-[#121212] rounded-sm overflow-hidden shadow-2xl relative border border-white/5">
                         {mapPopup && (
-                           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 bg-black border border-white/20 p-5 rounded-sm shadow-2xl z-[2000] text-center">
+                           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 bg-black border border-white/20 p-5 rounded-sm shadow-2xl z-[2000] text-center animate-in zoom-in-95">
                               <h4 className="text-xl font-light italic mb-6 leading-tight">{mapPopup.name}</h4>
                               <button onClick={() => setSelectedRoute(mapPopup)} className="w-full py-3 bg-white text-black text-[9px] uppercase font-bold tracking-widest">Explore</button>
                               <button onClick={() => setMapPopup(null)} className="mt-4 text-[10px] text-[#444] uppercase tracking-widest hover:text-white transition-colors">Close</button>
@@ -356,7 +342,7 @@ export default function App() {
               <section className="pt-28 px-6 max-w-4xl mx-auto animate-in slide-in-from-bottom-4">
                 <div className="mb-12">
                   <h2 className="text-3xl font-light italic mb-6">Race & Narrative</h2>
-                  <div className="flex gap-6 border-b border-white/5 pb-4 mb-10">
+                  <div className="flex gap-6 border-b border-white/5 pb-4 mb-10 overflow-x-auto">
                     {['ALL', 'TRAIL', 'ROAD'].map(type => (
                       <button key={type} onClick={() => setRaceTypeFilter(type)} className={`text-[10px] uppercase tracking-[0.3em] font-bold transition-all ${raceTypeFilter === type ? 'text-white border-b border-white pb-4 -mb-4' : 'text-[#404040] hover:text-white'}`}>{type}</button>
                     ))}
@@ -391,7 +377,7 @@ export default function App() {
               <section className="pt-28 px-6 max-w-4xl mx-auto animate-in slide-in-from-bottom-4">
                 <div className="mb-12">
                   <h2 className="text-3xl font-light italic mb-6">Essential Tools</h2>
-                  <div className="flex gap-6 border-b border-white/5 pb-4 mb-12">
+                  <div className="flex gap-6 border-b border-white/5 pb-4 mb-12 overflow-x-auto">
                     {['ALL', 'TRAIL', 'ROAD', 'NUTRITION'].map(cat => (
                       <button key={cat} onClick={() => setGearFilter(cat)} className={`text-[10px] uppercase tracking-[0.3em] font-bold transition-all ${gearFilter === cat ? 'text-white border-b border-white pb-4 -mb-4' : 'text-[#404040] hover:text-white'}`}>{cat}</button>
                     ))}
@@ -399,13 +385,17 @@ export default function App() {
                 </div>
 
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-16">
-                  {gearItems.filter(item => gearFilter === 'ALL' || item.category === gearFilter).map(item => (
+                  {gearItems
+                    .filter(item => gearFilter === 'ALL' || item.category === gearFilter)
+                    .map(item => (
                       <div key={item.id} className="group flex flex-col animate-in fade-in">
                         <div className="aspect-[4/5] bg-[#1c1c1c] border border-white/5 rounded-sm flex items-center justify-center mb-5 overflow-hidden group-hover:border-white/20 transition-all cursor-pointer">
                           <span className="text-[8px] text-[#333] uppercase tracking-widest italic font-serif">{item.imageLabel || "Product Visual"}</span>
                         </div>
                         <div className="flex flex-col">
-                           <p className={`text-[8px] uppercase font-bold tracking-widest mb-1 ${item.category === 'TRAIL' ? 'text-orange-400' : item.category === 'ROAD' ? 'text-blue-400' : 'text-green-500'}`}>{item.category} / {item.brand}</p>
+                           <p className={`text-[8px] uppercase font-bold tracking-widest mb-1 ${item.category === 'TRAIL' ? 'text-orange-400' : item.category === 'ROAD' ? 'text-blue-400' : 'text-green-500'}`}>
+                             {item.category} / {item.brand}
+                           </p>
                            <h3 className="text-sm font-medium italic mb-2 group-hover:text-white transition-colors">{item.name}</h3>
                            <p className="text-[10px] text-[#737373] leading-relaxed line-clamp-3 italic">"{item.note}"</p>
                         </div>
