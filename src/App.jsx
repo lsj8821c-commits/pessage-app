@@ -27,9 +27,10 @@ const colors = {
 };
 
 /**
- * API Key 설정
- * Vercel 배포 시 환경 변수(VITE_GEMINI_API_KEY) 설정을 권장합니다.
- * 현재 미리보기 환경의 안정성을 위해 빈 문자열로 초기화합니다.
+ * 🔑 API Key 설정
+ * 특정 환경에서 import.meta 오류가 발생하므로, 
+ * Vercel 환경 변수를 사용하지 않고 직접 입력하거나 빈 문자열로 유지합니다.
+ * AI 기능을 테스트하려면 아래 따옴표 안에 API 키를 직접 넣으셔도 됩니다.
  */
 const apiKey = ""; 
 
@@ -73,7 +74,7 @@ export default function App() {
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncSuccess, setSyncSuccess] = useState(false);
 
-  // --- Mock Data Definitions ---
+  // --- 데이터 정의 ---
   const articles = [
     { id: 1, title: "Finding Clarity in the Grey", subtitle: "Season 01: The Mist", category: "ESSAY", date: "2026.02.20", content: "새벽 5시, 세상이 아직 짙은 회색빛 장막 뒤에 숨어 있을 때 우리는 길을 나섭니다. 시야는 불과 5미터 앞을 내다보기 힘들지만, 아이러니하게도 우리는 그 어느 때보다 '선명함'을 느낍니다. 안개는 외부의 소음을 차단하는 천연 소음기입니다. 이 정적 속에서 달리기는 단순한 운동을 넘어 하나의 움직이는 명상이 됩니다." }
   ];
@@ -88,9 +89,7 @@ export default function App() {
     { id: 1, name: "Portal Shield Shell", brand: "PORTAL", category: "TRAIL", note: "안개가 자욱한 능선에서도 체온을 유지해준 유일한 장비.", imageLabel: "[트레일 자켓]" },
     { id: 2, name: "Carbon Pulse v2", brand: "PESSAGE", category: "ROAD", note: "도심을 가를 때 필요한 정교함.", imageLabel: "[로드 슈즈]" },
     { id: 3, name: "Recovery Electrolyte", brand: "PESSAGE", category: "NUTRITION", note: "달린 후의 회복은 무엇을 먹느냐에서 시작됩니다.", imageLabel: "[뉴트리션]" },
-    { id: 4, name: "Peak Hydration Gel", brand: "MAUTEN", category: "NUTRITION", note: "한계에 다다랐을 때 필요한 에너지의 순도.", imageLabel: "[에너지 젤]" },
-    { id: 5, name: "Terrain Flask 500", brand: "PESSAGE", category: "TRAIL", note: "장거리 트레일에서 가장 가벼운 수분 공급.", imageLabel: "[플라스크]" },
-    { id: 6, name: "Aero Mesh Cap", brand: "SATISFY", category: "ROAD", note: "열기를 배출하는 가장 효율적인 방식.", imageLabel: "[러닝 캡]" }
+    { id: 4, name: "Peak Hydration Gel", brand: "MAUTEN", category: "NUTRITION", note: "한계에 다다랐을 때 필요한 에너지의 순도.", imageLabel: "[에너지 젤]" }
   ];
 
   const racesData = [
@@ -99,7 +98,7 @@ export default function App() {
     { id: 'r-3', name: 'Seoul Marathon', date: '2026-03-15', type: 'ROAD', description: '서울의 심장을 관통하는 역사적인 레이스.' }
   ];
 
-  // --- 레이스 데이터를 월별로 그룹화 ---
+  // --- 레이스 그룹화 함수 ---
   const groupedRaces = () => {
     const filtered = racesData.filter(r => raceTypeFilter === 'ALL' || r.type === raceTypeFilter);
     const sorted = [...filtered].sort((a, b) => new Date(a.date) - new Date(b.date));
@@ -112,12 +111,10 @@ export default function App() {
     return groups;
   };
 
-  // --- Effects: 초기화 및 스크롤 ---
+  // --- Effects ---
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50);
     window.addEventListener('scroll', handleScroll);
-    
-    // Leaflet Library 주입 (CDN)
     if (!document.getElementById('leaflet-css')) {
       const link = document.createElement('link');
       link.id = 'leaflet-css'; link.rel = 'stylesheet';
@@ -136,7 +133,7 @@ export default function App() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // --- 지도 초기화 및 마커 필터링 ---
+  // --- 지도 로직 ---
   useEffect(() => {
     if (activeTab === 'routes' && routeViewMode === 'MAP' && isMapLoaded && mapRef.current) {
       const L = window.L;
@@ -172,24 +169,20 @@ export default function App() {
     }
   };
 
-  // --- Event Handlers ---
+  // --- 핸들러 ---
   const handleLogout = () => { setIsLoggedIn(false); setIsProfileOpen(false); setActiveTab('journal'); setAuthMode(null); setIsWatchConnected(false); };
   const handleAuthSubmit = (e) => { e.preventDefault(); setIsAiLoading(true); setTimeout(() => { setIsLoggedIn(true); setAuthMode(null); setIsAiLoading(false); }, 1000); };
   const handleSyncToWatch = (id) => { if(!isLoggedIn) { setAuthMode('login'); return; } setIsSyncing(true); setTimeout(() => { setIsSyncing(false); setSyncSuccess(true); setIsWatchConnected(true); setTimeout(() => setSyncSuccess(false), 3000); }, 1500); };
 
-  // --- 개인 맞춤형 AI 전략 생성 함수 ---
+  // --- 개인 맞춤형 AI 전략 생성 (Gemini API 호출) ---
   const generateRaceStrategy = async (raceName) => {
     if (!isLoggedIn) { setAuthMode('login'); return; }
-    if (!apiKey) {
-      setAiResponse("API 키가 설정되지 않았습니다. 현재는 데모 모드로 작동합니다.");
-      return;
-    }
+    if (!apiKey) { setAiResponse("API 키가 설정되어 있지 않습니다."); return; }
     setActiveAiTarget(raceName);
     setIsAiLoading(true);
     
-    // 사용자 데이터를 프롬프트에 포함하여 맞춤형 조언 유도
-    const personalContext = `사용자 상태: 리커버리 스코어 ${userStats.score}/100, 주간 마일리지 ${userStats.mileage}, 숙련도 ${userStats.level}.`;
-    const prompt = `${personalContext} 이 사용자가 '${raceName}' 대회에 출전합니다. 사용자의 현재 컨디션과 훈련량을 고려하여 최적의 레이스 전략을 한 문장으로 조언해줘.`;
+    const personalContext = `사용자 상태: 리커버리 스코어 ${userStats.score}/100, 주간 마일리지 ${userStats.mileage}.`;
+    const prompt = `${personalContext} 이 사용자가 '${raceName}' 대회에 출전합니다. 최적의 레이스 전략을 제안해줘.`;
 
     try {
       const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
@@ -197,30 +190,29 @@ export default function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
-          systemInstruction: { parts: [{ text: "당신은 세계적인 러닝 전략가이며 PESSAGE 매거진의 수석 에디터입니다. 전문적이고 우아하며 격려하는 톤으로 답변하세요." }] }
+          systemInstruction: { parts: [{ text: "PESSAGE 매거진 수석 에디터 톤으로 전문적이고 우아하게 답변하세요." }] }
         })
       });
       const data = await response.json();
-      setAiResponse(data.candidates?.[0]?.content?.parts?.[0]?.text || "전략 수립에 실패했습니다.");
+      setAiResponse(data.candidates?.[0]?.content?.parts?.[0]?.text || "분석 실패");
     } catch (e) {
-      setAiResponse("AI 서비스에 연결할 수 없습니다.");
+      setAiResponse("AI 서비스 연결 실패");
     } finally {
       setIsAiLoading(false);
     }
   };
 
   const generateRecoveryPlan = async () => {
-    if (!apiKey) { setAiResponse("환경 변수에 API 키를 설정해주세요."); return; }
+    if (!apiKey) { setAiResponse("API 키가 필요합니다."); return; }
     setIsAiLoading(true);
-    const prompt = `사용자 리커버리 점수 ${userStats.score}. 오늘 고강도 훈련 후의 맞춤형 회복 리추얼을 제안해줘.`;
     try {
       const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+        body: JSON.stringify({ contents: [{ parts: [{ text: "맞춤형 회복 리추얼 제안." }] }] })
       });
       const data = await resp.json();
       setAiResponse(data.candidates?.[0]?.content?.parts?.[0]?.text || "분석 실패");
-    } catch (e) { setAiResponse("AI 연결 오류"); } finally { setIsAiLoading(false); }
+    } catch (e) { setAiResponse("AI 오류"); } finally { setIsAiLoading(false); }
   };
 
   const NavItem = ({ id, icon: Icon, label }) => (
@@ -237,7 +229,6 @@ export default function App() {
     <div className={`min-h-screen ${colors.bg} text-white font-sans selection:bg-white selection:text-black`}>
       <style>{`.leaflet-container { background: #121212 !important; }`}</style>
       
-      {/* Header */}
       <header className={`fixed top-0 w-full z-[1000] transition-all duration-500 px-6 py-4 flex justify-between items-center ${scrolled ? 'bg-black/80 backdrop-blur-md' : 'bg-transparent'}`}>
         <h1 className="text-2xl font-bold tracking-[0.2em] italic cursor-pointer" onClick={() => {setActiveTab('journal'); setIsProfileOpen(false); setAuthMode(null);}}>PESSAGE</h1>
         <div className="flex gap-4 items-center">
@@ -253,7 +244,6 @@ export default function App() {
       </header>
 
       <main className="pb-32">
-        {/* Auth Mode: Login + SNS Buttons */}
         {authMode ? (
           <section className="pt-32 px-6 max-w-sm mx-auto animate-in fade-in text-center">
              <h2 className="text-3xl font-light italic mb-10">Membership</h2>
@@ -275,7 +265,6 @@ export default function App() {
              <button onClick={() => setAuthMode(null)} className="mt-12 text-[10px] uppercase text-[#444] hover:text-white transition-colors underline underline-offset-4">Cancel</button>
           </section>
         ) : isProfileOpen && isLoggedIn ? (
-          /* Profile Screen */
           <section className="pt-28 px-6 max-w-2xl mx-auto animate-in slide-in-from-bottom-4">
              <h2 className="text-2xl font-light italic mb-8">Patrick Park</h2>
              <div className="grid grid-cols-2 gap-4 mb-12">
@@ -286,7 +275,6 @@ export default function App() {
           </section>
         ) : (
           <>
-            {/* Journal Section */}
             {activeTab === 'journal' && (
               <section className="animate-in fade-in">
                 {selectedArticle ? (
@@ -300,14 +288,13 @@ export default function App() {
                     <div>
                       <p className="text-[12px] tracking-[0.4em] uppercase mb-4 text-[#a3a3a3]">Season 01: The Mist</p>
                       <h2 className="text-5xl md:text-7xl font-light italic tracking-tight leading-tight mb-12">Finding Clarity <br/> in the Grey.</h2>
-                      <button onClick={() => setSelectedArticle(articles[0])} className="text-[11px] uppercase tracking-[0.3em] border-b border-white/30 pb-1 hover:border-white">Read Journal</button>
+                      <button onClick={() => setSelectedArticle(articles[0])} className="text-[11px] uppercase tracking-[0.3em] border-b border-white/30 pb-1 hover:border-white transition-colors">Read Journal</button>
                     </div>
                   </div>
                 )}
               </section>
             )}
 
-            {/* Routes Section: Map + List */}
             {activeTab === 'routes' && (
               <section className="pt-28 px-6 max-w-4xl mx-auto animate-in slide-in-from-bottom-4">
                 {selectedRoute ? (
@@ -331,13 +318,13 @@ export default function App() {
                     <div className="mb-10 flex flex-col md:flex-row justify-between items-start gap-6">
                       <div><h2 className="text-3xl font-light italic mb-2">Narrative Explorer</h2><p className="text-[#737373] text-sm italic">지도로 탐색하는 러너의 여정.</p></div>
                       <div className="flex bg-[#1c1c1c] p-1 rounded-full border border-white/5">
-                        <button onClick={() => setRouteViewMode('LIST')} className={`px-4 py-1.5 rounded-full text-[10px] font-bold ${routeViewMode === 'LIST' ? 'bg-white text-black' : 'text-[#525252]'}`}>List</button>
-                        <button onClick={() => setRouteViewMode('MAP')} className={`px-4 py-1.5 rounded-full text-[10px] font-bold ${routeViewMode === 'MAP' ? 'bg-white text-black' : 'text-[#525252]'}`}>Map</button>
+                        <button onClick={() => setRouteViewMode('LIST')} className={`px-4 py-1.5 rounded-full text-[10px] font-bold transition-all ${routeViewMode === 'LIST' ? 'bg-white text-black' : 'text-[#525252] hover:text-white'}`}><List size={12}/> List</button>
+                        <button onClick={() => setRouteViewMode('MAP')} className={`px-4 py-1.5 rounded-full text-[10px] font-bold transition-all ${routeViewMode === 'MAP' ? 'bg-white text-black' : 'text-[#525252] hover:text-white'}`}><MapIcon size={12}/> Map</button>
                       </div>
                     </div>
                     <div className="flex gap-6 border-b border-white/5 pb-4 mb-6 overflow-x-auto whitespace-nowrap">
                       {['ALL', 'SEOUL', 'JEJU', 'GYEONGGI'].map(r => (
-                        <button key={r} onClick={() => setRouteRegionFilter(r)} className={`text-[10px] uppercase tracking-[0.3em] font-bold transition-all ${routeRegionFilter === r ? 'text-white border-b border-white pb-4 -mb-4' : 'text-[#404040]'}`}>{r}</button>
+                        <button key={r} onClick={() => setRouteRegionFilter(r)} className={`text-[10px] uppercase tracking-[0.3em] font-bold transition-all ${routeRegionFilter === r ? 'text-white border-b border-white pb-4 -mb-4' : 'text-[#404040] hover:text-white'}`}>{r}</button>
                       ))}
                     </div>
                     {routeViewMode === 'MAP' ? (
@@ -346,7 +333,7 @@ export default function App() {
                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 bg-black border border-white/20 p-5 rounded-sm shadow-2xl z-[2000] text-center">
                               <h4 className="text-xl font-light italic mb-6 leading-tight">{mapPopup.name}</h4>
                               <button onClick={() => setSelectedRoute(mapPopup)} className="w-full py-3 bg-white text-black text-[9px] uppercase font-bold tracking-widest">Explore</button>
-                              <button onClick={() => setMapPopup(null)} className="mt-4 text-[10px] text-[#444] uppercase hover:text-white">Close</button>
+                              <button onClick={() => setMapPopup(null)} className="mt-4 text-[10px] text-[#444] uppercase tracking-widest hover:text-white transition-colors">Close</button>
                            </div>
                         )}
                       </div>
@@ -365,14 +352,13 @@ export default function App() {
               </section>
             )}
 
-            {/* Sessions Section: Race List */}
             {activeTab === 'sessions' && (
               <section className="pt-28 px-6 max-w-4xl mx-auto animate-in slide-in-from-bottom-4">
                 <div className="mb-12">
                   <h2 className="text-3xl font-light italic mb-6">Race & Narrative</h2>
-                  <div className="flex gap-6 border-b border-white/5 pb-4 mb-10 overflow-x-auto">
+                  <div className="flex gap-6 border-b border-white/5 pb-4 mb-10">
                     {['ALL', 'TRAIL', 'ROAD'].map(type => (
-                      <button key={type} onClick={() => setRaceTypeFilter(type)} className={`text-[10px] uppercase tracking-[0.3em] font-bold transition-all ${raceTypeFilter === type ? 'text-white border-b border-white pb-4 -mb-4' : 'text-[#404040]'}`}>{type}</button>
+                      <button key={type} onClick={() => setRaceTypeFilter(type)} className={`text-[10px] uppercase tracking-[0.3em] font-bold transition-all ${raceTypeFilter === type ? 'text-white border-b border-white pb-4 -mb-4' : 'text-[#404040] hover:text-white'}`}>{type}</button>
                     ))}
                   </div>
                 </div>
@@ -401,22 +387,22 @@ export default function App() {
               </section>
             )}
 
-            {/* Gear Section: Grid Layout */}
             {activeTab === 'gear' && (
               <section className="pt-28 px-6 max-w-4xl mx-auto animate-in slide-in-from-bottom-4">
                 <div className="mb-12">
                   <h2 className="text-3xl font-light italic mb-6">Essential Tools</h2>
-                  <div className="flex gap-6 border-b border-white/5 pb-4 mb-12 overflow-x-auto">
+                  <div className="flex gap-6 border-b border-white/5 pb-4 mb-12">
                     {['ALL', 'TRAIL', 'ROAD', 'NUTRITION'].map(cat => (
-                      <button key={cat} onClick={() => setGearFilter(cat)} className={`text-[10px] uppercase tracking-[0.3em] font-bold transition-all ${gearFilter === cat ? 'text-white border-b border-white pb-4 -mb-4' : 'text-[#404040]'}`}>{cat}</button>
+                      <button key={cat} onClick={() => setGearFilter(cat)} className={`text-[10px] uppercase tracking-[0.3em] font-bold transition-all ${gearFilter === cat ? 'text-white border-b border-white pb-4 -mb-4' : 'text-[#404040] hover:text-white'}`}>{cat}</button>
                     ))}
                   </div>
                 </div>
+
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-16">
                   {gearItems.filter(item => gearFilter === 'ALL' || item.category === gearFilter).map(item => (
                       <div key={item.id} className="group flex flex-col animate-in fade-in">
                         <div className="aspect-[4/5] bg-[#1c1c1c] border border-white/5 rounded-sm flex items-center justify-center mb-5 overflow-hidden group-hover:border-white/20 transition-all cursor-pointer">
-                          <span className="text-[8px] text-[#333] uppercase tracking-widest italic font-serif">{item.imageLabel}</span>
+                          <span className="text-[8px] text-[#333] uppercase tracking-widest italic font-serif">{item.imageLabel || "Product Visual"}</span>
                         </div>
                         <div className="flex flex-col">
                            <p className={`text-[8px] uppercase font-bold tracking-widest mb-1 ${item.category === 'TRAIL' ? 'text-orange-400' : item.category === 'ROAD' ? 'text-blue-400' : 'text-green-500'}`}>{item.category} / {item.brand}</p>
@@ -429,7 +415,6 @@ export default function App() {
               </section>
             )}
 
-            {/* Ritual Section: Dashboard */}
             {activeTab === 'recovery' && (
               <section className="px-6 pt-28 max-w-3xl mx-auto animate-in slide-in-from-bottom-4">
                 <h2 className="text-3xl font-light italic mb-10 text-center">Recovery Ritual</h2>
