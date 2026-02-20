@@ -11,9 +11,11 @@ import {
 /**
  * ============================================================
  * 📝 PESSSAGE CONTENT MANAGEMENT
+ * 모든 텍스트와 데이터를 여기서 한눈에 관리할 수 있습니다.
  * ============================================================
  */
 const PESSSAGE_CONTENT = {
+  // 저널(에세이) 데이터
   articles: [
     { 
       id: 1, 
@@ -25,27 +27,31 @@ const PESSSAGE_CONTENT = {
       excerpt: "안개는 시야를 가리지만, 대신 발끝의 감각을 선명하게 만듭니다." 
     }
   ],
+  // 탐색 루트 데이터
   routes: [
     { id: 'orig-1', type: 'ORIGINAL', region: 'SEOUL', name: "Espresso Run", location: "Hannam, Seoul", distance: "5.0km", lat: 37.534, lng: 127.002, description: "새벽의 정적을 뚫고 한남동을 달립니다. 코스의 끝에는 에스프레소 바가 기다립니다.", icon: Coffee },
     { id: 'orig-2', type: 'ORIGINAL', region: 'SEOUL', name: "Sauna Run", location: "Inwangsan, Seoul", distance: "8.5km", lat: 37.581, lng: 126.956, description: "트레일 완주 후 사우나로 직행하여 근육의 긴장을 해소합니다.", icon: Flame },
-    { id: 'orig-3', type: 'ORIGINAL', region: 'SEOUL', name: "Tea Ritual Run", location: "Bukchon, Seoul", distance: "6.2km", lat: 37.582, lng: 126.984, description: "고궁의 담벼락을 따라 달리며 마음을 정돈하고 따뜻한 차를 마십니다.", icon: Leaf },
+    { id: 'orig-3', type: 'ORIGINAL', region: 'SEOUL', name: "Tea Ritual Run", location: "Bukchon, Seoul", distance: "6.2km", lat: 37.582, lng: 126.984, description: "고궁의 담벼락을 따라 달리며 마음을 정돈하고 차 한 잔으로 회복합니다.", icon: Leaf },
     { id: 'orig-4', type: 'ORIGINAL', region: 'SEOUL', name: "Vinyl Recovery Run", location: "Seongsu, Seoul", distance: "7.0km", lat: 37.544, lng: 127.056, description: "성수동 거리를 달린 후 바이닐 바에서 감각적인 음악과 함께 회복합니다.", icon: Music },
     { id: 'trail-1', type: 'TRAIL', region: 'SEOUL', name: "Misty Hidden Wall", location: "Bukhansan, Seoul", distance: "12.4km", lat: 37.649, lng: 126.979, description: "북한산의 거친 암릉 코스." },
     { id: 'trail-2', type: 'TRAIL', region: 'JEJU', name: "Volcanic Coast Trail", location: "Olle 7, Jeju", distance: "17.6km", lat: 33.242, lng: 126.541, description: "현무암 바다를 끼고 달리는 제주 트레일." },
     { id: 'road-1', type: 'ROAD', region: 'SEOUL', name: "City Pulse Line", location: "Banpo, Seoul", distance: "8.2km", lat: 37.511, lng: 126.996, description: "한강의 밤바람을 느끼는 시티런." },
     { id: 'road-2', type: 'ROAD', region: 'GYEONGGI', name: "Central Park Loop", location: "Songdo, Incheon", distance: "6.5km", lat: 37.392, lng: 126.639, description: "미래지향적 건축물 사이의 로드 코스." }
   ],
+  // 기어 및 보충제 데이터
   gearItems: [
-    { id: 1, name: "Portal Shield Shell", brand: "PORTAL", category: "TRAIL", note: "안개가 자욱한 능선에서도 체온을 유지해준 유일한 장비.", imageLabel: "" },
-    { id: 2, name: "Carbon Pulse v2", brand: "PESSAGE", category: "ROAD", note: "도심을 가를 때 필요한 정교함.", imageLabel: "" },
-    { id: 3, name: "Recovery Electrolyte", brand: "PESSAGE", category: "NUTRITION", note: "달린 후의 회복은 무엇을 먹느냐에서 시작됩니다.", imageLabel: "" },
-    { id: 4, name: "Peak Hydration Gel", brand: "MAUTEN", category: "NUTRITION", note: "한계에 다다랐을 때 필요한 에너지의 순도.", imageLabel: "" }
+    { id: 1, name: "Portal Shield Shell", brand: "PORTAL", category: "TRAIL", note: "안개가 자욱한 능선에서도 체온을 유지해준 유일한 장비.", imageLabel: "[트레일 재킷]" },
+    { id: 2, name: "Carbon Pulse v2", brand: "PESSAGE", category: "ROAD", note: "도심을 가를 때 필요한 정교함.", imageLabel: "[로드 슈즈]" },
+    { id: 3, name: "Recovery Electrolyte", brand: "PESSAGE", category: "NUTRITION", note: "달린 후의 회복은 무엇을 먹느냐에서 시작됩니다.", imageLabel: "[뉴트리션]" },
+    { id: 4, name: "Peak Hydration Gel", brand: "MAUTEN", category: "NUTRITION", note: "한계에 다다랐을 때 필요한 에너지의 순도.", imageLabel: "[에너지 젤]" }
   ],
+  // 레이스 세션 데이터
   races: [
     { id: 'r-1', name: 'Trans Jeju 100K', date: '2026-10-12', type: 'TRAIL', description: '한국 최대의 울트라 트레일 대제전.' },
     { id: 'r-2', name: 'UTMB Mont-Blanc', date: '2026-08-28', type: 'TRAIL', description: '트레일 러너들의 성지, 알프스 몽블랑 일주.' },
     { id: 'r-3', name: 'Seoul Marathon', date: '2026-03-15', type: 'ROAD', description: '서울의 심장을 관통하는 역사적인 레이스.' }
   ],
+  // 기기 브랜드 목록
   watchBrands: [
     { id: 'garmin', name: 'Garmin', color: '#00a6da' },
     { id: 'coros', name: 'COROS', color: '#f97316' },
@@ -54,6 +60,7 @@ const PESSSAGE_CONTENT = {
   ]
 };
 
+// --- 디자인 시스템 컬러 ---
 const colors = {
   bg: 'bg-[#121212]',
   card: 'bg-[#1c1c1c]',
@@ -63,35 +70,31 @@ const colors = {
   original: { accent: 'text-white', bg: 'bg-white/5', border: 'border-white/30', pin: '#ffffff' }
 };
 
-/**
- * 🔑 API Key Safely access
- * import.meta references are wrapped in a function to prevent compilation crashes in es2015 target environments.
- */
+// --- 환경 변수 안전 처리 ---
 const getSafeApiKey = () => {
   try {
-    // Attempting to access environment variables safely
-    // @ts-ignore
-    const env = (import.meta && import.meta.env) ? import.meta.env : {};
+    const env = import.meta.env;
     return env.VITE_GEMINI_API_KEY || "";
-  } catch (e) {
-    return "";
-  }
+  } catch (e) { return ""; }
 };
 
 const apiKey = getSafeApiKey();
 
 export default function App() {
+  // --- 앱 상태 관리 ---
   const [activeTab, setActiveTab] = useState('journal');
   const [scrolled, setScrolled] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [authMode, setAuthMode] = useState(null); 
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const [userStats] = useState({ score: 84, mileage: "32.4k", level: "Intermediate" });
+  const [userStats, setUserStats] = useState({ score: 84, mileage: "32.4k", level: "Intermediate" });
   
+  // --- 시계 연동 상태 ---
   const [isWatchConnected, setIsWatchConnected] = useState(false);
   const [connectedDevice, setConnectedDevice] = useState(null); 
   const [isWatchModalOpen, setIsWatchModalOpen] = useState(false);
 
+  // --- 탐색 및 지도 상태 ---
   const [selectedArticle, setSelectedArticle] = useState(null);
   const [selectedRoute, setSelectedRoute] = useState(null);
   const [routeViewMode, setRouteViewMode] = useState('LIST'); 
@@ -102,15 +105,20 @@ export default function App() {
   const mapRef = useRef(null);
   const leafletMap = useRef(null);
   const markerGroupRef = useRef(null);
+
+  // --- 필터 상태 ---
   const [raceTypeFilter, setRaceTypeFilter] = useState('ALL');
   const [gearFilter, setGearFilter] = useState('ALL');
 
+  // --- AI 및 인터랙션 상태 ---
   const [aiResponse, setAiResponse] = useState(null);
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [activeAiTarget, setActiveAiTarget] = useState(null);
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncSuccess, setSyncSuccess] = useState(false);
+  const [socialTarget, setSocialTarget] = useState("");
 
+  // --- 헬퍼 함수 ---
   const getTypeColor = (type) => {
     switch(type) {
       case 'TRAIL': return colors.trail.accent;
@@ -141,9 +149,12 @@ export default function App() {
     return groups;
   };
 
+  // --- 외부 라이브러리 및 스크롤 이벤트 ---
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50);
     window.addEventListener('scroll', handleScroll);
+    
+    // Leaflet 지도 라이브러리 주입
     if (!document.getElementById('leaflet-css')) {
       const link = document.createElement('link');
       link.id = 'leaflet-css'; link.rel = 'stylesheet';
@@ -160,6 +171,7 @@ export default function App() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // --- 지도 초기화 및 마커 렌더링 ---
   useEffect(() => {
     if (activeTab === 'routes' && routeViewMode === 'MAP' && isMapLoaded && mapRef.current) {
       const L = window.L;
@@ -193,23 +205,37 @@ export default function App() {
     }
   };
 
-  const handleLogout = () => { setIsLoggedIn(false); setIsProfileOpen(false); setActiveTab('journal'); setAuthMode(null); setIsWatchConnected(false); setConnectedDevice(null); };
-  const handleAuthSubmit = (e) => { e.preventDefault(); setIsAiLoading(true); setTimeout(() => { setIsLoggedIn(true); setAuthMode(null); setIsAiLoading(false); }, 1000); };
-  const handleSyncToWatch = (id) => { if(!isLoggedIn) { setAuthMode('login'); return; } setIsSyncing(true); setTimeout(() => { setIsSyncing(false); setSyncSuccess(true); setIsWatchConnected(true); setTimeout(() => setSyncSuccess(false), 3000); }, 1500); };
+  // --- 인터랙션 핸들러 ---
+  const handleSocialLogin = (platform) => {
+    setIsAiLoading(true);
+    setSocialTarget(platform.toUpperCase());
+    setTimeout(() => {
+      setIsLoggedIn(true);
+      setAuthMode(null);
+      setIsAiLoading(false);
+      setSocialTarget("");
+      if (platform === 'google') setUserStats({ score: 92, mileage: "45.0k", level: "Elite" });
+    }, 1500);
+  };
 
+  const handleLogout = () => { setIsLoggedIn(false); setIsProfileOpen(false); setActiveTab('journal'); setAuthMode(null); setIsWatchConnected(false); setConnectedDevice(null); };
+  const handleAuthSubmit = (e) => { e.preventDefault(); setIsAiLoading(true); setSocialTarget("PESSAGE Account"); setTimeout(() => { setIsLoggedIn(true); setAuthMode(null); setIsAiLoading(false); setSocialTarget(""); }, 1200); };
+  
   const connectDevice = (brand) => {
     setIsAiLoading(true);
+    setSocialTarget(`${brand.toUpperCase()} Sync`);
     setTimeout(() => {
       setConnectedDevice(brand);
       setIsWatchConnected(true);
       setIsWatchModalOpen(false);
       setIsAiLoading(false);
+      setSocialTarget("");
     }, 1500);
   };
 
   const generateRaceStrategy = async (raceName) => {
     if (!isLoggedIn) { setAuthMode('login'); return; }
-    if (!apiKey) { setAiResponse("API Key missing. Please check Vercel settings."); return; }
+    if (!apiKey) { setAiResponse("API Key missing. Vercel 설정을 확인해주세요."); return; }
     setActiveAiTarget(raceName); setIsAiLoading(true);
     const prompt = `사용자 리커버리 ${userStats.score}, 마일리지 ${userStats.mileage}. 대회 '${raceName}'의 최적 전략을 조언해줘.`;
     try {
@@ -247,30 +273,31 @@ export default function App() {
 
   return (
     <div className={`min-h-screen ${colors.bg} text-white font-sans selection:bg-white selection:text-black`}>
-      <style>{`
-        .leaflet-container { background: #121212 !important; } 
-        .custom-pin { display: flex; align-items: center; justify-content: center; }
-        .watch-button:active { transform: scale(0.98); }
-      `}</style>
+      <style>{`.leaflet-container { background: #121212 !important; } .custom-pin { display: flex; align-items: center; justify-content: center; }`}</style>
       
+      {/* Device Selection Modal */}
       {isWatchModalOpen && (
         <div className="fixed inset-0 z-[2000] bg-black/90 backdrop-blur-md flex items-center justify-center p-6 animate-in fade-in">
           <div className="max-w-sm w-full bg-[#1c1c1c] border border-white/10 p-8 rounded-sm shadow-2xl">
             <h3 className="text-xl font-light italic mb-8 text-center text-white">Connect Device</h3>
             <div className="space-y-3">
               {PESSSAGE_CONTENT.watchBrands.map(brand => (
-                <button 
-                  key={brand.id}
-                  onClick={() => connectDevice(brand.id)}
-                  className="w-full flex justify-between items-center p-5 bg-white/5 border border-white/5 hover:border-white/20 transition-all watch-button"
-                >
+                <button key={brand.id} onClick={() => connectDevice(brand.id)} className="w-full flex justify-between items-center p-5 bg-white/5 border border-white/5 hover:border-white/20 transition-all">
                   <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-white">{brand.name}</span>
                   <ChevronRight size={14} className="text-[#525252]" />
                 </button>
               ))}
             </div>
-            <button onClick={() => setIsWatchModalOpen(false)} className="w-full mt-10 text-[9px] uppercase tracking-widest text-[#444] hover:text-white">Back to Ritual</button>
+            <button onClick={() => setIsWatchModalOpen(false)} className="w-full mt-10 text-[9px] uppercase tracking-widest text-[#444] hover:text-white">Close</button>
           </div>
+        </div>
+      )}
+
+      {/* Loading Overlay */}
+      {isAiLoading && socialTarget && (
+        <div className="fixed inset-0 z-[3000] bg-black/80 backdrop-blur-sm flex flex-col items-center justify-center animate-in fade-in">
+          <Loader2 size={32} className="animate-spin text-white mb-6" />
+          <p className="text-[10px] uppercase tracking-[0.4em] font-bold tracking-widest">{socialTarget} AUTHENTICATING...</p>
         </div>
       )}
 
@@ -280,7 +307,7 @@ export default function App() {
           {isLoggedIn ? (
             <>
               <div className={`text-[10px] tracking-widest uppercase px-3 py-1 rounded-full border ${isWatchConnected ? 'border-green-500/30 text-green-400 bg-green-500/5' : 'border-white/10 text-[#525252]'}`}>
-                {isWatchConnected ? `${connectedDevice?.toUpperCase() || 'SYNCED'}` : 'DISCONNECTED'}
+                {isWatchConnected ? `${connectedDevice?.toUpperCase()}` : 'DISCONNECTED'}
               </div>
               <button onClick={() => {setIsProfileOpen(!isProfileOpen); setAuthMode(null);}} className={`p-1 transition-all ${isProfileOpen ? 'text-white scale-110' : 'text-[#a3a3a3]'}`}><User size={22} /></button>
             </>
@@ -302,9 +329,9 @@ export default function App() {
              <div className="space-y-3">
                 <p className="text-[9px] uppercase tracking-[0.3em] text-[#444] mb-6">Or continue with</p>
                 <div className="grid grid-cols-1 gap-3">
-                   <button onClick={handleAuthSubmit} className="w-full py-3 bg-[#FEE500] text-black text-[10px] font-bold tracking-widest rounded-sm shadow-lg">KAKAO</button>
-                   <button onClick={handleAuthSubmit} className="w-full py-3 bg-[#03C75A] text-white text-[10px] font-bold tracking-widest rounded-sm shadow-lg">NAVER</button>
-                   <button onClick={handleAuthSubmit} className="w-full py-3 bg-white text-black text-[10px] font-bold tracking-widest border border-white/10 rounded-sm shadow-lg">GOOGLE</button>
+                   <button onClick={() => handleSocialLogin('kakao')} className="w-full py-3 bg-[#FEE500] text-black text-[10px] font-bold tracking-widest rounded-sm shadow-lg active:scale-95 transition-transform">KAKAO</button>
+                   <button onClick={() => handleSocialLogin('naver')} className="w-full py-3 bg-[#03C75A] text-white text-[10px] font-bold tracking-widest rounded-sm shadow-lg active:scale-95 transition-transform">NAVER</button>
+                   <button onClick={() => handleSocialLogin('google')} className="w-full py-3 bg-white text-black text-[10px] font-bold tracking-widest border border-white/10 rounded-sm shadow-lg active:scale-95 transition-transform">GOOGLE</button>
                 </div>
              </div>
              <button onClick={() => setAuthMode(null)} className="mt-12 text-[10px] uppercase text-[#444] hover:text-white transition-colors underline underline-offset-4">Cancel</button>
@@ -317,11 +344,8 @@ export default function App() {
                 <div className="bg-[#1c1c1c] p-6 border border-white/5"><p className="text-[10px] text-[#525252] uppercase mb-1">Weekly Mileage</p><span className="text-3xl font-light text-white">{userStats.mileage}</span></div>
              </div>
              {isWatchConnected && (
-               <div className="p-6 bg-[#1c1c1c] border border-white/5 rounded-sm mb-12 flex justify-between items-center animate-in fade-in">
-                  <div>
-                    <p className="text-[9px] uppercase tracking-widest text-[#525252] mb-1">Connected Device</p>
-                    <p className="text-sm font-bold uppercase tracking-tighter text-white">{connectedDevice}</p>
-                  </div>
+               <div className="p-6 bg-[#1c1c1c] border border-white/5 rounded-sm mb-12 flex justify-between items-center">
+                  <div><p className="text-[9px] uppercase tracking-widest text-[#525252] mb-1">Device Source</p><p className="text-sm font-bold uppercase tracking-tighter text-white">{connectedDevice}</p></div>
                   <button onClick={() => setIsWatchConnected(false)} className="text-[9px] text-[#444] uppercase tracking-widest">Disconnect</button>
                </div>
              )}
@@ -329,6 +353,7 @@ export default function App() {
           </section>
         ) : (
           <>
+            {/* JOURNAL TAB */}
             {activeTab === 'journal' && (
               <section className="animate-in fade-in">
                 {selectedArticle ? (
@@ -349,6 +374,7 @@ export default function App() {
               </section>
             )}
 
+            {/* ROUTES TAB - Improved Navigation with ORIGINAL/TRAIL/ROAD subtabs */}
             {activeTab === 'routes' && (
               <section className="pt-28 px-6 max-w-4xl mx-auto animate-in slide-in-from-bottom-4">
                 {selectedRoute ? (
@@ -363,24 +389,46 @@ export default function App() {
                       <p className="text-2xl font-light tracking-tighter text-white">{selectedRoute.distance}</p>
                     </div>
                     <p className="text-lg leading-relaxed text-[#d4d4d4] font-light mb-16">{selectedRoute.description}</p>
-                    <button onClick={() => handleSyncToWatch(selectedRoute.id)} className={`w-full py-4 rounded-full text-[12px] uppercase font-bold transition-all ${syncSuccess ? 'bg-green-600' : 'bg-white text-black'}`}>
+                    <button onClick={() => connectDevice('Sync')} className={`w-full py-4 rounded-full text-[12px] uppercase font-bold transition-all ${syncSuccess ? 'bg-green-600' : 'bg-white text-black'}`}>
                       {isSyncing ? 'SYNCING...' : syncSuccess ? 'Synced' : 'Sync to Device'}
                     </button>
                   </div>
                 ) : (
                   <>
                     <div className="mb-10 flex flex-col md:flex-row justify-between items-start gap-6">
-                      <div><h2 className="text-3xl font-light italic mb-2 text-white">Narrative Explorer</h2><p className="text-[#737373] text-sm italic">지도로 탐색하는 러너의 여정.</p></div>
+                      <div><h2 className="text-3xl font-light italic mb-2 text-white">Narrative Explorer</h2><p className="text-[#737373] text-sm italic">지도로 탐색하는 러너의 서사.</p></div>
                       <div className="flex bg-[#1c1c1c] p-1 rounded-full border border-white/5">
                         <button onClick={() => setRouteViewMode('LIST')} className={`px-4 py-1.5 rounded-full text-[10px] font-bold transition-all ${routeViewMode === 'LIST' ? 'bg-white text-black' : 'text-[#525252] hover:text-white'}`}><List size={12}/> List</button>
                         <button onClick={() => setRouteViewMode('MAP')} className={`px-4 py-1.5 rounded-full text-[10px] font-bold transition-all ${routeViewMode === 'MAP' ? 'bg-white text-black' : 'text-[#525252] hover:text-white'}`}><MapIcon size={12}/> Map</button>
                       </div>
                     </div>
-                    <div className="flex gap-6 border-b border-white/5 pb-4 mb-6 overflow-x-auto whitespace-nowrap">
-                      {['ALL', 'SEOUL', 'JEJU', 'GYEONGGI'].map(r => (
-                        <button key={r} onClick={() => setRouteRegionFilter(r)} className={`text-[10px] uppercase tracking-[0.3em] font-bold transition-all ${routeRegionFilter === r ? 'text-white border-b border-white pb-4 -mb-4' : 'text-[#404040] hover:text-white'}`}>{r}</button>
-                      ))}
+
+                    {/* ✅ New: Course Type Sub-Tabs (ORIGINAL, TRAIL, ROAD) */}
+                    <div className="mb-10">
+                      <div className="flex gap-6 border-b border-white/5 pb-4 mb-6">
+                        {['ALL', 'ORIGINAL', 'TRAIL', 'ROAD'].map(type => (
+                          <button 
+                            key={type} 
+                            onClick={() => setRouteTypeFilter(type)}
+                            className={`text-[10px] uppercase tracking-[0.3em] font-bold transition-all ${routeTypeFilter === type ? 'text-white border-b border-white pb-4 -mb-4' : 'text-[#404040] hover:text-white'}`}
+                          >
+                            {type}
+                          </button>
+                        ))}
+                      </div>
+                      <div className="flex gap-6 border-b border-white/5 pb-4">
+                        {['ALL', 'SEOUL', 'JEJU', 'GYEONGGI'].map(r => (
+                          <button 
+                            key={r} 
+                            onClick={() => setRouteRegionFilter(r)} 
+                            className={`text-[10px] uppercase tracking-[0.3em] font-bold transition-all ${routeRegionFilter === r ? 'text-white border-b border-white pb-4 -mb-4' : 'text-[#404040] hover:text-white'}`}
+                          >
+                            {r}
+                          </button>
+                        ))}
+                      </div>
                     </div>
+
                     {routeViewMode === 'MAP' ? (
                       <div ref={mapRef} className="w-full aspect-[4/5] md:aspect-[16/9] bg-[#121212] rounded-sm overflow-hidden shadow-2xl relative border border-white/5">
                         {mapPopup && (
@@ -394,13 +442,16 @@ export default function App() {
                       </div>
                     ) : (
                       <div className="space-y-6">
-                        {PESSSAGE_CONTENT.routes.filter(r => (routeTypeFilter === 'ALL' || r.type === routeTypeFilter) && (routeRegionFilter === 'ALL' || r.region === routeRegionFilter)).map(route => (
+                        {PESSSAGE_CONTENT.routes
+                          .filter(r => (routeTypeFilter === 'ALL' || r.type === routeTypeFilter))
+                          .filter(r => (routeRegionFilter === 'ALL' || r.region === routeRegionFilter))
+                          .map(route => (
                           <div key={route.id} onClick={() => setSelectedRoute(route)} className="p-6 bg-[#1c1c1c] border border-white/5 rounded-sm flex justify-between items-center cursor-pointer hover:border-white/20 transition-all group">
                              <div>
                                 <p className={`text-[9px] uppercase font-bold mb-1 tracking-widest ${getTypeColor(route.type)}`}>{route.type} / {route.location}</p>
-                                <h4 className="text-xl font-light italic group-hover:text-white transition-colors text-white">{route.name}</h4>
+                                <h4 className="text-xl font-light italic group-hover:text-white text-white">{route.name}</h4>
                              </div>
-                             <span className="text-2xl font-light tracking-tighter group-hover:text-white transition-colors text-white">{route.distance}</span>
+                             <span className="text-2xl font-light tracking-tighter group-hover:text-white text-white">{route.distance}</span>
                           </div>
                         ))}
                       </div>
@@ -410,13 +461,14 @@ export default function App() {
               </section>
             )}
 
+            {/* SESSIONS TAB */}
             {activeTab === 'sessions' && (
               <section className="pt-28 px-6 max-w-4xl mx-auto animate-in slide-in-from-bottom-4">
                 <div className="mb-12">
                   <h2 className="text-3xl font-light italic mb-6 text-white">Race & Narrative</h2>
-                  <div className="flex gap-6 border-b border-white/5 pb-4 mb-10 overflow-x-auto">
+                  <div className="flex gap-6 border-b border-white/5 pb-4 mb-10 overflow-x-auto whitespace-nowrap">
                     {['ALL', 'TRAIL', 'ROAD'].map(type => (
-                      <button key={type} onClick={() => setRaceTypeFilter(type)} className={`text-[10px] uppercase tracking-[0.3em] font-bold transition-all ${raceTypeFilter === type ? 'text-white border-b border-white pb-4 -mb-4' : 'text-[#404040] hover:text-white'}`}>{type}</button>
+                      <button key={type} onClick={() => setRaceTypeFilter(type)} className={`text-[10px] uppercase tracking-[0.3em] font-bold transition-all ${raceTypeFilter === type ? 'text-white border-b border-white pb-4 -mb-4' : 'text-[#404040]'}`}>{type}</button>
                     ))}
                   </div>
                 </div>
@@ -445,26 +497,24 @@ export default function App() {
               </section>
             )}
 
+            {/* GEAR TAB */}
             {activeTab === 'gear' && (
               <section className="pt-28 px-6 max-w-4xl mx-auto animate-in slide-in-from-bottom-4">
                 <div className="mb-12">
                   <h2 className="text-3xl font-light italic mb-6 text-white">Essential Tools</h2>
-                  <div className="flex gap-6 border-b border-white/5 pb-4 mb-12 overflow-x-auto">
+                  <div className="flex gap-6 border-b border-white/5 pb-4 mb-12 overflow-x-auto whitespace-nowrap">
                     {['ALL', 'TRAIL', 'ROAD', 'NUTRITION'].map(cat => (
-                      <button key={cat} onClick={() => setGearFilter(cat)} className={`text-[10px] uppercase tracking-[0.3em] font-bold transition-all ${gearFilter === cat ? 'text-white border-b border-white pb-4 -mb-4' : 'text-[#404040] hover:text-white'}`}>{cat}</button>
+                      <button key={cat} onClick={() => setGearFilter(cat)} className={`text-[10px] uppercase tracking-[0.3em] font-bold transition-all ${gearFilter === cat ? 'text-white border-b border-white pb-4 -mb-4' : 'text-[#404040]'}`}>{cat}</button>
                     ))}
                   </div>
                 </div>
-
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-16">
                   {PESSSAGE_CONTENT.gearItems.filter(item => gearFilter === 'ALL' || item.category === gearFilter).map(item => (
-                      <div key={item.id} className="group flex flex-col animate-in fade-in">
-                        <div className="aspect-[4/5] bg-[#1c1c1c] border border-white/5 rounded-sm flex items-center justify-center mb-5 overflow-hidden group-hover:border-white/20 transition-all cursor-pointer text-white italic">
-                          {item.imageLabel || "Product Visual"}
-                        </div>
+                      <div key={item.id} className="group flex flex-col animate-in fade-in text-left">
+                        <div className="aspect-[4/5] bg-[#1c1c1c] border border-white/5 rounded-sm flex items-center justify-center mb-5 overflow-hidden group-hover:border-white/20 transition-all cursor-pointer text-[#333] text-[9px] uppercase tracking-widest italic">{item.imageLabel}</div>
                         <div className="flex flex-col">
                            <p className={`text-[8px] uppercase font-bold tracking-widest mb-1 ${item.category === 'TRAIL' ? 'text-orange-400' : item.category === 'ROAD' ? 'text-blue-400' : 'text-green-500'}`}>{item.category} / {item.brand}</p>
-                           <h3 className="text-sm font-medium italic mb-2 group-hover:text-white transition-colors text-white">{item.name}</h3>
+                           <h3 className="text-sm font-medium italic mb-2 text-white">{item.name}</h3>
                            <p className="text-[10px] text-[#737373] leading-relaxed line-clamp-3 italic">"{item.note}"</p>
                         </div>
                       </div>
@@ -473,52 +523,26 @@ export default function App() {
               </section>
             )}
 
+            {/* RITUAL TAB */}
             {activeTab === 'recovery' && (
               <section className="px-6 pt-28 max-w-3xl mx-auto animate-in slide-in-from-bottom-4">
                 <h2 className="text-3xl font-light italic mb-10 text-center text-white">Recovery Ritual</h2>
                 {isLoggedIn && isWatchConnected ? (
                   <div className="animate-in fade-in">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-                       <div className="bg-[#1c1c1c] p-6 border border-white/5 text-center rounded-sm shadow-xl">
-                          <p className="text-[10px] uppercase mb-4 text-[#737373] tracking-widest font-bold">Recovery Score</p>
-                          <div className="text-6xl font-light mb-2 text-white">{userStats.score}</div>
-                          <p className="text-[9px] text-green-400 uppercase font-bold tracking-widest">Optimal</p>
-                       </div>
-                       <div className="bg-[#1c1c1c] p-6 border border-white/5 text-center rounded-sm shadow-xl">
-                          <p className="text-[10px] uppercase mb-4 text-[#737373] tracking-widest font-bold">Data Source</p>
-                          <div className="text-2xl font-light uppercase tracking-tighter mt-4 text-white">{connectedDevice}</div>
-                       </div>
-                       <div className="bg-[#1c1c1c] p-6 border border-white/5 text-center rounded-sm shadow-xl">
-                          <p className="text-[10px] uppercase mb-4 text-[#737373] tracking-widest font-bold">Last Sync</p>
-                          <div className="text-2xl font-light italic mt-4 text-white">Just Now</div>
-                       </div>
+                       <div className="bg-[#1c1c1c] p-6 border border-white/5 text-center rounded-sm shadow-xl"><p className="text-[10px] uppercase mb-4 text-[#737373] tracking-widest font-bold">Recovery Score</p><div className="text-6xl font-light mb-2 text-white">{userStats.score}</div><p className="text-[9px] text-green-400 uppercase font-bold tracking-widest">Optimal</p></div>
+                       <div className="bg-[#1c1c1c] p-6 border border-white/5 text-center rounded-sm shadow-xl"><p className="text-[10px] uppercase mb-4 text-[#737373] tracking-widest font-bold">Data Source</p><div className="text-2xl font-light uppercase tracking-tighter mt-4 text-white">{connectedDevice?.toUpperCase()}</div></div>
+                       <div className="bg-[#1c1c1c] p-6 border border-white/5 text-center rounded-sm shadow-xl"><p className="text-[10px] uppercase mb-4 text-[#737373] tracking-widest font-bold">Last Sync</p><div className="text-2xl font-light italic mt-4 text-white">Just Now</div></div>
                     </div>
-                    
-                    <button onClick={generateRecoveryPlan} className="w-full py-4 bg-white text-black font-bold uppercase text-[12px] tracking-[0.2em] active:scale-[0.98] transition-transform">
-                      {isAiLoading ? <Loader2 size={16} className="animate-spin mx-auto" /> : 'Get AI Ritual'}
-                    </button>
+                    <button onClick={generateRecoveryPlan} className="w-full py-4 bg-white text-black font-bold uppercase text-[12px] tracking-[0.2em] active:scale-[0.98] transition-transform">Get AI Ritual</button>
                     {aiResponse && <div className="mt-8 text-sm italic text-[#d4d4d4] border-t border-white/5 pt-6 animate-in slide-in-from-bottom-2 leading-relaxed">"{aiResponse}"</div>}
-                    
-                    <div className="mt-12 p-6 bg-[#1c1c1c] border border-white/5 rounded-sm flex items-center justify-between">
-                       <div className="flex items-center gap-4 text-[#525252]">
-                          <WatchIcon size={18} />
-                          <span className="text-[10px] uppercase tracking-widest font-bold">Device Connected: {connectedDevice?.toUpperCase()}</span>
-                       </div>
-                       <button onClick={() => setIsWatchModalOpen(true)} className="text-[9px] uppercase tracking-widest text-[#c2410c] font-bold">Change</button>
-                    </div>
+                    <div className="mt-12 p-6 bg-[#1c1c1c] border border-white/5 rounded-sm flex items-center justify-between"><div className="flex items-center gap-4 text-[#525252]"><WatchIcon size={18} /><span className="text-[10px] uppercase tracking-widest font-bold">Connected: {connectedDevice?.toUpperCase()}</span></div><button onClick={() => setIsWatchModalOpen(true)} className="text-[9px] uppercase tracking-widest text-[#c2410c] font-bold">Change</button></div>
                   </div>
                 ) : (
                   <div className="text-center py-24 border border-dashed border-white/10 rounded-sm">
                     <Zap size={40} className="mx-auto mb-6 text-[#333]"/>
-                    <p className="text-sm text-[#737373] mb-8 leading-relaxed">
-                      {!isLoggedIn ? '개인화된 회복 리추얼을 확인하려면\n로그인이 필요합니다.' : '워치 데이터를 동기화하여\n오늘의 컨디션을 분석하세요.'}
-                    </p>
-                    <button 
-                      onClick={() => !isLoggedIn ? setAuthMode('login') : setIsWatchModalOpen(true)} 
-                      className="px-12 py-3 bg-white text-black font-bold text-[11px] uppercase tracking-widest rounded-full active:scale-95 transition-transform shadow-xl"
-                    >
-                      {!isLoggedIn ? 'Login to Access' : 'Select Your Watch'}
-                    </button>
+                    <p className="text-sm text-[#737373] mb-8 leading-relaxed">{!isLoggedIn ? '개인화된 회복 리추얼을 확인하려면\n로그인이 필요합니다.' : '워치 데이터를 동기화하여\n오늘의 컨디션을 분석하세요.'}</p>
+                    <button onClick={() => !isLoggedIn ? setAuthMode('login') : setIsWatchModalOpen(true)} className="px-12 py-3 bg-white text-black font-bold text-[11px] uppercase tracking-widest rounded-full active:scale-95 transition-transform shadow-xl">{!isLoggedIn ? 'Login to Access' : 'Select Your Watch'}</button>
                   </div>
                 )}
               </section>
