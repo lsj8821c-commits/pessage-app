@@ -10,12 +10,31 @@ import {
 
 /**
  * ============================================================
- * 📝 PESSSAGE CONTENT MANAGEMENT
- * 모든 텍스트와 데이터를 여기서 한눈에 관리할 수 있습니다.
+ * ☁️ SANITY CMS CONFIGURATION (Project ID: 1pnkcp2x)
  * ============================================================
  */
-const PESSSAGE_CONTENT = {
-  // 저널(에세이) 데이터
+const SANITY_CONFIG = {
+  projectId: "1pnkcp2x", 
+  dataset: "production",
+  apiVersion: "2024-02-20",
+  useCdn: true,
+};
+
+/**
+ * 🔑 API Key Secure Access (Vercel 환경 변수 연동)
+ */
+const getSafeApiKey = () => {
+  try {
+    return import.meta.env.VITE_GEMINI_API_KEY || "";
+  } catch (e) {
+    return "";
+  }
+};
+
+const apiKey = getSafeApiKey();
+
+// CMS 데이터 로딩 전 보여줄 기본 데이터 (백업/로딩용)
+const INITIAL_CONTENT = {
   articles: [
     { 
       id: 1, 
@@ -23,44 +42,26 @@ const PESSSAGE_CONTENT = {
       subtitle: "Season 01: The Mist", 
       category: "ESSAY", 
       date: "2026.02.20", 
-      content: "새벽 5시, 세상이 아직 짙은 회색빛 장막 뒤에 숨어 있을 때 우리는 길을 나섭니다. 시야는 불과 5미터 앞을 내다보기 힘들지만, 아이러니하게도 우리는 그 어느 때보다 '선명함'을 느낍니다. 안개는 외부의 소음을 차단하는 천연 소음기입니다. 이 정적 속에서 달리기는 단순한 운동을 넘어 하나의 움직이는 명상이 됩니다.",
+      content: "데이터를 불러오는 중입니다...",
       excerpt: "안개는 시야를 가리지만, 대신 발끝의 감각을 선명하게 만듭니다." 
     }
   ],
-  // 탐색 루트 데이터
   routes: [
-    { id: 'orig-1', type: 'ORIGINAL', region: 'SEOUL', name: "Espresso Run", location: "Hannam, Seoul", distance: "5.0km", lat: 37.534, lng: 127.002, description: "새벽의 정적을 뚫고 한남동을 달립니다. 코스의 끝에는 에스프레소 바가 기다립니다.", icon: Coffee },
-    { id: 'orig-2', type: 'ORIGINAL', region: 'SEOUL', name: "Sauna Run", location: "Inwangsan, Seoul", distance: "8.5km", lat: 37.581, lng: 126.956, description: "트레일 완주 후 사우나로 직행하여 근육의 긴장을 해소합니다.", icon: Flame },
-    { id: 'orig-3', type: 'ORIGINAL', region: 'SEOUL', name: "Tea Ritual Run", location: "Bukchon, Seoul", distance: "6.2km", lat: 37.582, lng: 126.984, description: "고궁의 담벼락을 따라 달리며 마음을 정돈하고 차 한 잔으로 회복합니다.", icon: Leaf },
-    { id: 'orig-4', type: 'ORIGINAL', region: 'SEOUL', name: "Vinyl Recovery Run", location: "Seongsu, Seoul", distance: "7.0km", lat: 37.544, lng: 127.056, description: "성수동 거리를 달린 후 바이닐 바에서 감각적인 음악과 함께 회복합니다.", icon: Music },
-    { id: 'trail-1', type: 'TRAIL', region: 'SEOUL', name: "Misty Hidden Wall", location: "Bukhansan, Seoul", distance: "12.4km", lat: 37.649, lng: 126.979, description: "북한산의 거친 암릉 코스." },
-    { id: 'trail-2', type: 'TRAIL', region: 'JEJU', name: "Volcanic Coast Trail", location: "Olle 7, Jeju", distance: "17.6km", lat: 33.242, lng: 126.541, description: "현무암 바다를 끼고 달리는 제주 트레일." },
-    { id: 'road-1', type: 'ROAD', region: 'SEOUL', name: "City Pulse Line", location: "Banpo, Seoul", distance: "8.2km", lat: 37.511, lng: 126.996, description: "한강의 밤바람을 느끼는 시티런." },
-    { id: 'road-2', type: 'ROAD', region: 'GYEONGGI', name: "Central Park Loop", location: "Songdo, Incheon", distance: "6.5km", lat: 37.392, lng: 126.639, description: "미래지향적 건축물 사이의 로드 코스." }
+    { id: 'loading', type: 'ORIGINAL', region: 'SEOUL', name: "Loading Routes...", location: "Updating...", distance: "0.0km", lat: 37.5665, lng: 126.9780, description: "Sanity에서 데이터를 가져오고 있습니다.", icon: Coffee }
   ],
-  // 기어 및 보충제 데이터
-  gearItems: [
-    { id: 1, name: "Portal Shield Shell", brand: "PORTAL", category: "TRAIL", note: "안개가 자욱한 능선에서도 체온을 유지해준 유일한 장비.", imageLabel: "[트레일 재킷]" },
-    { id: 2, name: "Carbon Pulse v2", brand: "PESSAGE", category: "ROAD", note: "도심을 가를 때 필요한 정교함.", imageLabel: "[로드 슈즈]" },
-    { id: 3, name: "Recovery Electrolyte", brand: "PESSAGE", category: "NUTRITION", note: "달린 후의 회복은 무엇을 먹느냐에서 시작됩니다.", imageLabel: "[뉴트리션]" },
-    { id: 4, name: "Peak Hydration Gel", brand: "MAUTEN", category: "NUTRITION", note: "한계에 다다랐을 때 필요한 에너지의 순도.", imageLabel: "[에너지 젤]" }
-  ],
-  // 레이스 세션 데이터
+  gearItems: [],
   races: [
     { id: 'r-1', name: 'Trans Jeju 100K', date: '2026-10-12', type: 'TRAIL', description: '한국 최대의 울트라 트레일 대제전.' },
-    { id: 'r-2', name: 'UTMB Mont-Blanc', date: '2026-08-28', type: 'TRAIL', description: '트레일 러너들의 성지, 알프스 몽블랑 일주.' },
-    { id: 'r-3', name: 'Seoul Marathon', date: '2026-03-15', type: 'ROAD', description: '서울의 심장을 관통하는 역사적인 레이스.' }
+    { id: 'r-2', name: 'UTMB Mont-Blanc', date: '2026-08-28', type: 'TRAIL', description: '트레일 러너들의 성지.' },
+    { id: 'r-3', name: 'Seoul Marathon', date: '2026-03-15', type: 'ROAD', description: '역사적인 서울 로드 레이스.' }
   ],
-  // 기기 브랜드 목록
   watchBrands: [
     { id: 'garmin', name: 'Garmin', color: '#00a6da' },
     { id: 'coros', name: 'COROS', color: '#f97316' },
-    { id: 'apple', name: 'Apple Watch', color: '#ffffff' },
-    { id: 'suunto', name: 'Suunto', color: '#eb1c24' }
+    { id: 'apple', name: 'Apple Watch', color: '#ffffff' }
   ]
 };
 
-// --- 디자인 시스템 컬러 ---
 const colors = {
   bg: 'bg-[#121212]',
   card: 'bg-[#1c1c1c]',
@@ -70,31 +71,18 @@ const colors = {
   original: { accent: 'text-white', bg: 'bg-white/5', border: 'border-white/30', pin: '#ffffff' }
 };
 
-// --- 환경 변수 안전 처리 ---
-const getSafeApiKey = () => {
-  try {
-    const env = import.meta.env;
-    return env.VITE_GEMINI_API_KEY || "";
-  } catch (e) { return ""; }
-};
-
-const apiKey = getSafeApiKey();
-
 export default function App() {
-  // --- 앱 상태 관리 ---
+  // --- States ---
+  const [siteContent, setSiteContent] = useState(INITIAL_CONTENT);
   const [activeTab, setActiveTab] = useState('journal');
   const [scrolled, setScrolled] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [authMode, setAuthMode] = useState(null); 
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [userStats, setUserStats] = useState({ score: 84, mileage: "32.4k", level: "Intermediate" });
-  
-  // --- 시계 연동 상태 ---
   const [isWatchConnected, setIsWatchConnected] = useState(false);
   const [connectedDevice, setConnectedDevice] = useState(null); 
   const [isWatchModalOpen, setIsWatchModalOpen] = useState(false);
-
-  // --- 탐색 및 지도 상태 ---
   const [selectedArticle, setSelectedArticle] = useState(null);
   const [selectedRoute, setSelectedRoute] = useState(null);
   const [routeViewMode, setRouteViewMode] = useState('LIST'); 
@@ -105,20 +93,48 @@ export default function App() {
   const mapRef = useRef(null);
   const leafletMap = useRef(null);
   const markerGroupRef = useRef(null);
-
-  // --- 필터 상태 ---
   const [raceTypeFilter, setRaceTypeFilter] = useState('ALL');
-  const [gearFilter, setGearFilter] = useState('ALL');
-
-  // --- AI 및 인터랙션 상태 ---
   const [aiResponse, setAiResponse] = useState(null);
   const [isAiLoading, setIsAiLoading] = useState(false);
-  const [activeAiTarget, setActiveAiTarget] = useState(null);
-  const [isSyncing, setIsSyncing] = useState(false);
-  const [syncSuccess, setSyncSuccess] = useState(false);
   const [socialTarget, setSocialTarget] = useState("");
 
-  // --- 헬퍼 함수 ---
+  /**
+   * 🔄 SANITY REAL-TIME DATA FETCHING
+   * Sanity API를 통해 직접 데이터를 요청합니다.
+   */
+  useEffect(() => {
+    const fetchCmsData = async () => {
+      // GROQ 쿼리: 저널, 루트, 기어 데이터를 한 번에 요청
+      const query = encodeURIComponent(`{
+        "articles": *[_type == "journal"] | order(publishedAt desc),
+        "routes": *[_type == "route"],
+        "gearItems": *[_type == "gear"]
+      }`);
+      
+      const url = `https://${SANITY_CONFIG.projectId}.api.sanity.io/v${SANITY_CONFIG.apiVersion}/data/query/${SANITY_CONFIG.dataset}?query=${query}`;
+
+      try {
+        const response = await fetch(url);
+        const data = await response.json();
+        
+        if (data.result) {
+          setSiteContent(prev => ({
+            ...prev,
+            articles: data.result.articles.length > 0 ? data.result.articles : prev.articles,
+            routes: data.result.routes.length > 0 ? data.result.routes : prev.routes,
+            gearItems: data.result.gearItems.length > 0 ? data.result.gearItems : prev.gearItems,
+          }));
+          console.log("PESSAGE CMS Sync Complete.");
+        }
+      } catch (error) {
+        console.error("CMS Sync Error: ", error);
+      }
+    };
+
+    fetchCmsData();
+  }, []);
+
+  // --- Helpers ---
   const getTypeColor = (type) => {
     switch(type) {
       case 'TRAIL': return colors.trail.accent;
@@ -138,7 +154,7 @@ export default function App() {
   };
 
   const groupedRaces = () => {
-    const filtered = PESSSAGE_CONTENT.races.filter(r => raceTypeFilter === 'ALL' || r.type === raceTypeFilter);
+    const filtered = siteContent.races.filter(r => raceTypeFilter === 'ALL' || r.type === raceTypeFilter);
     const sorted = [...filtered].sort((a, b) => new Date(a.date) - new Date(b.date));
     const groups = {};
     sorted.forEach(race => {
@@ -149,29 +165,23 @@ export default function App() {
     return groups;
   };
 
-  // --- 외부 라이브러리 및 스크롤 이벤트 ---
+  // --- Effects for UI & Map ---
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50);
     window.addEventListener('scroll', handleScroll);
-    
-    // Leaflet 지도 라이브러리 주입
     if (!document.getElementById('leaflet-css')) {
-      const link = document.createElement('link');
-      link.id = 'leaflet-css'; link.rel = 'stylesheet';
-      link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
-      document.head.appendChild(link);
+      const link = document.createElement('link'); link.id = 'leaflet-css'; link.rel = 'stylesheet';
+      link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'; document.head.appendChild(link);
     }
     if (!document.getElementById('leaflet-js')) {
-      const script = document.createElement('script');
-      script.id = 'leaflet-js'; script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
-      script.async = true;
-      script.onload = () => setIsMapLoaded(true);
+      const script = document.createElement('script'); script.id = 'leaflet-js';
+      script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+      script.async = true; script.onload = () => setIsMapLoaded(true);
       document.head.appendChild(script);
     } else { setIsMapLoaded(true); }
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // --- 지도 초기화 및 마커 렌더링 ---
   useEffect(() => {
     if (activeTab === 'routes' && routeViewMode === 'MAP' && isMapLoaded && mapRef.current) {
       const L = window.L;
@@ -191,7 +201,7 @@ export default function App() {
     if (!leafletMap.current || !markerGroupRef.current) return;
     const L = window.L;
     markerGroupRef.current.clearLayers();
-    const filtered = PESSSAGE_CONTENT.routes.filter(r => (routeTypeFilter === 'ALL' || r.type === routeTypeFilter) && (routeRegionFilter === 'ALL' || r.region === routeRegionFilter));
+    const filtered = siteContent.routes.filter(r => (routeTypeFilter === 'ALL' || r.type === routeTypeFilter) && (routeRegionFilter === 'ALL' || r.region === routeRegionFilter));
     if (filtered.length > 0) {
       const bounds = L.latLngBounds();
       filtered.forEach(route => {
@@ -205,60 +215,26 @@ export default function App() {
     }
   };
 
-  // --- 인터랙션 핸들러 ---
+  // --- Handlers ---
   const handleSocialLogin = (platform) => {
-    setIsAiLoading(true);
-    setSocialTarget(platform.toUpperCase());
-    setTimeout(() => {
-      setIsLoggedIn(true);
-      setAuthMode(null);
-      setIsAiLoading(false);
-      setSocialTarget("");
-      if (platform === 'google') setUserStats({ score: 92, mileage: "45.0k", level: "Elite" });
-    }, 1500);
+    setIsAiLoading(true); setSocialTarget(platform.toUpperCase());
+    setTimeout(() => { setIsLoggedIn(true); setAuthMode(null); setIsAiLoading(false); setSocialTarget(""); if(platform === 'google') setUserStats({ score: 92, mileage: "45.0k", level: "Elite" }); }, 1500);
   };
-
   const handleLogout = () => { setIsLoggedIn(false); setIsProfileOpen(false); setActiveTab('journal'); setAuthMode(null); setIsWatchConnected(false); setConnectedDevice(null); };
   const handleAuthSubmit = (e) => { e.preventDefault(); setIsAiLoading(true); setSocialTarget("PESSAGE Account"); setTimeout(() => { setIsLoggedIn(true); setAuthMode(null); setIsAiLoading(false); setSocialTarget(""); }, 1200); };
-  
-  const connectDevice = (brand) => {
-    setIsAiLoading(true);
-    setSocialTarget(`${brand.toUpperCase()} Sync`);
-    setTimeout(() => {
-      setConnectedDevice(brand);
-      setIsWatchConnected(true);
-      setIsWatchModalOpen(false);
-      setIsAiLoading(false);
-      setSocialTarget("");
-    }, 1500);
-  };
+  const connectDevice = (brand) => { setIsAiLoading(true); setSocialTarget(`${brand.toUpperCase()} Sync`); setTimeout(() => { setConnectedDevice(brand); setIsWatchConnected(true); setIsWatchModalOpen(false); setIsAiLoading(false); setSocialTarget(""); }, 1500); };
 
-  const generateRaceStrategy = async (raceName) => {
-    if (!isLoggedIn) { setAuthMode('login'); return; }
-    if (!apiKey) { setAiResponse("API Key missing. Vercel 설정을 확인해주세요."); return; }
-    setActiveAiTarget(raceName); setIsAiLoading(true);
-    const prompt = `사용자 리커버리 ${userStats.score}, 마일리지 ${userStats.mileage}. 대회 '${raceName}'의 최적 전략을 조언해줘.`;
+  const generateRecoveryPlan = async () => {
+    if (!apiKey) { setAiResponse("환경 변수 인식이 필요합니다. Vercel 배포 시 꼭 Redeploy를 해주세요."); return; }
+    setIsAiLoading(true);
     try {
       const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], systemInstruction: { parts: [{ text: "당신은 PESSAGE 매거진의 수석 에디터입니다." }] } })
+        body: JSON.stringify({ contents: [{ parts: [{ text: `현재 리커버리 점수 ${userStats.score}. 러너를 위한 정밀 리커버리 리추얼 조언해줘.` }] }] })
       });
       const data = await response.json();
       setAiResponse(data.candidates?.[0]?.content?.parts?.[0]?.text || "분석 실패");
-    } catch (e) { setAiResponse("AI 연결 실패"); } finally { setIsAiLoading(false); }
-  };
-
-  const generateRecoveryPlan = async () => {
-    if (!apiKey) { setAiResponse("API Key missing."); return; }
-    setIsAiLoading(true);
-    try {
-      const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contents: [{ parts: [{ text: `현재 점수 ${userStats.score}. 오늘 러닝 후 회복 리추얼 제안.` }] }] })
-      });
-      const data = await resp.json();
-      setAiResponse(data.candidates?.[0]?.content?.parts?.[0]?.text || "분석 실패");
-    } catch (e) { setAiResponse("AI 오류"); } finally { setIsAiLoading(false); }
+    } catch (e) { setAiResponse("AI 연결 오류"); } finally { setIsAiLoading(false); }
   };
 
   const NavItem = ({ id, icon: Icon, label }) => (
@@ -275,13 +251,13 @@ export default function App() {
     <div className={`min-h-screen ${colors.bg} text-white font-sans selection:bg-white selection:text-black`}>
       <style>{`.leaflet-container { background: #121212 !important; } .custom-pin { display: flex; align-items: center; justify-content: center; }`}</style>
       
-      {/* Device Selection Modal */}
+      {/* Device Connection Modal */}
       {isWatchModalOpen && (
         <div className="fixed inset-0 z-[2000] bg-black/90 backdrop-blur-md flex items-center justify-center p-6 animate-in fade-in">
           <div className="max-w-sm w-full bg-[#1c1c1c] border border-white/10 p-8 rounded-sm shadow-2xl">
             <h3 className="text-xl font-light italic mb-8 text-center text-white">Connect Device</h3>
             <div className="space-y-3">
-              {PESSSAGE_CONTENT.watchBrands.map(brand => (
+              {siteContent.watchBrands.map(brand => (
                 <button key={brand.id} onClick={() => connectDevice(brand.id)} className="w-full flex justify-between items-center p-5 bg-white/5 border border-white/5 hover:border-white/20 transition-all">
                   <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-white">{brand.name}</span>
                   <ChevronRight size={14} className="text-[#525252]" />
@@ -312,7 +288,7 @@ export default function App() {
               <button onClick={() => {setIsProfileOpen(!isProfileOpen); setAuthMode(null);}} className={`p-1 transition-all ${isProfileOpen ? 'text-white scale-110' : 'text-[#a3a3a3]'}`}><User size={22} /></button>
             </>
           ) : (
-            <button onClick={() => setAuthMode('login')} className="text-[11px] uppercase bg-white text-black px-5 py-2 rounded-full font-bold shadow-lg transition-transform active:scale-95">JOIN</button>
+            <button onClick={() => setAuthMode('login')} className="text-[11px] uppercase bg-white text-black px-5 py-2 rounded-full font-bold shadow-lg">JOIN</button>
           )}
         </div>
       </header>
@@ -327,12 +303,9 @@ export default function App() {
                 <button type="submit" className="w-full bg-white text-black py-4 font-bold text-[12px] uppercase tracking-widest active:scale-95 transition-transform">Login</button>
              </form>
              <div className="space-y-3">
-                <p className="text-[9px] uppercase tracking-[0.3em] text-[#444] mb-6">Or continue with</p>
-                <div className="grid grid-cols-1 gap-3">
-                   <button onClick={() => handleSocialLogin('kakao')} className="w-full py-3 bg-[#FEE500] text-black text-[10px] font-bold tracking-widest rounded-sm shadow-lg active:scale-95 transition-transform">KAKAO</button>
-                   <button onClick={() => handleSocialLogin('naver')} className="w-full py-3 bg-[#03C75A] text-white text-[10px] font-bold tracking-widest rounded-sm shadow-lg active:scale-95 transition-transform">NAVER</button>
-                   <button onClick={() => handleSocialLogin('google')} className="w-full py-3 bg-white text-black text-[10px] font-bold tracking-widest border border-white/10 rounded-sm shadow-lg active:scale-95 transition-transform">GOOGLE</button>
-                </div>
+                <button onClick={() => handleSocialLogin('kakao')} className="w-full py-3 bg-[#FEE500] text-black text-[10px] font-bold tracking-widest rounded-sm shadow-lg active:scale-95 transition-transform">KAKAO</button>
+                <button onClick={() => handleSocialLogin('naver')} className="w-full py-3 bg-[#03C75A] text-white text-[10px] font-bold tracking-widest rounded-sm shadow-lg active:scale-95 transition-transform">NAVER</button>
+                <button onClick={() => handleSocialLogin('google')} className="w-full py-3 bg-white text-black text-[10px] font-bold tracking-widest border border-white/10 rounded-sm shadow-lg active:scale-95 transition-transform">GOOGLE</button>
              </div>
              <button onClick={() => setAuthMode(null)} className="mt-12 text-[10px] uppercase text-[#444] hover:text-white transition-colors underline underline-offset-4">Cancel</button>
           </section>
@@ -343,12 +316,6 @@ export default function App() {
                 <div className="bg-[#1c1c1c] p-6 border border-white/5"><p className="text-[10px] text-[#525252] uppercase mb-1">Score</p><span className="text-3xl font-light text-white">{userStats.score}</span></div>
                 <div className="bg-[#1c1c1c] p-6 border border-white/5"><p className="text-[10px] text-[#525252] uppercase mb-1">Weekly Mileage</p><span className="text-3xl font-light text-white">{userStats.mileage}</span></div>
              </div>
-             {isWatchConnected && (
-               <div className="p-6 bg-[#1c1c1c] border border-white/5 rounded-sm mb-12 flex justify-between items-center">
-                  <div><p className="text-[9px] uppercase tracking-widest text-[#525252] mb-1">Device Source</p><p className="text-sm font-bold uppercase tracking-tighter text-white">{connectedDevice}</p></div>
-                  <button onClick={() => setIsWatchConnected(false)} className="text-[9px] text-[#444] uppercase tracking-widest">Disconnect</button>
-               </div>
-             )}
              <button onClick={handleLogout} className="w-full py-4 border border-[#262626] text-[#c2410c] text-[10px] uppercase tracking-widest hover:bg-[#c2410c]/5 transition-colors">LOGOUT SESSION</button>
           </section>
         ) : (
@@ -359,7 +326,7 @@ export default function App() {
                 {selectedArticle ? (
                   <div className="pt-28 px-6 max-w-2xl mx-auto">
                     <button onClick={() => setSelectedArticle(null)} className="flex items-center gap-2 text-[#737373] text-[10px] uppercase tracking-widest mb-10 hover:text-white transition-colors"><ArrowLeft size={14} /> Back</button>
-                    <h2 className="text-4xl font-light italic mb-8 leading-tight text-white">{selectedArticle.title}</h2>
+                    <h2 className="text-4xl font-light italic mb-8 text-white">{selectedArticle.title}</h2>
                     <p className="text-lg leading-relaxed text-[#d4d4d4] font-light whitespace-pre-line mb-20">{selectedArticle.content}</p>
                   </div>
                 ) : (
@@ -367,14 +334,14 @@ export default function App() {
                     <div>
                       <p className="text-[12px] tracking-[0.4em] uppercase mb-4 text-[#a3a3a3]">Season 01: The Mist</p>
                       <h2 className="text-5xl md:text-7xl font-light italic tracking-tight leading-tight mb-12 text-white">Finding Clarity <br/> in the Grey.</h2>
-                      <button onClick={() => setSelectedArticle(PESSSAGE_CONTENT.articles[0])} className="text-[11px] uppercase tracking-[0.3em] border-b border-white/30 pb-1 hover:border-white transition-colors text-white">Read Journal</button>
+                      <button onClick={() => setSelectedArticle(siteContent.articles[0])} className="text-[11px] uppercase tracking-[0.3em] border-b border-white/30 pb-1 hover:border-white transition-colors text-white">Read Journal</button>
                     </div>
                   </div>
                 )}
               </section>
             )}
 
-            {/* ROUTES TAB - Improved Navigation with ORIGINAL/TRAIL/ROAD subtabs */}
+            {/* ROUTES TAB */}
             {activeTab === 'routes' && (
               <section className="pt-28 px-6 max-w-4xl mx-auto animate-in slide-in-from-bottom-4">
                 {selectedRoute ? (
@@ -389,9 +356,6 @@ export default function App() {
                       <p className="text-2xl font-light tracking-tighter text-white">{selectedRoute.distance}</p>
                     </div>
                     <p className="text-lg leading-relaxed text-[#d4d4d4] font-light mb-16">{selectedRoute.description}</p>
-                    <button onClick={() => connectDevice('Sync')} className={`w-full py-4 rounded-full text-[12px] uppercase font-bold transition-all ${syncSuccess ? 'bg-green-600' : 'bg-white text-black'}`}>
-                      {isSyncing ? 'SYNCING...' : syncSuccess ? 'Synced' : 'Sync to Device'}
-                    </button>
                   </div>
                 ) : (
                   <>
@@ -403,28 +367,15 @@ export default function App() {
                       </div>
                     </div>
 
-                    {/* ✅ New: Course Type Sub-Tabs (ORIGINAL, TRAIL, ROAD) */}
                     <div className="mb-10">
                       <div className="flex gap-6 border-b border-white/5 pb-4 mb-6">
                         {['ALL', 'ORIGINAL', 'TRAIL', 'ROAD'].map(type => (
-                          <button 
-                            key={type} 
-                            onClick={() => setRouteTypeFilter(type)}
-                            className={`text-[10px] uppercase tracking-[0.3em] font-bold transition-all ${routeTypeFilter === type ? 'text-white border-b border-white pb-4 -mb-4' : 'text-[#404040] hover:text-white'}`}
-                          >
-                            {type}
-                          </button>
+                          <button key={type} onClick={() => setRouteTypeFilter(type)} className={`text-[10px] uppercase tracking-[0.3em] font-bold transition-all ${routeTypeFilter === type ? 'text-white border-b border-white pb-4 -mb-4' : 'text-[#404040] hover:text-white'}`}>{type}</button>
                         ))}
                       </div>
                       <div className="flex gap-6 border-b border-white/5 pb-4">
                         {['ALL', 'SEOUL', 'JEJU', 'GYEONGGI'].map(r => (
-                          <button 
-                            key={r} 
-                            onClick={() => setRouteRegionFilter(r)} 
-                            className={`text-[10px] uppercase tracking-[0.3em] font-bold transition-all ${routeRegionFilter === r ? 'text-white border-b border-white pb-4 -mb-4' : 'text-[#404040] hover:text-white'}`}
-                          >
-                            {r}
-                          </button>
+                          <button key={r} onClick={() => setRouteRegionFilter(r)} className={`text-[10px] uppercase tracking-[0.3em] font-bold transition-all ${routeRegionFilter === r ? 'text-white border-b border-white pb-4 -mb-4' : 'text-[#404040] hover:text-white'}`}>{r}</button>
                         ))}
                       </div>
                     </div>
@@ -436,19 +387,19 @@ export default function App() {
                               <p className={`text-[8px] uppercase tracking-widest mb-1 font-bold ${getTypeColor(mapPopup.type)}`}>{mapPopup.type}</p>
                               <h4 className="text-xl font-light italic mb-6 leading-tight text-white">{mapPopup.name}</h4>
                               <button onClick={() => setSelectedRoute(mapPopup)} className="w-full py-3 bg-white text-black text-[9px] uppercase font-bold tracking-widest">Explore</button>
-                              <button onClick={() => setMapPopup(null)} className="mt-4 text-[10px] text-[#444] uppercase tracking-widest hover:text-white transition-colors">Close</button>
+                              <button onClick={() => setMapPopup(null)} className="mt-4 text-[10px] text-[#444] uppercase hover:text-white transition-colors">Close</button>
                            </div>
                         )}
                       </div>
                     ) : (
                       <div className="space-y-6">
-                        {PESSSAGE_CONTENT.routes
+                        {siteContent.routes
                           .filter(r => (routeTypeFilter === 'ALL' || r.type === routeTypeFilter))
                           .filter(r => (routeRegionFilter === 'ALL' || r.region === routeRegionFilter))
                           .map(route => (
-                          <div key={route.id} onClick={() => setSelectedRoute(route)} className="p-6 bg-[#1c1c1c] border border-white/5 rounded-sm flex justify-between items-center cursor-pointer hover:border-white/20 transition-all group">
+                          <div key={route._id || route.id} onClick={() => setSelectedRoute(route)} className="p-6 bg-[#1c1c1c] border border-white/5 rounded-sm flex justify-between items-center cursor-pointer hover:border-white/20 transition-all group">
                              <div>
-                                <p className={`text-[9px] uppercase font-bold mb-1 tracking-widest ${getTypeColor(route.type)}`}>{route.type} / {route.location}</p>
+                                <p className={`text-[9px] uppercase font-bold mb-1 tracking-widest ${getTypeColor(route.type)}`}>{route.type} / {route.location || route.region}</p>
                                 <h4 className="text-xl font-light italic group-hover:text-white text-white">{route.name}</h4>
                              </div>
                              <span className="text-2xl font-light tracking-tighter group-hover:text-white text-white">{route.distance}</span>
@@ -464,14 +415,7 @@ export default function App() {
             {/* SESSIONS TAB */}
             {activeTab === 'sessions' && (
               <section className="pt-28 px-6 max-w-4xl mx-auto animate-in slide-in-from-bottom-4">
-                <div className="mb-12">
-                  <h2 className="text-3xl font-light italic mb-6 text-white">Race & Narrative</h2>
-                  <div className="flex gap-6 border-b border-white/5 pb-4 mb-10 overflow-x-auto whitespace-nowrap">
-                    {['ALL', 'TRAIL', 'ROAD'].map(type => (
-                      <button key={type} onClick={() => setRaceTypeFilter(type)} className={`text-[10px] uppercase tracking-[0.3em] font-bold transition-all ${raceTypeFilter === type ? 'text-white border-b border-white pb-4 -mb-4' : 'text-[#404040]'}`}>{type}</button>
-                    ))}
-                  </div>
-                </div>
+                <div className="mb-12"><h2 className="text-3xl font-light italic mb-6 text-white">Race & Narrative</h2></div>
                 {Object.entries(groupedRaces()).map(([month, monthRaces]) => (
                   <div key={month} className="mb-20">
                     <div className="flex items-center gap-4 mb-8">
@@ -485,10 +429,7 @@ export default function App() {
                           <div className={`absolute left-[-4px] top-0 w-2 h-2 rounded-full ${race.type === 'TRAIL' ? 'bg-orange-400' : 'bg-blue-400'}`}></div>
                           <h4 className="text-3xl font-light italic mb-4 text-white">{race.name}</h4>
                           <p className="text-sm text-[#a3a3a3] font-light max-w-xl mb-6">{race.description}</p>
-                          <button onClick={() => generateRaceStrategy(race.name)} className="flex items-center gap-2 bg-white/10 px-6 py-3 text-[10px] uppercase tracking-widest hover:bg-white hover:text-black transition-all text-white">
-                            {isAiLoading && activeAiTarget === race.name ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12}/>} AI Strategy
-                          </button>
-                          {activeAiTarget === race.name && aiResponse && !isAiLoading && <div className="mt-6 p-6 bg-white/5 border border-white/10 italic text-sm text-[#d4d4d4] animate-in fade-in leading-relaxed">"{aiResponse}"</div>}
+                          <button onClick={() => generateRecoveryPlan()} className="flex items-center gap-2 bg-white/10 px-6 py-3 text-[10px] uppercase tracking-widest hover:bg-white hover:text-black transition-all text-white">AI Strategy</button>
                         </div>
                       ))}
                     </div>
@@ -500,20 +441,13 @@ export default function App() {
             {/* GEAR TAB */}
             {activeTab === 'gear' && (
               <section className="pt-28 px-6 max-w-4xl mx-auto animate-in slide-in-from-bottom-4">
-                <div className="mb-12">
-                  <h2 className="text-3xl font-light italic mb-6 text-white">Essential Tools</h2>
-                  <div className="flex gap-6 border-b border-white/5 pb-4 mb-12 overflow-x-auto whitespace-nowrap">
-                    {['ALL', 'TRAIL', 'ROAD', 'NUTRITION'].map(cat => (
-                      <button key={cat} onClick={() => setGearFilter(cat)} className={`text-[10px] uppercase tracking-[0.3em] font-bold transition-all ${gearFilter === cat ? 'text-white border-b border-white pb-4 -mb-4' : 'text-[#404040]'}`}>{cat}</button>
-                    ))}
-                  </div>
-                </div>
+                <h2 className="text-3xl font-light italic mb-12 text-center text-white">Essential Tools</h2>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-16">
-                  {PESSSAGE_CONTENT.gearItems.filter(item => gearFilter === 'ALL' || item.category === gearFilter).map(item => (
-                      <div key={item.id} className="group flex flex-col animate-in fade-in text-left">
-                        <div className="aspect-[4/5] bg-[#1c1c1c] border border-white/5 rounded-sm flex items-center justify-center mb-5 overflow-hidden group-hover:border-white/20 transition-all cursor-pointer text-[#333] text-[9px] uppercase tracking-widest italic">{item.imageLabel}</div>
+                  {siteContent.gearItems.map(item => (
+                      <div key={item._id || item.id} className="group flex flex-col animate-in fade-in text-left">
+                        <div className="aspect-[4/5] bg-[#1c1c1c] border border-white/5 rounded-sm flex items-center justify-center mb-5 overflow-hidden group-hover:border-white/20 transition-all cursor-pointer text-[#333] text-[9px] uppercase tracking-widest italic">{item.imageLabel || "[Image]"}</div>
                         <div className="flex flex-col">
-                           <p className={`text-[8px] uppercase font-bold tracking-widest mb-1 ${item.category === 'TRAIL' ? 'text-orange-400' : item.category === 'ROAD' ? 'text-blue-400' : 'text-green-500'}`}>{item.category} / {item.brand}</p>
+                           <p className={`text-[8px] uppercase font-bold tracking-widest mb-1 ${item.category === 'TRAIL' ? 'text-orange-400' : 'text-blue-400'}`}>{item.category} / {item.brand}</p>
                            <h3 className="text-sm font-medium italic mb-2 text-white">{item.name}</h3>
                            <p className="text-[10px] text-[#737373] leading-relaxed line-clamp-3 italic">"{item.note}"</p>
                         </div>
@@ -541,7 +475,7 @@ export default function App() {
                 ) : (
                   <div className="text-center py-24 border border-dashed border-white/10 rounded-sm">
                     <Zap size={40} className="mx-auto mb-6 text-[#333]"/>
-                    <p className="text-sm text-[#737373] mb-8 leading-relaxed">{!isLoggedIn ? '개인화된 회복 리추얼을 확인하려면\n로그인이 필요합니다.' : '워치 데이터를 동기화하여\n오늘의 컨디션을 분석하세요.'}</p>
+                    <p className="text-sm text-[#737373] mb-8 leading-relaxed">{!isLoggedIn ? '로그인이 필요합니다.' : '워치 데이터를 동기화해주세요.'}</p>
                     <button onClick={() => !isLoggedIn ? setAuthMode('login') : setIsWatchModalOpen(true)} className="px-12 py-3 bg-white text-black font-bold text-[11px] uppercase tracking-widest rounded-full active:scale-95 transition-transform shadow-xl">{!isLoggedIn ? 'Login to Access' : 'Select Your Watch'}</button>
                   </div>
                 )}
