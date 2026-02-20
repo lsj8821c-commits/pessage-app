@@ -107,13 +107,14 @@ export default function App() {
   const [cmsError, setCmsError] = useState(null);
   const [currentOrigin, setCurrentOrigin] = useState("");
   const [isMapLoaded, setIsMapLoaded] = useState(false);
+  const [mapPopup, setMapPopup] = useState(null);
 
   // 지도 참조
   const mapRef = useRef(null);
   const leafletMap = useRef(null);
   const markerGroupRef = useRef(null);
 
-  // --- 1. CMS 데이터 페칭 및 도메인 확인 ---
+  // --- 1. CMS 데이터 페칭 ---
   useEffect(() => {
     setCurrentOrigin(window.location.origin);
     
@@ -156,7 +157,7 @@ export default function App() {
     fetchCmsData();
   }, []);
 
-  // --- 2. Leaflet 지도 라이브러리 주입 및 스크롤 감지 ---
+  // --- 2. 라이브러리 및 스크롤 감지 ---
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50);
     window.addEventListener('scroll', handleScroll);
@@ -177,7 +178,7 @@ export default function App() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // --- 3. 지도 초기화 및 마커 렌더링 ---
+  // --- 3. 지도 초기화 및 업데이트 (핵심 수정) ---
   useEffect(() => {
     if (activeTab === 'routes' && routeViewMode === 'MAP' && isMapLoaded && mapRef.current) {
       const L = window.L;
@@ -186,6 +187,9 @@ export default function App() {
         L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 20 }).addTo(map);
         leafletMap.current = map;
         markerGroupRef.current = L.layerGroup().addTo(map);
+        
+        // 렌더링 직후 지도 크기 재계산 (회색 화면 방지)
+        setTimeout(() => map.invalidateSize(), 200);
       }
       updateMapMarkers();
     } else if (leafletMap.current && (activeTab !== 'routes' || routeViewMode !== 'MAP')) {
@@ -421,7 +425,7 @@ export default function App() {
                     <div className="mb-10 flex flex-col md:flex-row justify-between items-start gap-6">
                         <div><h2 className="text-3xl font-light italic mb-2">Narrative Explorer</h2><p className="text-[#737373] text-sm italic">지도로 탐색하는 러닝의 서사.</p></div>
                         <div className="flex bg-[#1c1c1c] p-1 rounded-full border border-white/5">
-                            <button onClick={() => setRouteViewMode('LIST')} className={`px-4 py-1.5 rounded-full text-[10px] font-bold transition-all ${routeViewMode === 'LIST' ? 'bg-white text-black' : 'text-[#525252]'}`}><List size={12}/> List</button>
+                            <button onClick={() => {setRouteViewMode('LIST'); setMapPopup(null);}} className={`px-4 py-1.5 rounded-full text-[10px] font-bold transition-all ${routeViewMode === 'LIST' ? 'bg-white text-black' : 'text-[#525252]'}`}><List size={12}/> List</button>
                             <button onClick={() => setRouteViewMode('MAP')} className={`px-4 py-1.5 rounded-full text-[10px] font-bold transition-all ${routeViewMode === 'MAP' ? 'bg-white text-black' : 'text-[#525252]'}`}><MapIcon size={12}/> Map</button>
                         </div>
                     </div>
@@ -436,7 +440,18 @@ export default function App() {
                     </div>
 
                     {routeViewMode === 'MAP' ? (
-                      <div ref={mapRef} className="w-full aspect-[4/5] md:aspect-[16/9] bg-[#121212] rounded-sm overflow-hidden border border-white/5" />
+                      <div className="relative animate-in fade-in">
+                        <div ref={mapRef} className="w-full aspect-[4/5] md:aspect-[16/9] bg-[#121212] rounded-sm overflow-hidden border border-white/5 shadow-2xl" />
+                        {mapPopup && (
+                           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 bg-black border border-white/20 p-6 rounded-sm shadow-2xl z-[2000] animate-in zoom-in-95 text-center">
+                              <p className={`text-[8px] uppercase tracking-widest mb-1 font-bold ${mapPopup.type === 'TRAIL' ? 'text-orange-400' : 'text-blue-400'}`}>{mapPopup.type}</p>
+                              <h4 className="text-xl font-light italic mb-6 leading-tight">{mapPopup.name}</h4>
+                              <button onClick={() => setSelectedRoute(mapPopup)} className="w-full py-3 bg-white text-black text-[9px] uppercase font-bold tracking-widest">Explore Course</button>
+                              <button onClick={() => setMapPopup(null)} className="mt-4 text-[10px] text-[#444] uppercase hover:text-white transition-colors">Close</button>
+                           </div>
+                        )}
+                        <p className="mt-4 text-[10px] text-[#525252] italic text-center">핀을 클릭하여 코스 상세 내용을 확인하세요.</p>
+                      </div>
                     ) : (
                       <div className="space-y-6">
                         {siteContent.routes.filter(r => (routeTypeFilter === 'ALL' || r.type === routeTypeFilter) && (routeRegionFilter === 'ALL' || r.region === routeRegionFilter)).map(route => (
