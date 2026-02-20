@@ -4,18 +4,16 @@ import {
   Flag, Watch, CheckCircle2, Sparkles, Loader2, Zap, Coffee, ArrowLeft, Download, 
   TrendingUp, Heart, Settings, LogOut, Mail, Lock, UserPlus, Globe, Trophy, 
   Smartphone, Moon, Check, Flame, CupSoda, Info, BookOpen, Quote, Layers, 
-  Map as MapIcon, List, X, Maximize2, Music, ThermometerSnowflake, Leaf, Calendar
+  Map as MapIcon, List, X, Maximize2, Music, ThermometerSnowflake, Leaf, Calendar,
+  Smartphone as WatchIcon, RefreshCw
 } from 'lucide-react';
 
 /**
  * ============================================================
- * 📝 PESSSAGE CONTENT MANAGEMENT (데이터 관리 구역)
- * 수정이 필요할 때 여기 데이터만 바꾸시면 됩니다.
- * (ReferenceError 방지를 위해 철자를 PESSSAGE로 통일했습니다.)
+ * 📝 PESSSAGE CONTENT MANAGEMENT
  * ============================================================
  */
 const PESSSAGE_CONTENT = {
-  // 1. 저널 데이터
   articles: [
     { 
       id: 1, 
@@ -27,8 +25,6 @@ const PESSSAGE_CONTENT = {
       excerpt: "안개는 시야를 가리지만, 대신 발끝의 감각을 선명하게 만듭니다." 
     }
   ],
-
-  // 2. 루트 데이터 (지도 및 리스트)
   routes: [
     { id: 'orig-1', type: 'ORIGINAL', region: 'SEOUL', name: "Espresso Run", location: "Hannam, Seoul", distance: "5.0km", lat: 37.534, lng: 127.002, description: "새벽의 정적을 뚫고 한남동을 달립니다. 코스의 끝에는 에스프레소 바가 기다립니다.", icon: Coffee },
     { id: 'orig-2', type: 'ORIGINAL', region: 'SEOUL', name: "Sauna Run", location: "Inwangsan, Seoul", distance: "8.5km", lat: 37.581, lng: 126.956, description: "트레일 완주 후 사우나로 직행하여 근육의 긴장을 해소합니다.", icon: Flame },
@@ -39,24 +35,25 @@ const PESSSAGE_CONTENT = {
     { id: 'road-1', type: 'ROAD', region: 'SEOUL', name: "City Pulse Line", location: "Banpo, Seoul", distance: "8.2km", lat: 37.511, lng: 126.996, description: "한강의 밤바람을 느끼는 시티런." },
     { id: 'road-2', type: 'ROAD', region: 'GYEONGGI', name: "Central Park Loop", location: "Songdo, Incheon", distance: "6.5km", lat: 37.392, lng: 126.639, description: "미래지향적 건축물 사이의 로드 코스." }
   ],
-
-  // 3. 기어 데이터
   gearItems: [
-    { id: 1, name: "Portal Shield Shell", brand: "PORTAL", category: "TRAIL", note: "안개가 자욱한 능선에서도 체온을 유지해준 유일한 장비.", imageLabel: "[트레일 재킷]" },
-    { id: 2, name: "Carbon Pulse v2", brand: "PESSAGE", category: "ROAD", note: "도심을 가를 때 필요한 정교함.", imageLabel: "[로드 슈즈]" },
-    { id: 3, name: "Recovery Electrolyte", brand: "PESSAGE", category: "NUTRITION", note: "달린 후의 회복은 무엇을 먹느냐에서 시작됩니다.", imageLabel: "[뉴트리션]" },
-    { id: 4, name: "Peak Hydration Gel", brand: "MAUTEN", category: "NUTRITION", note: "한계에 다다랐을 때 필요한 에너지의 순도.", imageLabel: "[에너지 젤]" }
+    { id: 1, name: "Portal Shield Shell", brand: "PORTAL", category: "TRAIL", note: "안개가 자욱한 능선에서도 체온을 유지해준 유일한 장비.", imageLabel: "" },
+    { id: 2, name: "Carbon Pulse v2", brand: "PESSAGE", category: "ROAD", note: "도심을 가를 때 필요한 정교함.", imageLabel: "" },
+    { id: 3, name: "Recovery Electrolyte", brand: "PESSAGE", category: "NUTRITION", note: "달린 후의 회복은 무엇을 먹느냐에서 시작됩니다.", imageLabel: "" },
+    { id: 4, name: "Peak Hydration Gel", brand: "MAUTEN", category: "NUTRITION", note: "한계에 다다랐을 때 필요한 에너지의 순도.", imageLabel: "" }
   ],
-
-  // 4. 세션(대회) 데이터
   races: [
     { id: 'r-1', name: 'Trans Jeju 100K', date: '2026-10-12', type: 'TRAIL', description: '한국 최대의 울트라 트레일 대제전.' },
     { id: 'r-2', name: 'UTMB Mont-Blanc', date: '2026-08-28', type: 'TRAIL', description: '트레일 러너들의 성지, 알프스 몽블랑 일주.' },
     { id: 'r-3', name: 'Seoul Marathon', date: '2026-03-15', type: 'ROAD', description: '서울의 심장을 관통하는 역사적인 레이스.' }
+  ],
+  watchBrands: [
+    { id: 'garmin', name: 'Garmin', color: '#00a6da' },
+    { id: 'coros', name: 'COROS', color: '#f97316' },
+    { id: 'apple', name: 'Apple Watch', color: '#ffffff' },
+    { id: 'suunto', name: 'Suunto', color: '#eb1c24' }
   ]
 };
 
-// --- 글로벌 테마 및 컬러 ---
 const colors = {
   bg: 'bg-[#121212]',
   card: 'bg-[#1c1c1c]',
@@ -66,24 +63,37 @@ const colors = {
   original: { accent: 'text-white', bg: 'bg-white/5', border: 'border-white/30', pin: '#ffffff' }
 };
 
-const getApiKey = () => {
-  try { return import.meta.env.VITE_GEMINI_API_KEY || ""; } catch (e) { return ""; }
+/**
+ * 🔑 API Key Safely access
+ * import.meta references are wrapped in a function to prevent compilation crashes in es2015 target environments.
+ */
+const getSafeApiKey = () => {
+  try {
+    // Attempting to access environment variables safely
+    // @ts-ignore
+    const env = (import.meta && import.meta.env) ? import.meta.env : {};
+    return env.VITE_GEMINI_API_KEY || "";
+  } catch (e) {
+    return "";
+  }
 };
-const apiKey = getApiKey();
+
+const apiKey = getSafeApiKey();
 
 export default function App() {
-  // --- UI & User States ---
   const [activeTab, setActiveTab] = useState('journal');
   const [scrolled, setScrolled] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [authMode, setAuthMode] = useState(null); 
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [userStats] = useState({ score: 84, mileage: "32.4k", level: "Intermediate" });
+  
   const [isWatchConnected, setIsWatchConnected] = useState(false);
+  const [connectedDevice, setConnectedDevice] = useState(null); 
+  const [isWatchModalOpen, setIsWatchModalOpen] = useState(false);
+
   const [selectedArticle, setSelectedArticle] = useState(null);
   const [selectedRoute, setSelectedRoute] = useState(null);
-  
-  // --- Filters & Map States ---
   const [routeViewMode, setRouteViewMode] = useState('LIST'); 
   const [routeTypeFilter, setRouteTypeFilter] = useState('ALL');
   const [routeRegionFilter, setRouteRegionFilter] = useState('ALL');
@@ -95,14 +105,12 @@ export default function App() {
   const [raceTypeFilter, setRaceTypeFilter] = useState('ALL');
   const [gearFilter, setGearFilter] = useState('ALL');
 
-  // --- Interaction States ---
   const [aiResponse, setAiResponse] = useState(null);
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [activeAiTarget, setActiveAiTarget] = useState(null);
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncSuccess, setSyncSuccess] = useState(false);
 
-  // --- Helpers ---
   const getTypeColor = (type) => {
     switch(type) {
       case 'TRAIL': return colors.trail.accent;
@@ -133,7 +141,6 @@ export default function App() {
     return groups;
   };
 
-  // --- Effects ---
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50);
     window.addEventListener('scroll', handleScroll);
@@ -186,14 +193,23 @@ export default function App() {
     }
   };
 
-  // --- Handlers ---
-  const handleLogout = () => { setIsLoggedIn(false); setIsProfileOpen(false); setActiveTab('journal'); setAuthMode(null); setIsWatchConnected(false); };
+  const handleLogout = () => { setIsLoggedIn(false); setIsProfileOpen(false); setActiveTab('journal'); setAuthMode(null); setIsWatchConnected(false); setConnectedDevice(null); };
   const handleAuthSubmit = (e) => { e.preventDefault(); setIsAiLoading(true); setTimeout(() => { setIsLoggedIn(true); setAuthMode(null); setIsAiLoading(false); }, 1000); };
   const handleSyncToWatch = (id) => { if(!isLoggedIn) { setAuthMode('login'); return; } setIsSyncing(true); setTimeout(() => { setIsSyncing(false); setSyncSuccess(true); setIsWatchConnected(true); setTimeout(() => setSyncSuccess(false), 3000); }, 1500); };
 
+  const connectDevice = (brand) => {
+    setIsAiLoading(true);
+    setTimeout(() => {
+      setConnectedDevice(brand);
+      setIsWatchConnected(true);
+      setIsWatchModalOpen(false);
+      setIsAiLoading(false);
+    }, 1500);
+  };
+
   const generateRaceStrategy = async (raceName) => {
     if (!isLoggedIn) { setAuthMode('login'); return; }
-    if (!apiKey) { setAiResponse("API 키 설정이 필요합니다."); return; }
+    if (!apiKey) { setAiResponse("API Key missing. Please check Vercel settings."); return; }
     setActiveAiTarget(raceName); setIsAiLoading(true);
     const prompt = `사용자 리커버리 ${userStats.score}, 마일리지 ${userStats.mileage}. 대회 '${raceName}'의 최적 전략을 조언해줘.`;
     try {
@@ -207,7 +223,7 @@ export default function App() {
   };
 
   const generateRecoveryPlan = async () => {
-    if (!apiKey) { setAiResponse("API 키 설정이 필요합니다."); return; }
+    if (!apiKey) { setAiResponse("API Key missing."); return; }
     setIsAiLoading(true);
     try {
       const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
@@ -231,14 +247,41 @@ export default function App() {
 
   return (
     <div className={`min-h-screen ${colors.bg} text-white font-sans selection:bg-white selection:text-black`}>
-      <style>{`.leaflet-container { background: #121212 !important; } .custom-pin { display: flex; align-items: center; justify-content: center; }`}</style>
+      <style>{`
+        .leaflet-container { background: #121212 !important; } 
+        .custom-pin { display: flex; align-items: center; justify-content: center; }
+        .watch-button:active { transform: scale(0.98); }
+      `}</style>
       
+      {isWatchModalOpen && (
+        <div className="fixed inset-0 z-[2000] bg-black/90 backdrop-blur-md flex items-center justify-center p-6 animate-in fade-in">
+          <div className="max-w-sm w-full bg-[#1c1c1c] border border-white/10 p-8 rounded-sm shadow-2xl">
+            <h3 className="text-xl font-light italic mb-8 text-center text-white">Connect Device</h3>
+            <div className="space-y-3">
+              {PESSSAGE_CONTENT.watchBrands.map(brand => (
+                <button 
+                  key={brand.id}
+                  onClick={() => connectDevice(brand.id)}
+                  className="w-full flex justify-between items-center p-5 bg-white/5 border border-white/5 hover:border-white/20 transition-all watch-button"
+                >
+                  <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-white">{brand.name}</span>
+                  <ChevronRight size={14} className="text-[#525252]" />
+                </button>
+              ))}
+            </div>
+            <button onClick={() => setIsWatchModalOpen(false)} className="w-full mt-10 text-[9px] uppercase tracking-widest text-[#444] hover:text-white">Back to Ritual</button>
+          </div>
+        </div>
+      )}
+
       <header className={`fixed top-0 w-full z-[1000] transition-all duration-500 px-6 py-4 flex justify-between items-center ${scrolled ? 'bg-black/80 backdrop-blur-md' : 'bg-transparent'}`}>
-        <h1 className="text-2xl font-bold tracking-[0.2em] italic cursor-pointer" onClick={() => {setActiveTab('journal'); setIsProfileOpen(false); setAuthMode(null);}}>PESSAGE</h1>
+        <h1 className="text-2xl font-bold tracking-[0.2em] italic cursor-pointer text-white" onClick={() => {setActiveTab('journal'); setIsProfileOpen(false); setAuthMode(null);}}>PESSAGE</h1>
         <div className="flex gap-4 items-center">
           {isLoggedIn ? (
             <>
-              <div className={`text-[10px] tracking-widest uppercase px-3 py-1 rounded-full border ${isWatchConnected ? 'border-green-500/30 text-green-400 bg-green-500/5' : 'border-white/10 text-[#525252]'}`}>{isWatchConnected ? 'SYNCED' : 'DISCONNECTED'}</div>
+              <div className={`text-[10px] tracking-widest uppercase px-3 py-1 rounded-full border ${isWatchConnected ? 'border-green-500/30 text-green-400 bg-green-500/5' : 'border-white/10 text-[#525252]'}`}>
+                {isWatchConnected ? `${connectedDevice?.toUpperCase() || 'SYNCED'}` : 'DISCONNECTED'}
+              </div>
               <button onClick={() => {setIsProfileOpen(!isProfileOpen); setAuthMode(null);}} className={`p-1 transition-all ${isProfileOpen ? 'text-white scale-110' : 'text-[#a3a3a3]'}`}><User size={22} /></button>
             </>
           ) : (
@@ -252,8 +295,8 @@ export default function App() {
           <section className="pt-32 px-6 max-w-sm mx-auto animate-in fade-in text-center">
              <h2 className="text-3xl font-light italic mb-10 text-white">Membership</h2>
              <form onSubmit={handleAuthSubmit} className="space-y-4 mb-10">
-                <input type="email" placeholder="EMAIL" className="w-full bg-[#1c1c1c] border border-[#262626] py-4 px-4 text-[10px] tracking-widest outline-none focus:border-white/30 transition-colors" required />
-                <input type="password" placeholder="PASSWORD" className="w-full bg-[#1c1c1c] border border-[#262626] py-4 px-4 text-[10px] tracking-widest outline-none focus:border-white/30 transition-colors" required />
+                <input type="email" placeholder="EMAIL" className="w-full bg-[#1c1c1c] border border-[#262626] py-4 px-4 text-[10px] tracking-widest outline-none focus:border-white/30 transition-colors text-white" required />
+                <input type="password" placeholder="PASSWORD" className="w-full bg-[#1c1c1c] border border-[#262626] py-4 px-4 text-[10px] tracking-widest outline-none focus:border-white/30 transition-colors text-white" required />
                 <button type="submit" className="w-full bg-white text-black py-4 font-bold text-[12px] uppercase tracking-widest active:scale-95 transition-transform">Login</button>
              </form>
              <div className="space-y-3">
@@ -268,11 +311,20 @@ export default function App() {
           </section>
         ) : isProfileOpen && isLoggedIn ? (
           <section className="pt-28 px-6 max-w-2xl mx-auto animate-in slide-in-from-bottom-4">
-             <h2 className="text-2xl font-light italic mb-8">Patrick Park</h2>
+             <h2 className="text-2xl font-light italic mb-8 text-white">Patrick Park</h2>
              <div className="grid grid-cols-2 gap-4 mb-12">
-                <div className="bg-[#1c1c1c] p-6 border border-white/5"><p className="text-[10px] text-[#525252] uppercase mb-1">Score</p><span className="text-3xl font-light">{userStats.score}</span></div>
-                <div className="bg-[#1c1c1c] p-6 border border-white/5"><p className="text-[10px] text-[#525252] uppercase mb-1">Weekly Mileage</p><span className="text-3xl font-light">{userStats.mileage}</span></div>
+                <div className="bg-[#1c1c1c] p-6 border border-white/5"><p className="text-[10px] text-[#525252] uppercase mb-1">Score</p><span className="text-3xl font-light text-white">{userStats.score}</span></div>
+                <div className="bg-[#1c1c1c] p-6 border border-white/5"><p className="text-[10px] text-[#525252] uppercase mb-1">Weekly Mileage</p><span className="text-3xl font-light text-white">{userStats.mileage}</span></div>
              </div>
+             {isWatchConnected && (
+               <div className="p-6 bg-[#1c1c1c] border border-white/5 rounded-sm mb-12 flex justify-between items-center animate-in fade-in">
+                  <div>
+                    <p className="text-[9px] uppercase tracking-widest text-[#525252] mb-1">Connected Device</p>
+                    <p className="text-sm font-bold uppercase tracking-tighter text-white">{connectedDevice}</p>
+                  </div>
+                  <button onClick={() => setIsWatchConnected(false)} className="text-[9px] text-[#444] uppercase tracking-widest">Disconnect</button>
+               </div>
+             )}
              <button onClick={handleLogout} className="w-full py-4 border border-[#262626] text-[#c2410c] text-[10px] uppercase tracking-widest hover:bg-[#c2410c]/5 transition-colors">LOGOUT SESSION</button>
           </section>
         ) : (
@@ -281,16 +333,16 @@ export default function App() {
               <section className="animate-in fade-in">
                 {selectedArticle ? (
                   <div className="pt-28 px-6 max-w-2xl mx-auto">
-                    <button onClick={() => setSelectedArticle(null)} className="flex items-center gap-2 text-[#737373] text-[10px] uppercase tracking-widest mb-10 hover:text-white"><ArrowLeft size={14} /> Back</button>
-                    <h2 className="text-4xl font-light italic mb-8 leading-tight">{selectedArticle.title}</h2>
+                    <button onClick={() => setSelectedArticle(null)} className="flex items-center gap-2 text-[#737373] text-[10px] uppercase tracking-widest mb-10 hover:text-white transition-colors"><ArrowLeft size={14} /> Back</button>
+                    <h2 className="text-4xl font-light italic mb-8 leading-tight text-white">{selectedArticle.title}</h2>
                     <p className="text-lg leading-relaxed text-[#d4d4d4] font-light whitespace-pre-line mb-20">{selectedArticle.content}</p>
                   </div>
                 ) : (
                   <div className="relative h-[85vh] w-full flex items-center justify-center text-center">
                     <div>
                       <p className="text-[12px] tracking-[0.4em] uppercase mb-4 text-[#a3a3a3]">Season 01: The Mist</p>
-                      <h2 className="text-5xl md:text-7xl font-light italic tracking-tight leading-tight mb-12">Finding Clarity <br/> in the Grey.</h2>
-                      <button onClick={() => setSelectedArticle(PESSSAGE_CONTENT.articles[0])} className="text-[11px] uppercase tracking-[0.3em] border-b border-white/30 pb-1 hover:border-white transition-colors">Read Journal</button>
+                      <h2 className="text-5xl md:text-7xl font-light italic tracking-tight leading-tight mb-12 text-white">Finding Clarity <br/> in the Grey.</h2>
+                      <button onClick={() => setSelectedArticle(PESSSAGE_CONTENT.articles[0])} className="text-[11px] uppercase tracking-[0.3em] border-b border-white/30 pb-1 hover:border-white transition-colors text-white">Read Journal</button>
                     </div>
                   </div>
                 )}
@@ -305,10 +357,10 @@ export default function App() {
                     <div className="flex justify-between items-end mb-8">
                       <div>
                         <span className={`text-[10px] px-3 py-1 rounded-full border mb-3 inline-block uppercase font-bold tracking-widest ${getTypeBorder(selectedRoute.type)} ${getTypeColor(selectedRoute.type)}`}>{selectedRoute.type}</span>
-                        <h2 className="text-4xl font-light italic leading-tight">{selectedRoute.name}</h2>
+                        <h2 className="text-4xl font-light italic leading-tight text-white">{selectedRoute.name}</h2>
                         <p className="text-[#737373] text-sm mt-1">{selectedRoute.location}</p>
                       </div>
-                      <p className="text-2xl font-light tracking-tighter">{selectedRoute.distance}</p>
+                      <p className="text-2xl font-light tracking-tighter text-white">{selectedRoute.distance}</p>
                     </div>
                     <p className="text-lg leading-relaxed text-[#d4d4d4] font-light mb-16">{selectedRoute.description}</p>
                     <button onClick={() => handleSyncToWatch(selectedRoute.id)} className={`w-full py-4 rounded-full text-[12px] uppercase font-bold transition-all ${syncSuccess ? 'bg-green-600' : 'bg-white text-black'}`}>
@@ -318,15 +370,15 @@ export default function App() {
                 ) : (
                   <>
                     <div className="mb-10 flex flex-col md:flex-row justify-between items-start gap-6">
-                      <div><h2 className="text-3xl font-light italic mb-2">Narrative Explorer</h2><p className="text-[#737373] text-sm italic">지도로 탐색하는 러너의 여정.</p></div>
+                      <div><h2 className="text-3xl font-light italic mb-2 text-white">Narrative Explorer</h2><p className="text-[#737373] text-sm italic">지도로 탐색하는 러너의 여정.</p></div>
                       <div className="flex bg-[#1c1c1c] p-1 rounded-full border border-white/5">
-                        <button onClick={() => setRouteViewMode('LIST')} className={`px-4 py-1.5 rounded-full text-[10px] font-bold ${routeViewMode === 'LIST' ? 'bg-white text-black' : 'text-[#525252]'}`}>List</button>
-                        <button onClick={() => setRouteViewMode('MAP')} className={`px-4 py-1.5 rounded-full text-[10px] font-bold ${routeViewMode === 'MAP' ? 'bg-white text-black' : 'text-[#525252]'}`}>Map</button>
+                        <button onClick={() => setRouteViewMode('LIST')} className={`px-4 py-1.5 rounded-full text-[10px] font-bold transition-all ${routeViewMode === 'LIST' ? 'bg-white text-black' : 'text-[#525252] hover:text-white'}`}><List size={12}/> List</button>
+                        <button onClick={() => setRouteViewMode('MAP')} className={`px-4 py-1.5 rounded-full text-[10px] font-bold transition-all ${routeViewMode === 'MAP' ? 'bg-white text-black' : 'text-[#525252] hover:text-white'}`}><MapIcon size={12}/> Map</button>
                       </div>
                     </div>
                     <div className="flex gap-6 border-b border-white/5 pb-4 mb-6 overflow-x-auto whitespace-nowrap">
                       {['ALL', 'SEOUL', 'JEJU', 'GYEONGGI'].map(r => (
-                        <button key={r} onClick={() => setRouteRegionFilter(r)} className={`text-[10px] uppercase tracking-[0.3em] font-bold transition-all ${routeRegionFilter === r ? 'text-white border-b border-white pb-4 -mb-4' : 'text-[#404040]'}`}>{r}</button>
+                        <button key={r} onClick={() => setRouteRegionFilter(r)} className={`text-[10px] uppercase tracking-[0.3em] font-bold transition-all ${routeRegionFilter === r ? 'text-white border-b border-white pb-4 -mb-4' : 'text-[#404040] hover:text-white'}`}>{r}</button>
                       ))}
                     </div>
                     {routeViewMode === 'MAP' ? (
@@ -334,9 +386,9 @@ export default function App() {
                         {mapPopup && (
                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 bg-black border border-white/20 p-5 rounded-sm shadow-2xl z-[2000] text-center animate-in zoom-in-95">
                               <p className={`text-[8px] uppercase tracking-widest mb-1 font-bold ${getTypeColor(mapPopup.type)}`}>{mapPopup.type}</p>
-                              <h4 className="text-xl font-light italic mb-6 leading-tight">{mapPopup.name}</h4>
+                              <h4 className="text-xl font-light italic mb-6 leading-tight text-white">{mapPopup.name}</h4>
                               <button onClick={() => setSelectedRoute(mapPopup)} className="w-full py-3 bg-white text-black text-[9px] uppercase font-bold tracking-widest">Explore</button>
-                              <button onClick={() => setMapPopup(null)} className="mt-4 text-[10px] text-[#444] uppercase hover:text-white transition-colors">Close</button>
+                              <button onClick={() => setMapPopup(null)} className="mt-4 text-[10px] text-[#444] uppercase tracking-widest hover:text-white transition-colors">Close</button>
                            </div>
                         )}
                       </div>
@@ -346,9 +398,9 @@ export default function App() {
                           <div key={route.id} onClick={() => setSelectedRoute(route)} className="p-6 bg-[#1c1c1c] border border-white/5 rounded-sm flex justify-between items-center cursor-pointer hover:border-white/20 transition-all group">
                              <div>
                                 <p className={`text-[9px] uppercase font-bold mb-1 tracking-widest ${getTypeColor(route.type)}`}>{route.type} / {route.location}</p>
-                                <h4 className="text-xl font-light italic group-hover:text-white transition-colors">{route.name}</h4>
+                                <h4 className="text-xl font-light italic group-hover:text-white transition-colors text-white">{route.name}</h4>
                              </div>
-                             <span className="text-2xl font-light tracking-tighter group-hover:text-white transition-colors">{route.distance}</span>
+                             <span className="text-2xl font-light tracking-tighter group-hover:text-white transition-colors text-white">{route.distance}</span>
                           </div>
                         ))}
                       </div>
@@ -361,7 +413,7 @@ export default function App() {
             {activeTab === 'sessions' && (
               <section className="pt-28 px-6 max-w-4xl mx-auto animate-in slide-in-from-bottom-4">
                 <div className="mb-12">
-                  <h2 className="text-3xl font-light italic mb-6">Race & Narrative</h2>
+                  <h2 className="text-3xl font-light italic mb-6 text-white">Race & Narrative</h2>
                   <div className="flex gap-6 border-b border-white/5 pb-4 mb-10 overflow-x-auto">
                     {['ALL', 'TRAIL', 'ROAD'].map(type => (
                       <button key={type} onClick={() => setRaceTypeFilter(type)} className={`text-[10px] uppercase tracking-[0.3em] font-bold transition-all ${raceTypeFilter === type ? 'text-white border-b border-white pb-4 -mb-4' : 'text-[#404040] hover:text-white'}`}>{type}</button>
@@ -379,9 +431,9 @@ export default function App() {
                       {monthRaces.map(race => (
                         <div key={race.id} className="group border-l border-white/5 pl-8 relative">
                           <div className={`absolute left-[-4px] top-0 w-2 h-2 rounded-full ${race.type === 'TRAIL' ? 'bg-orange-400' : 'bg-blue-400'}`}></div>
-                          <h4 className="text-3xl font-light italic mb-4">{race.name}</h4>
+                          <h4 className="text-3xl font-light italic mb-4 text-white">{race.name}</h4>
                           <p className="text-sm text-[#a3a3a3] font-light max-w-xl mb-6">{race.description}</p>
-                          <button onClick={() => generateRaceStrategy(race.name)} className="flex items-center gap-2 bg-white/10 px-6 py-3 text-[10px] uppercase tracking-widest hover:bg-white hover:text-black transition-all">
+                          <button onClick={() => generateRaceStrategy(race.name)} className="flex items-center gap-2 bg-white/10 px-6 py-3 text-[10px] uppercase tracking-widest hover:bg-white hover:text-black transition-all text-white">
                             {isAiLoading && activeAiTarget === race.name ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12}/>} AI Strategy
                           </button>
                           {activeAiTarget === race.name && aiResponse && !isAiLoading && <div className="mt-6 p-6 bg-white/5 border border-white/10 italic text-sm text-[#d4d4d4] animate-in fade-in leading-relaxed">"{aiResponse}"</div>}
@@ -396,7 +448,7 @@ export default function App() {
             {activeTab === 'gear' && (
               <section className="pt-28 px-6 max-w-4xl mx-auto animate-in slide-in-from-bottom-4">
                 <div className="mb-12">
-                  <h2 className="text-3xl font-light italic mb-6">Essential Tools</h2>
+                  <h2 className="text-3xl font-light italic mb-6 text-white">Essential Tools</h2>
                   <div className="flex gap-6 border-b border-white/5 pb-4 mb-12 overflow-x-auto">
                     {['ALL', 'TRAIL', 'ROAD', 'NUTRITION'].map(cat => (
                       <button key={cat} onClick={() => setGearFilter(cat)} className={`text-[10px] uppercase tracking-[0.3em] font-bold transition-all ${gearFilter === cat ? 'text-white border-b border-white pb-4 -mb-4' : 'text-[#404040] hover:text-white'}`}>{cat}</button>
@@ -407,12 +459,12 @@ export default function App() {
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-16">
                   {PESSSAGE_CONTENT.gearItems.filter(item => gearFilter === 'ALL' || item.category === gearFilter).map(item => (
                       <div key={item.id} className="group flex flex-col animate-in fade-in">
-                        <div className="aspect-[4/5] bg-[#1c1c1c] border border-white/5 rounded-sm flex items-center justify-center mb-5 overflow-hidden group-hover:border-white/20 transition-all cursor-pointer">
-                          <span className="text-[8px] text-[#333] uppercase tracking-widest italic font-serif">{item.imageLabel || "Product Visual"}</span>
+                        <div className="aspect-[4/5] bg-[#1c1c1c] border border-white/5 rounded-sm flex items-center justify-center mb-5 overflow-hidden group-hover:border-white/20 transition-all cursor-pointer text-white italic">
+                          {item.imageLabel || "Product Visual"}
                         </div>
                         <div className="flex flex-col">
                            <p className={`text-[8px] uppercase font-bold tracking-widest mb-1 ${item.category === 'TRAIL' ? 'text-orange-400' : item.category === 'ROAD' ? 'text-blue-400' : 'text-green-500'}`}>{item.category} / {item.brand}</p>
-                           <h3 className="text-sm font-medium italic mb-2 group-hover:text-white transition-colors">{item.name}</h3>
+                           <h3 className="text-sm font-medium italic mb-2 group-hover:text-white transition-colors text-white">{item.name}</h3>
                            <p className="text-[10px] text-[#737373] leading-relaxed line-clamp-3 italic">"{item.note}"</p>
                         </div>
                       </div>
@@ -423,24 +475,50 @@ export default function App() {
 
             {activeTab === 'recovery' && (
               <section className="px-6 pt-28 max-w-3xl mx-auto animate-in slide-in-from-bottom-4">
-                <h2 className="text-3xl font-light italic mb-10 text-center">Recovery Ritual</h2>
+                <h2 className="text-3xl font-light italic mb-10 text-center text-white">Recovery Ritual</h2>
                 {isLoggedIn && isWatchConnected ? (
                   <div className="animate-in fade-in">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-                       <div className="bg-[#1c1c1c] p-6 border border-white/5 text-center rounded-sm shadow-xl"><p className="text-[10px] uppercase mb-4 text-[#737373] tracking-widest font-bold">Recovery Score</p><div className="text-6xl font-light mb-2">{userStats.score}</div><p className="text-[9px] text-green-400 uppercase font-bold tracking-widest">Optimal</p></div>
-                       <div className="bg-[#1c1c1c] p-6 border border-white/5 text-center rounded-sm shadow-xl"><p className="text-[10px] uppercase mb-4 text-[#737373] tracking-widest font-bold">Sleep Quality</p><div className="text-5xl font-light">{userStats.score + 4}%</div></div>
-                       <div className="bg-[#1c1c1c] p-6 border border-white/5 text-center rounded-sm shadow-xl"><p className="text-[10px] uppercase mb-4 text-[#737373] tracking-widest font-bold">Fatigue</p><div className="text-4xl font-light italic">Low</div></div>
+                       <div className="bg-[#1c1c1c] p-6 border border-white/5 text-center rounded-sm shadow-xl">
+                          <p className="text-[10px] uppercase mb-4 text-[#737373] tracking-widest font-bold">Recovery Score</p>
+                          <div className="text-6xl font-light mb-2 text-white">{userStats.score}</div>
+                          <p className="text-[9px] text-green-400 uppercase font-bold tracking-widest">Optimal</p>
+                       </div>
+                       <div className="bg-[#1c1c1c] p-6 border border-white/5 text-center rounded-sm shadow-xl">
+                          <p className="text-[10px] uppercase mb-4 text-[#737373] tracking-widest font-bold">Data Source</p>
+                          <div className="text-2xl font-light uppercase tracking-tighter mt-4 text-white">{connectedDevice}</div>
+                       </div>
+                       <div className="bg-[#1c1c1c] p-6 border border-white/5 text-center rounded-sm shadow-xl">
+                          <p className="text-[10px] uppercase mb-4 text-[#737373] tracking-widest font-bold">Last Sync</p>
+                          <div className="text-2xl font-light italic mt-4 text-white">Just Now</div>
+                       </div>
                     </div>
+                    
                     <button onClick={generateRecoveryPlan} className="w-full py-4 bg-white text-black font-bold uppercase text-[12px] tracking-[0.2em] active:scale-[0.98] transition-transform">
                       {isAiLoading ? <Loader2 size={16} className="animate-spin mx-auto" /> : 'Get AI Ritual'}
                     </button>
                     {aiResponse && <div className="mt-8 text-sm italic text-[#d4d4d4] border-t border-white/5 pt-6 animate-in slide-in-from-bottom-2 leading-relaxed">"{aiResponse}"</div>}
+                    
+                    <div className="mt-12 p-6 bg-[#1c1c1c] border border-white/5 rounded-sm flex items-center justify-between">
+                       <div className="flex items-center gap-4 text-[#525252]">
+                          <WatchIcon size={18} />
+                          <span className="text-[10px] uppercase tracking-widest font-bold">Device Connected: {connectedDevice?.toUpperCase()}</span>
+                       </div>
+                       <button onClick={() => setIsWatchModalOpen(true)} className="text-[9px] uppercase tracking-widest text-[#c2410c] font-bold">Change</button>
+                    </div>
                   </div>
                 ) : (
                   <div className="text-center py-24 border border-dashed border-white/10 rounded-sm">
                     <Zap size={40} className="mx-auto mb-6 text-[#333]"/>
-                    <p className="text-sm text-[#737373] mb-8 leading-relaxed">{!isLoggedIn ? '개인화된 회복 리추얼을 확인하려면\n로그인이 필요합니다.' : '워치 데이터를 동기화하여\n오늘의 컨디션을 분석하세요.'}</p>
-                    <button onClick={() => !isLoggedIn ? setAuthMode('login') : setIsWatchConnected(true)} className="px-12 py-3 bg-white text-black font-bold text-[11px] uppercase tracking-widest rounded-full active:scale-95 transition-transform shadow-xl">{!isLoggedIn ? 'Login to Access' : 'Connect COROS'}</button>
+                    <p className="text-sm text-[#737373] mb-8 leading-relaxed">
+                      {!isLoggedIn ? '개인화된 회복 리추얼을 확인하려면\n로그인이 필요합니다.' : '워치 데이터를 동기화하여\n오늘의 컨디션을 분석하세요.'}
+                    </p>
+                    <button 
+                      onClick={() => !isLoggedIn ? setAuthMode('login') : setIsWatchModalOpen(true)} 
+                      className="px-12 py-3 bg-white text-black font-bold text-[11px] uppercase tracking-widest rounded-full active:scale-95 transition-transform shadow-xl"
+                    >
+                      {!isLoggedIn ? 'Login to Access' : 'Select Your Watch'}
+                    </button>
                   </div>
                 )}
               </section>
