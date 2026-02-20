@@ -9,11 +9,12 @@ import {
 
 /**
  * ============================================================
- * 📝 PESSAGE CONTENT MANAGEMENT (데이터 관리 구역)
+ * 📝 PESSSAGE CONTENT MANAGEMENT (데이터 관리 구역)
  * 수정이 필요할 때 여기 데이터만 바꾸시면 됩니다.
+ * (ReferenceError 방지를 위해 철자를 PESSSAGE로 통일했습니다.)
  * ============================================================
  */
-const PESSAGE_CONTENT = {
+const PESSSAGE_CONTENT = {
   // 1. 저널 데이터
   articles: [
     { 
@@ -25,7 +26,6 @@ const PESSAGE_CONTENT = {
       content: "새벽 5시, 세상이 아직 짙은 회색빛 장막 뒤에 숨어 있을 때 우리는 길을 나섭니다. 시야는 불과 5미터 앞을 내다보기 힘들지만, 아이러니하게도 우리는 그 어느 때보다 '선명함'을 느낍니다. 안개는 외부의 소음을 차단하는 천연 소음기입니다. 이 정적 속에서 달리기는 단순한 운동을 넘어 하나의 움직이는 명상이 됩니다.",
       excerpt: "안개는 시야를 가리지만, 대신 발끝의 감각을 선명하게 만듭니다." 
     }
-    // 여기에 새로운 저널을 추가하세요.
   ],
 
   // 2. 루트 데이터 (지도 및 리스트)
@@ -38,15 +38,14 @@ const PESSAGE_CONTENT = {
     { id: 'trail-2', type: 'TRAIL', region: 'JEJU', name: "Volcanic Coast Trail", location: "Olle 7, Jeju", distance: "17.6km", lat: 33.242, lng: 126.541, description: "현무암 바다를 끼고 달리는 제주 트레일." },
     { id: 'road-1', type: 'ROAD', region: 'SEOUL', name: "City Pulse Line", location: "Banpo, Seoul", distance: "8.2km", lat: 37.511, lng: 126.996, description: "한강의 밤바람을 느끼는 시티런." },
     { id: 'road-2', type: 'ROAD', region: 'GYEONGGI', name: "Central Park Loop", location: "Songdo, Incheon", distance: "6.5km", lat: 37.392, lng: 126.639, description: "미래지향적 건축물 사이의 로드 코스." }
-    // 코스를 추가할 때는 위 형식을 복사해서 id를 바꾸고 좌표(lat, lng)를 입력하세요.
   ],
 
   // 3. 기어 데이터
   gearItems: [
-    { id: 1, name: "Portal Shield Shell", brand: "PORTAL", category: "TRAIL", note: "안개가 자욱한 능선에서도 체온을 유지해준 유일한 장비.", imageLabel: "" },
-    { id: 2, name: "Carbon Pulse v2", brand: "PESSAGE", category: "ROAD", note: "도심을 가를 때 필요한 정교함.", imageLabel: "" },
-    { id: 3, name: "Recovery Electrolyte", brand: "PESSAGE", category: "NUTRITION", note: "달린 후의 회복은 무엇을 먹느냐에서 시작됩니다.", imageLabel: "" },
-    { id: 4, name: "Peak Hydration Gel", brand: "MAUTEN", category: "NUTRITION", note: "한계에 다다랐을 때 필요한 에너지의 순도.", imageLabel: "" }
+    { id: 1, name: "Portal Shield Shell", brand: "PORTAL", category: "TRAIL", note: "안개가 자욱한 능선에서도 체온을 유지해준 유일한 장비.", imageLabel: "[트레일 재킷]" },
+    { id: 2, name: "Carbon Pulse v2", brand: "PESSAGE", category: "ROAD", note: "도심을 가를 때 필요한 정교함.", imageLabel: "[로드 슈즈]" },
+    { id: 3, name: "Recovery Electrolyte", brand: "PESSAGE", category: "NUTRITION", note: "달린 후의 회복은 무엇을 먹느냐에서 시작됩니다.", imageLabel: "[뉴트리션]" },
+    { id: 4, name: "Peak Hydration Gel", brand: "MAUTEN", category: "NUTRITION", note: "한계에 다다랐을 때 필요한 에너지의 순도.", imageLabel: "[에너지 젤]" }
   ],
 
   // 4. 세션(대회) 데이터
@@ -123,7 +122,7 @@ export default function App() {
   };
 
   const groupedRaces = () => {
-    const filtered = PESSAGE_CONTENT.races.filter(r => raceTypeFilter === 'ALL' || r.type === raceTypeFilter);
+    const filtered = PESSSAGE_CONTENT.races.filter(r => raceTypeFilter === 'ALL' || r.type === raceTypeFilter);
     const sorted = [...filtered].sort((a, b) => new Date(a.date) - new Date(b.date));
     const groups = {};
     sorted.forEach(race => {
@@ -173,7 +172,7 @@ export default function App() {
     if (!leafletMap.current || !markerGroupRef.current) return;
     const L = window.L;
     markerGroupRef.current.clearLayers();
-    const filtered = PESSAGE_CONTENT.routes.filter(r => (routeTypeFilter === 'ALL' || r.type === routeTypeFilter) && (routeRegionFilter === 'ALL' || r.region === routeRegionFilter));
+    const filtered = PESSSAGE_CONTENT.routes.filter(r => (routeTypeFilter === 'ALL' || r.type === routeTypeFilter) && (routeRegionFilter === 'ALL' || r.region === routeRegionFilter));
     if (filtered.length > 0) {
       const bounds = L.latLngBounds();
       filtered.forEach(route => {
@@ -313,7 +312,7 @@ export default function App() {
                     </div>
                     <p className="text-lg leading-relaxed text-[#d4d4d4] font-light mb-16">{selectedRoute.description}</p>
                     <button onClick={() => handleSyncToWatch(selectedRoute.id)} className={`w-full py-4 rounded-full text-[12px] uppercase font-bold transition-all ${syncSuccess ? 'bg-green-600' : 'bg-white text-black'}`}>
-                      {isSyncing ? 'SYNCING...' : syncSuccess ? 'Synced' : 'Sync to Watch'}
+                      {isSyncing ? 'SYNCING...' : syncSuccess ? 'Synced' : 'Sync to Device'}
                     </button>
                   </div>
                 ) : (
@@ -365,7 +364,7 @@ export default function App() {
                   <h2 className="text-3xl font-light italic mb-6">Race & Narrative</h2>
                   <div className="flex gap-6 border-b border-white/5 pb-4 mb-10 overflow-x-auto">
                     {['ALL', 'TRAIL', 'ROAD'].map(type => (
-                      <button key={type} onClick={() => setRaceTypeFilter(type)} className={`text-[10px] uppercase tracking-[0.3em] font-bold transition-all ${raceTypeFilter === type ? 'text-white border-b border-white pb-4 -mb-4' : 'text-[#404040]'}`}>{type}</button>
+                      <button key={type} onClick={() => setRaceTypeFilter(type)} className={`text-[10px] uppercase tracking-[0.3em] font-bold transition-all ${raceTypeFilter === type ? 'text-white border-b border-white pb-4 -mb-4' : 'text-[#404040] hover:text-white'}`}>{type}</button>
                     ))}
                   </div>
                 </div>
@@ -400,7 +399,7 @@ export default function App() {
                   <h2 className="text-3xl font-light italic mb-6">Essential Tools</h2>
                   <div className="flex gap-6 border-b border-white/5 pb-4 mb-12 overflow-x-auto">
                     {['ALL', 'TRAIL', 'ROAD', 'NUTRITION'].map(cat => (
-                      <button key={cat} onClick={() => setGearFilter(cat)} className={`text-[10px] uppercase tracking-[0.3em] font-bold transition-all ${gearFilter === cat ? 'text-white border-b border-white pb-4 -mb-4' : 'text-[#404040]'}`}>{cat}</button>
+                      <button key={cat} onClick={() => setGearFilter(cat)} className={`text-[10px] uppercase tracking-[0.3em] font-bold transition-all ${gearFilter === cat ? 'text-white border-b border-white pb-4 -mb-4' : 'text-[#404040] hover:text-white'}`}>{cat}</button>
                     ))}
                   </div>
                 </div>
