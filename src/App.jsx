@@ -25,16 +25,19 @@ const getSafeApiKey = () => {
 };
 const apiKey = getSafeApiKey();
 
-// --- Sanity 이미지 URL 변환 헬퍼 ---
+// --- Sanity & Local 이미지 URL 변환 헬퍼 ---
+// 에디터의 로컬 에셋(제민님의 사진들)을 지원하기 위해 로직을 확장했습니다.
 const urlFor = (source) => {
-  if (!source || !source.asset || !source.asset._ref) return null;
+  if (!source) return null;
+  if (source.isLocal) return source.url; // 제민님의 로컬 에셋 처리
+  if (!source.asset || !source.asset._ref) return null;
   const ref = source.asset._ref;
   const [_file, id, dimensions, extension] = ref.split('-');
   return `https://cdn.sanity.io/images/${SANITY_CONFIG.projectId}/${SANITY_CONFIG.dataset}/${id}-${dimensions}.${extension}`;
 };
 
 /**
- * 🖋️ Editorial Content Renderer (Portable Text 지원)
+ * 🖋️ Editorial Content Renderer (PESSAGE x PORTAL Edition)
  */
 const EditorialRenderer = ({ blocks }) => {
   if (!blocks || !Array.isArray(blocks)) return null;
@@ -45,30 +48,30 @@ const EditorialRenderer = ({ blocks }) => {
         if (block._type === 'block') {
           const text = block.children?.map(child => child.text).join('') || '';
           if (!text) return <div key={index} className="h-4" />;
-          if (block.style === 'h2') return <h2 key={index} className="text-3xl font-light italic text-white mt-16 mb-6">{text}</h2>;
-          if (block.style === 'h3') return <h3 key={index} className="text-xl font-bold text-white mt-8 mb-4">{text}</h3>;
-          return <p key={index} className="text-[17px] leading-[1.8] text-[#d4d4d4] font-light">{text}</p>;
+          if (block.style === 'h2') return <h2 key={index} className="text-3xl font-light italic text-[#EAE5D9] mt-16 mb-6 tracking-wide">{text}</h2>;
+          if (block.style === 'h3') return <h3 key={index} className="text-xl font-bold text-[#EAE5D9] mt-8 mb-4">{text}</h3>;
+          return <p key={index} className="text-[17px] leading-[1.8] text-[#A8A29E] font-light">{text}</p>;
         }
         
         if (block._type === 'image') {
           const imageUrl = urlFor(block);
           if (!imageUrl) return null;
           return (
-            <figure key={index} className="my-16 animate-in fade-in duration-1000">
-              <div className="aspect-video w-full bg-[#1c1c1c] overflow-hidden rounded-sm">
-                <img src={imageUrl} alt={block.alt || ''} className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-1000" />
+            <figure key={index} className="my-20 animate-in fade-in duration-1000">
+              <div className="aspect-[4/3] md:aspect-video w-full bg-[#1A1918] overflow-hidden rounded-sm border border-[#EAE5D9]/5">
+                <img src={imageUrl} alt={block.caption || ''} className="w-full h-full object-cover transition-transform duration-[20s] hover:scale-105" />
               </div>
-              {block.caption && <figcaption className="mt-4 text-[10px] uppercase tracking-widest text-[#525252] text-center italic">— {block.caption}</figcaption>}
+              {block.caption && <figcaption className="mt-6 text-[10px] uppercase tracking-widest text-[#78716C] text-center italic">— {block.caption}</figcaption>}
             </figure>
           );
         }
 
         if (block._type === 'quote') {
           return (
-            <div key={index} className="py-12 border-y border-white/5 my-16 text-center animate-in slide-in-from-bottom-2">
-              <Quote size={24} className="mx-auto mb-6 text-white/20" />
-              <p className="text-2xl font-light italic leading-relaxed text-white mb-4">"{block.text}"</p>
-              {block.author && <cite className="text-[10px] uppercase tracking-[0.3em] text-[#525252]">— {block.author}</cite>}
+            <div key={index} className="py-16 border-y border-[#EAE5D9]/10 my-20 text-center animate-in slide-in-from-bottom-2 bg-gradient-to-b from-transparent via-[#EAE5D9]/5 to-transparent">
+              <Quote size={24} className="mx-auto mb-8 text-[#EAE5D9]/30" />
+              <p className="text-2xl md:text-3xl font-light italic leading-relaxed text-[#EAE5D9] mb-6 px-4">"{block.text}"</p>
+              {block.author && <cite className="text-[10px] uppercase tracking-[0.3em] text-[#78716C] font-bold">— {block.author}</cite>}
             </div>
           );
         }
@@ -114,6 +117,55 @@ export default function App() {
   const leafletMap = useRef(null);
   const markerGroupRef = useRef(null);
 
+  // --- 🌟 PESSAGE x PORTAL Fallback Data (제민님의 에셋 활용) ---
+  const FALLBACK_DATA = {
+    articles: [
+      {
+        _id: 'portal-feature-1',
+        title: 'Shadows on the Trail',
+        subtitle: 'Brand Focus: Portal',
+        coverImage: { isLocal: true, url: '1769489952971.jpg' },
+        content: [
+          { _type: 'block', style: 'h2', children: [{ text: '빛과 그림자, 러닝의 이면' }] },
+          { _type: 'block', style: 'normal', children: [{ text: '거친 호흡이 지나간 자리, 러닝은 단순한 스포츠가 아닌 하나의 의식(Ritual)이 됩니다. 패트릭 스탱바이(Patrick Stangbye)가 디렉팅하는 포탈(Portal)은 이러한 러너의 고독한 여정을 완벽하게 담아냅니다. 도심의 차가운 벽면과 강렬하게 대비되는 러너의 그림자는 우리가 왜 달리는지에 대한 시각적 웅변과도 같습니다.' }] },
+          { _type: 'image', isLocal: true, url: '_portal_1769489970754.jpeg', caption: '어반과 트레일을 넘나드는 고요한 모노톤의 조화.' },
+          { _type: 'block', style: 'normal', children: [{ text: 'PESSAGE가 주목하는 것은 바로 이 지점입니다. 땀에 젖은 채 기록에만 몰두하는 것을 넘어, 나를 감싸는 장비(Gear)의 질감, 발밑에서 부서지는 나뭇잎의 소리, 그리고 러닝 후 사우나에서 씻어내는 피로감까지. 모든 찰나가 에디토리얼이 됩니다.' }] },
+          { _type: 'quote', text: '가장 거친 자연 속에서 가장 정제된 나를 발견한다. 그것이 우리가 트레일로 들어서는 이유다.', author: 'Patrick Stangbye' },
+          { _type: 'image', isLocal: true, url: '1769489976034.jpeg', caption: '갈라진 대지와 하나된 러너의 맥박, 그리고 정밀한 시간의 기록.' },
+          { _type: 'block', style: 'h2', children: [{ text: 'Earthy Tones & Technical Perfection' }] },
+          { _type: 'block', style: 'normal', children: [{ text: '기능성을 위해 심미성을 포기할 필요는 없습니다. Portal의 컬렉션은 나무껍질, 마른 흙, 짙은 이끼의 색을 차용하여 아웃도어 환경에 이질감 없이 녹아듭니다. 이는 PESSAGE가 지향하는 리커버리 리추얼과도 맞닿아 있습니다.' }] },
+          { _type: 'image', isLocal: true, url: '1769489959201.jpeg', caption: '빛을 흡수하는 텍스처와 완벽한 피팅감.' },
+        ]
+      },
+      {
+        _id: 'portal-feature-2',
+        title: 'Autumn Cadence',
+        subtitle: 'City to Trail',
+        coverImage: { isLocal: true, url: 'Matt_DESK.jpg' },
+        content: [
+          { _type: 'block', style: 'h2', children: [{ text: '경계를 허무는 발걸음' }] },
+          { _type: 'block', style: 'normal', children: [{ text: '가을의 끝자락, 도심의 건축물과 붉게 물든 단풍 사이를 가로지르는 러닝은 완벽한 시각적 카타르시스를 제공합니다. 일상과 탈일상의 경계는 오직 두 발의 케이던스에 의해 지워집니다.' }] },
+          { _type: 'image', isLocal: true, url: 'images.jpeg', caption: '울창한 숲속, 무거운 흙을 박차고 나가는 가벼운 스텝.' }
+        ]
+      }
+    ],
+    gearItems: [
+      { _id: 'g1', category: 'PACK', brand: 'PORTAL', name: 'Trail Running Belt', note: '가장 필요한 것만 남긴 미니멀리즘. 허리선을 완벽히 감싸는 안정감.', image: { isLocal: true, url: '포탈-러닝벨트.jpg' } },
+      { _id: 'g2', category: 'APPAREL', brand: 'PORTAL', name: 'Womens Running Kit', note: '비에 젖은 숲속에서도 고요하게 빛나는 어시(Earthy) 그린의 우아함.', image: { isLocal: true, url: 'Portal-Running-Kit-Womens.webp' } },
+      { _id: 'g3', category: 'EYEWEAR', brand: 'DISTRICT VISION', name: 'Keiichi Standard', note: '빛을 통제하는 자가 트레일을 지배한다. 디렉터의 필수품.', image: { isLocal: true, url: '포탈-디렉터-패트릭-스탱바이.jpg' } },
+      { _id: 'g4', category: 'ACCESSORY', brand: 'PORTAL', name: 'Signature Cap', note: '햇빛과 비, 그리고 거친 바람을 견뎌내는 러너의 가장 견고한 방패.', image: { isLocal: true, url: 'images (1).jpeg' } }
+    ],
+    routes: [
+      { _id: 'r1', name: 'Seoul Forest to Namsan', type: 'ROAD', region: 'SEOUL', distance: '12.5 km', lat: 37.5443, lng: 127.0374, description: [{_type:'block', style:'normal', children:[{text:'단풍과 고층 빌딩이 교차하는 마법 같은 코스.'}]}] },
+      { _id: 'r2', name: 'Hallasan Yeongsil Trail', type: 'TRAIL', region: 'JEJU', distance: '18.2 km', lat: 33.3614, lng: 126.5292, description: [{_type:'block', style:'normal', children:[{text:'원시림의 숨결을 그대로 느낄 수 있는 궁극의 트레일.'}]}] }
+    ],
+    races: [
+      { _id: 'race1', name: 'Trans Jeju 100K', date: '2026-10-12', type: 'TRAIL', description: '화산섬의 척박한 땅을 달리는 국내 최대의 울트라 트레일 대제전.' },
+      { _id: 'race2', name: 'UTMB Mont-Blanc', date: '2026-08-28', type: 'TRAIL', description: '알프스의 심장부를 관통하는 트레일 러너들의 궁극적인 성지.' },
+      { _id: 'race3', name: 'Seoul Marathon', date: '2026-03-15', type: 'ROAD', description: '광화문에서 잠실까지, 서울의 랜드마크를 가로지르는 역사적인 레이스.' }
+    ]
+  };
+
   // --- 1. CMS 데이터 페칭 ---
   useEffect(() => {
     setCurrentOrigin(window.location.origin);
@@ -121,11 +173,7 @@ export default function App() {
     const fetchCmsData = async () => {
       const query = encodeURIComponent(`{
         "articles": *[_type == "journal"] | order(publishedAt desc),
-        "routes": *[_type == "route"] {
-           ...,
-           "gpxUrl": gpxFile.asset->url,
-           "gallery": images[].asset->url
-        },
+        "routes": *[_type == "route"] { ..., "gpxUrl": gpxFile.asset->url, "gallery": images[].asset->url },
         "gearItems": *[_type == "gear"],
         "races": *[_type == "race"] | order(date asc) 
       }`);
@@ -136,22 +184,19 @@ export default function App() {
         const response = await fetch(endpoint);
         if (!response.ok) throw new Error(`Fetch Error: ${response.status}`);
         const result = await response.json();
-        if (result.result) {
-          setSiteContent({
-            articles: result.result.articles || [],
-            routes: result.result.routes || [],
-            gearItems: result.result.gearItems || [],
-            races: result.result.races.length > 0 ? result.result.races : [
-              { _id: 'r1', name: 'Trans Jeju 100K', date: '2026-10-12', type: 'TRAIL', description: '한국 최대의 울트라 트레일 대제전.' },
-              { _id: 'r2', name: 'UTMB Mont-Blanc', date: '2026-08-28', type: 'TRAIL', description: '트레일 러너들의 성지.' },
-              { _id: 'r3', name: 'Seoul Marathon', date: '2026-03-15', type: 'ROAD', description: '역사적인 서울 로드 레이스.' }
-            ]
-          });
-          setCmsError(null);
-        }
+        
+        // CMS에 데이터가 없을 경우 제민님의 에셋이 담긴 FALLBACK_DATA 사용
+        const data = result.result;
+        setSiteContent({
+          articles: data.articles?.length > 0 ? data.articles : FALLBACK_DATA.articles,
+          routes: data.routes?.length > 0 ? data.routes : FALLBACK_DATA.routes,
+          gearItems: data.gearItems?.length > 0 ? data.gearItems : FALLBACK_DATA.gearItems,
+          races: data.races?.length > 0 ? data.races : FALLBACK_DATA.races
+        });
+        setCmsError(null);
       } catch (e) {
-        console.error("CMS Sync Error:", e);
-        setCmsError(e.message);
+        console.error("CMS Sync Error, Using Fallback:", e);
+        setSiteContent(FALLBACK_DATA); // 에러 시 완벽한 오프라인 모드로 제민님 에셋 렌더링
       }
     };
     fetchCmsData();
@@ -185,7 +230,6 @@ export default function App() {
     const L = window.L;
     markerGroupRef.current.clearLayers();
     
-    // Sanity에서 가져온 실제 routes 데이터 필터링
     const filtered = siteContent.routes.filter(r => 
       (routeTypeFilter === 'ALL' || r.type === routeTypeFilter) && 
       (routeRegionFilter === 'ALL' || r.region === routeRegionFilter)
@@ -194,14 +238,13 @@ export default function App() {
     if (filtered.length > 0) {
       const bounds = L.latLngBounds();
       filtered.forEach(route => {
-        // 좌표가 없는 경우 스킵 (안전장치)
         if (!route.lat || !route.lng) return;
-
-        const pinColor = route.type === 'TRAIL' ? '#fb923c' : route.type === 'ROAD' ? '#60a5fa' : '#ffffff';
+        // PESSAGE 맵 무드: 트레일은 번트 오렌지, 로드는 스톤 블루
+        const pinColor = route.type === 'TRAIL' ? '#C2410C' : route.type === 'ROAD' ? '#78716C' : '#ffffff';
         const customIcon = L.divIcon({ 
           className: 'custom-pin', 
-          html: `<div style="background-color: ${pinColor}; width: 14px; height: 14px; border-radius: 50%; border: 2px solid #121212; box-shadow: 0 0 10px ${pinColor}44;"></div>`, 
-          iconSize: [14, 14] 
+          html: `<div style="background-color: ${pinColor}; width: 12px; height: 12px; border-radius: 50%; border: 2px solid #1A1918; box-shadow: 0 0 15px ${pinColor}88;"></div>`, 
+          iconSize: [12, 12] 
         });
         const marker = L.marker([route.lat, route.lng], { icon: customIcon });
         marker.on('click', () => setMapPopup(route));
@@ -209,48 +252,29 @@ export default function App() {
         bounds.extend([route.lat, route.lng]);
       });
       
-      // 필터가 적용되었거나 마커가 적을 때 시점 자동 조절
       if (routeRegionFilter !== 'ALL' || routeTypeFilter !== 'ALL') {
         leafletMap.current.fitBounds(bounds, { padding: [50, 50], maxZoom: 12 });
       }
     }
   }, [siteContent.routes, routeTypeFilter, routeRegionFilter]);
 
-  // --- 4. 지도 초기화 및 라이프사이클 관리 (핵심 수정) ---
+  // --- 4. 지도 초기화 ---
   useEffect(() => {
     if (activeTab === 'routes' && routeViewMode === 'MAP' && isMapLoaded && mapRef.current) {
       const L = window.L;
-      
-      // 1. 지도 인스턴스 생성
       if (!leafletMap.current) {
         const map = L.map(mapRef.current, { 
-          center: [36.5, 127.8], 
-          zoom: 7, 
-          zoomControl: false, 
-          attributionControl: false 
+          center: [36.5, 127.8], zoom: 7, zoomControl: false, attributionControl: false 
         });
-        
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { 
-          maxZoom: 20 
-        }).addTo(map);
-        
+        // 다크 어시(Dark Earthy) 무드의 지도 타일
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 20 }).addTo(map);
         leafletMap.current = map;
         markerGroupRef.current = L.layerGroup().addTo(map);
       }
-      
-      // 2. 마커 업데이트
       updateMapMarkers();
-      
-      // 3. 상자 크기 재인식 (중요: 시간차를 두고 2번 실행하여 안정성 확보)
       const t1 = setTimeout(() => { if (leafletMap.current) leafletMap.current.invalidateSize(); }, 100);
-      const t2 = setTimeout(() => { if (leafletMap.current) leafletMap.current.invalidateSize(); }, 600);
-      
-      return () => {
-        clearTimeout(t1);
-        clearTimeout(t2);
-      };
+      return () => clearTimeout(t1);
     } else if (leafletMap.current && (activeTab !== 'routes' || routeViewMode !== 'MAP')) {
-      // 탭을 벗어나거나 모드를 바꿀 때 완전히 제거 후 재생성 준비
       leafletMap.current.remove();
       leafletMap.current = null;
       markerGroupRef.current = null;
@@ -279,17 +303,17 @@ export default function App() {
         body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
       });
       const data = await response.json();
-      setAiResponse(data.candidates?.[0]?.content?.parts?.[0]?.text || "분석 실패");
+      setAiResponse(data.candidates?.[0]?.content?.parts?.[0]?.text || "에디터의 펜이 길을 잃었습니다. 다시 시도해주세요.");
     } catch (e) { setAiResponse("AI 연결 오류"); } finally { setIsAiLoading(false); }
   };
 
   const NavItem = ({ id, icon: Icon, label }) => (
     <button 
       onClick={() => { setActiveTab(id); setSelectedArticle(null); setSelectedRoute(null); setAiResponse(null); setActiveAiTarget(null); setAuthMode(null); setIsProfileOpen(false); }} 
-      className={`flex flex-col items-center gap-1 transition-all duration-300 ${activeTab === id && !authMode ? 'text-white' : 'text-[#525252] hover:text-white'}`}
+      className={`flex flex-col items-center gap-1.5 transition-all duration-300 ${activeTab === id && !authMode ? 'text-[#EAE5D9]' : 'text-[#78716C] hover:text-[#EAE5D9]'}`}
     >
-      <Icon size={20} strokeWidth={activeTab === id && !authMode ? 2.5 : 1.5} />
-      <span className="text-[10px] uppercase tracking-widest font-medium">{label}</span>
+      <Icon size={20} strokeWidth={activeTab === id && !authMode ? 2 : 1.5} />
+      <span className="text-[9px] uppercase tracking-widest font-medium">{label}</span>
     </button>
   );
 
@@ -305,112 +329,130 @@ export default function App() {
     return groups;
   };
 
+  // 배경 컬러 변경: 완전한 블랙(#121212)에서 약간의 웜톤을 머금은 딥 어시 컬러(#151413)로 변경
   return (
-    <div className="min-h-screen bg-[#121212] text-white font-sans selection:bg-white selection:text-black">
-      <style>{`.leaflet-container { background: #121212 !important; border: none; } .custom-pin { display: flex; align-items: center; justify-content: center; }`}</style>
+    <div className="min-h-screen bg-[#151413] text-[#EAE5D9] font-sans selection:bg-[#EAE5D9] selection:text-[#151413]">
+      <style>{`
+        .leaflet-container { background: #151413 !important; border: none; } 
+        .custom-pin { display: flex; align-items: center; justify-content: center; }
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+      `}</style>
       
-      {/* ⚠️ CORS Error Diagnostic */}
-      {cmsError && (
-        <div className="fixed inset-0 z-[9999] bg-black/95 flex items-center justify-center p-6 text-center animate-in fade-in">
-          <div className="max-w-md w-full bg-[#1c1c1c] border border-red-900/30 p-10 rounded-sm">
-            <AlertTriangle size={48} className="text-orange-500 mx-auto mb-6" />
-            <h2 className="text-2xl font-light italic mb-4">CMS Sync Required</h2>
-            <p className="text-sm text-[#737373] leading-relaxed mb-8">Sanity의 CORS Origins 설정에 아래 주소를 등록해주세요.</p>
-            <code className="block bg-black p-4 text-[11px] text-orange-400 break-all mb-8">{currentOrigin}</code>
-            <button onClick={() => window.location.reload()} className="w-full py-4 bg-white text-black font-bold uppercase text-[12px] tracking-[0.2em]">Retry Connection</button>
-          </div>
-        </div>
-      )}
-
       {/* ⌚ Device Modal */}
       {isWatchModalOpen && (
-        <div className="fixed inset-0 z-[2000] bg-black/90 backdrop-blur-md flex items-center justify-center p-6 animate-in fade-in">
-          <div className="max-w-sm w-full bg-[#1c1c1c] border border-white/10 p-8 rounded-sm shadow-2xl">
-            <h3 className="text-xl font-light italic mb-8 text-center text-white">Connect Device</h3>
-            <div className="space-y-3">
+        <div className="fixed inset-0 z-[2000] bg-black/95 backdrop-blur-xl flex items-center justify-center p-6 animate-in fade-in">
+          <div className="max-w-sm w-full bg-[#1A1918] border border-[#EAE5D9]/10 p-10 rounded-sm shadow-2xl">
+            <h3 className="text-2xl font-light italic mb-10 text-center text-[#EAE5D9]">Sync Your Gear</h3>
+            <div className="space-y-4">
               {['Garmin', 'COROS', 'Apple Watch'].map(brand => (
-                <button key={brand} onClick={() => {setConnectedDevice(brand); setIsWatchModalOpen(false);}} className="w-full flex justify-between items-center p-5 bg-white/5 border border-white/5 hover:border-white/20 transition-all group">
-                  <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-white group-hover:text-white">{brand}</span>
-                  <ChevronRight size={14} className="text-[#525252]" />
+                <button key={brand} onClick={() => {setConnectedDevice(brand); setIsWatchModalOpen(false);}} className="w-full flex justify-between items-center p-6 bg-[#EAE5D9]/5 border border-[#EAE5D9]/5 hover:border-[#EAE5D9]/30 transition-all group rounded-sm">
+                  <span className="text-[11px] uppercase tracking-[0.2em] font-bold text-[#EAE5D9]">{brand}</span>
+                  <ChevronRight size={16} className="text-[#78716C] group-hover:text-[#EAE5D9] transition-colors" />
                 </button>
               ))}
             </div>
-            <button onClick={() => setIsWatchModalOpen(false)} className="w-full mt-10 text-[9px] uppercase tracking-widest text-[#444] hover:text-white">Close</button>
+            <button onClick={() => setIsWatchModalOpen(false)} className="w-full mt-12 text-[10px] uppercase tracking-[0.3em] text-[#78716C] hover:text-[#EAE5D9] transition-colors">Close</button>
           </div>
         </div>
       )}
 
       {/* 🔄 Loading Overlay */}
       {(isAiLoading || isSyncing) && (
-        <div className="fixed inset-0 z-[3000] bg-black/80 backdrop-blur-sm flex flex-col items-center justify-center animate-in fade-in">
-          <Loader2 size={32} className="animate-spin text-white mb-6" />
-          <p className="text-[10px] uppercase tracking-[0.4em] font-bold tracking-widest text-white">SYSTEM SYNCING...</p>
+        <div className="fixed inset-0 z-[3000] bg-black/90 backdrop-blur-md flex flex-col items-center justify-center animate-in fade-in">
+          <Loader2 size={36} className="animate-spin text-[#EAE5D9] mb-8" />
+          <p className="text-[11px] uppercase tracking-[0.5em] font-bold text-[#EAE5D9]">CALIBRATING...</p>
         </div>
       )}
 
-      <header className={`fixed top-0 w-full z-[1000] transition-all duration-500 px-6 py-4 flex justify-between items-center ${scrolled ? 'bg-black/80 backdrop-blur-md' : 'bg-transparent'}`}>
-        <h1 className="text-2xl font-bold tracking-[0.2em] italic cursor-pointer" onClick={() => {setActiveTab('journal'); setSelectedArticle(null); setAuthMode(null);}}>PESSAGE</h1>
-        <div className="flex gap-4 items-center">
+      <header className={`fixed top-0 w-full z-[1000] transition-all duration-700 px-6 py-5 flex justify-between items-center ${scrolled ? 'bg-[#151413]/90 backdrop-blur-lg border-b border-[#EAE5D9]/5' : 'bg-gradient-to-b from-[#151413]/80 to-transparent'}`}>
+        <h1 className="text-2xl font-bold tracking-[0.3em] italic cursor-pointer" onClick={() => {setActiveTab('journal'); setSelectedArticle(null); setAuthMode(null);}}>PESSAGE</h1>
+        <div className="flex gap-5 items-center">
           {isLoggedIn ? (
             <>
-              <div className={`text-[10px] tracking-widest uppercase px-3 py-1 rounded-full border transition-all ${connectedDevice ? 'border-green-500/30 text-green-400 bg-green-500/5' : 'border-white/10 text-[#525252]'}`}>
-                {connectedDevice ? connectedDevice.toUpperCase() : 'DISCONNECTED'}
+              <div className={`text-[10px] tracking-widest uppercase px-4 py-1.5 rounded-full border transition-all ${connectedDevice ? 'border-[#C2410C]/40 text-[#C2410C] bg-[#C2410C]/10 font-bold' : 'border-[#EAE5D9]/20 text-[#78716C]'}`}>
+                {connectedDevice ? connectedDevice.toUpperCase() : 'NO DEVICE'}
               </div>
-              <button onClick={() => {setIsProfileOpen(!isProfileOpen); setAuthMode(null);}} className={`p-1 transition-all ${isProfileOpen ? 'text-white scale-110' : 'text-[#a3a3a3]'}`}><User size={22} /></button>
+              <button onClick={() => {setIsProfileOpen(!isProfileOpen); setAuthMode(null);}} className={`p-1.5 transition-all ${isProfileOpen ? 'text-[#EAE5D9]' : 'text-[#78716C] hover:text-[#EAE5D9]'}`}><User size={20} /></button>
             </>
           ) : (
-            <button onClick={() => setAuthMode('login')} className="text-[11px] uppercase bg-white text-black px-5 py-2 rounded-full font-bold shadow-lg active:scale-95 transition-transform">JOIN</button>
+            <button onClick={() => setAuthMode('login')} className="text-[10px] uppercase tracking-widest bg-[#EAE5D9] text-[#151413] px-6 py-2.5 rounded-full font-bold shadow-lg hover:bg-white active:scale-95 transition-all">SIGN IN</button>
           )}
         </div>
       </header>
 
-      <main className="pb-32">
+      <main className="pb-40 pt-10">
         {authMode ? (
-          <section className="pt-32 px-6 max-w-sm mx-auto animate-in fade-in text-center">
-             <h2 className="text-3xl font-light italic mb-10">Membership</h2>
-             <div className="space-y-3 mb-10">
-                <button onClick={() => handleSocialLogin('kakao')} className="w-full py-4 bg-[#FEE500] text-black text-[10px] font-bold tracking-widest rounded-sm">KAKAO LOGIN</button>
-                <button onClick={() => handleSocialLogin('google')} className="w-full py-4 bg-white text-black text-[10px] font-bold tracking-widest border border-white/10 rounded-sm">GOOGLE LOGIN</button>
+          <section className="pt-32 px-6 max-w-sm mx-auto animate-in slide-in-from-bottom-8 text-center">
+             <h2 className="text-4xl font-light italic mb-12 text-[#EAE5D9]">Join the Pack</h2>
+             <div className="space-y-4 mb-12">
+                <button onClick={() => handleSocialLogin('kakao')} className="w-full py-5 bg-[#FEE500] text-black text-[11px] font-bold tracking-[0.2em] rounded-sm">KAKAO CONNECT</button>
+                <button onClick={() => handleSocialLogin('google')} className="w-full py-5 bg-transparent text-[#EAE5D9] text-[11px] font-bold tracking-[0.2em] border border-[#EAE5D9]/20 hover:border-[#EAE5D9]/60 transition-colors rounded-sm">GOOGLE CONNECT</button>
              </div>
-             <button onClick={() => setAuthMode(null)} className="text-[10px] uppercase text-[#444] hover:text-white underline underline-offset-4">Cancel</button>
+             <button onClick={() => setAuthMode(null)} className="text-[10px] uppercase tracking-widest text-[#78716C] hover:text-[#EAE5D9] border-b border-[#78716C] pb-1 transition-colors">Return to Journal</button>
           </section>
         ) : isProfileOpen && isLoggedIn ? (
-          <section className="pt-28 px-6 max-w-2xl mx-auto animate-in slide-in-from-bottom-4">
-             <h2 className="text-2xl font-light italic mb-8">Patrick Park</h2>
-             <div className="grid grid-cols-2 gap-4 mb-12">
-                <div className="bg-[#1c1c1c] p-6 border border-white/5 rounded-sm"><p className="text-[10px] text-[#525252] uppercase mb-1">Score</p><span className="text-3xl font-light">84</span></div>
-                <div className="bg-[#1c1c1c] p-6 border border-white/5 rounded-sm"><p className="text-[10px] text-[#525252] uppercase mb-1">Mileage</p><span className="text-3xl font-light">32.4k</span></div>
+          <section className="pt-32 px-6 max-w-2xl mx-auto animate-in slide-in-from-bottom-8">
+             <div className="flex items-center gap-6 mb-12">
+                <div className="w-20 h-20 rounded-full bg-[#292524] flex items-center justify-center border border-[#EAE5D9]/10">
+                  <User size={32} className="text-[#A8A29E]" />
+                </div>
+                <div>
+                  <h2 className="text-3xl font-light italic text-[#EAE5D9] mb-1">Patrick Jemin</h2>
+                  <p className="text-[11px] uppercase tracking-[0.3em] text-[#78716C]">Creative Director</p>
+                </div>
              </div>
-             <button onClick={() => {setIsLoggedIn(false); setIsProfileOpen(false);}} className="w-full py-4 border border-[#262626] text-[#c2410c] text-[10px] uppercase tracking-widest">LOGOUT SESSION</button>
+             <div className="grid grid-cols-2 gap-4 mb-16">
+                <div className="bg-[#1A1918] p-8 border border-[#EAE5D9]/5 rounded-sm"><p className="text-[10px] text-[#78716C] uppercase tracking-widest mb-3">Ritual Score</p><span className="text-4xl font-light">92</span></div>
+                <div className="bg-[#1A1918] p-8 border border-[#EAE5D9]/5 rounded-sm"><p className="text-[10px] text-[#78716C] uppercase tracking-widest mb-3">Total Mileage</p><span className="text-4xl font-light">128.4<span className="text-lg text-[#78716C] ml-1">km</span></span></div>
+             </div>
+             <button onClick={() => {setIsLoggedIn(false); setIsProfileOpen(false);}} className="w-full py-5 bg-[#C2410C]/10 text-[#C2410C] text-[10px] uppercase font-bold tracking-[0.3em] rounded-sm hover:bg-[#C2410C]/20 transition-colors">TERMINATE SESSION</button>
           </section>
         ) : (
           <>
             {activeTab === 'journal' && (
-              <section className="px-6 animate-in fade-in">
+              <section className="px-4 md:px-6 animate-in fade-in duration-700">
                 {selectedArticle ? (
-                  <div className="pt-28 max-w-2xl mx-auto">
-                    <button onClick={() => setSelectedArticle(null)} className="flex items-center gap-2 text-[#737373] text-[10px] uppercase tracking-widest mb-10 hover:text-white transition-colors"><ArrowLeft size={14} /> Back</button>
+                  <div className="pt-24 max-w-3xl mx-auto">
+                    <button onClick={() => setSelectedArticle(null)} className="flex items-center gap-2 text-[#78716C] text-[11px] uppercase tracking-widest mb-12 hover:text-[#EAE5D9] transition-colors"><ArrowLeft size={16} /> Back to Directory</button>
                     {selectedArticle.coverImage && (
-                      <div className="aspect-[21/9] w-full overflow-hidden mb-12 border border-white/5 rounded-sm">
-                        <img src={urlFor(selectedArticle.coverImage)} alt="" className="w-full h-full object-cover grayscale" />
+                      <div className="aspect-[16/9] md:aspect-[21/9] w-full overflow-hidden mb-16 rounded-sm border border-[#EAE5D9]/5 relative group">
+                        <img src={urlFor(selectedArticle.coverImage)} alt="" className="w-full h-full object-cover transition-transform duration-[30s] group-hover:scale-110" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-[#151413] via-transparent to-transparent opacity-80"></div>
                       </div>
                     )}
-                    <h2 className="text-5xl font-light italic mb-16 leading-tight">{selectedArticle.title}</h2>
+                    <h2 className="text-5xl md:text-6xl font-light italic mb-16 leading-[1.1] text-[#EAE5D9]">{selectedArticle.title}</h2>
                     <EditorialRenderer blocks={selectedArticle.content} />
                     <div className="h-40" />
                   </div>
                 ) : (
-                  <div className="pt-32 space-y-24 max-w-4xl mx-auto text-center">
+                  <div className="pt-28 space-y-32 max-w-5xl mx-auto text-center">
                     {siteContent.articles.length > 0 ? siteContent.articles.map(article => (
-                      <div key={article._id} onClick={() => setSelectedArticle(article)} className="group cursor-pointer">
-                        <p className="text-[10px] tracking-[0.4em] uppercase mb-4 text-[#525252] font-bold">{article.subtitle || 'Volume 01'}</p>
-                        <h2 className="text-5xl md:text-7xl font-light italic leading-tight group-hover:text-white transition-colors mb-6">{article.title}</h2>
-                        <button className="text-[11px] uppercase tracking-[0.3em] border-b border-white/30 pb-1">Read Journal</button>
+                      <div key={article._id} onClick={() => setSelectedArticle(article)} className="group cursor-pointer relative">
+                        {/* 백그라운드 텍스트 효과 (선택적) */}
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[150px] font-bold italic text-white/[0.02] whitespace-nowrap pointer-events-none z-0 tracking-tighter transition-transform duration-1000 group-hover:scale-110">
+                          {article.subtitle?.split(' ')[0] || 'JOURNAL'}
+                        </div>
+                        
+                        <div className="relative z-10">
+                          <p className="text-[10px] tracking-[0.4em] uppercase mb-6 text-[#A8A29E] font-bold">{article.subtitle || 'Volume 01'}</p>
+                          <h2 className="text-5xl md:text-8xl font-light italic leading-[1.1] text-[#EAE5D9]/80 group-hover:text-[#EAE5D9] transition-colors duration-500 mb-10">{article.title}</h2>
+                          
+                          {/* 썸네일 프리뷰 영역 추가 */}
+                          {article.coverImage && (
+                             <div className="w-48 h-32 md:w-64 md:h-40 mx-auto mb-10 overflow-hidden opacity-0 group-hover:opacity-100 transition-opacity duration-700 rounded-sm border border-[#EAE5D9]/10">
+                               <img src={urlFor(article.coverImage)} className="w-full h-full object-cover" alt="Preview"/>
+                             </div>
+                          )}
+
+                          <button className="text-[11px] uppercase tracking-[0.3em] font-bold border-b border-[#EAE5D9]/30 pb-1.5 group-hover:border-[#EAE5D9] transition-colors">Read the Story</button>
+                        </div>
                       </div>
                     )) : (
-                      <div className="h-[60vh] flex flex-col items-center justify-center text-[#333] italic gap-4">
-                        <Loader2 size={32} className="animate-spin" />
-                        <p>Syncing PESSAGE Content...</p>
+                      <div className="h-[60vh] flex flex-col items-center justify-center text-[#78716C] italic gap-6">
+                        <Loader2 size={40} className="animate-spin text-[#EAE5D9]/30" />
+                        <p className="tracking-widest uppercase text-[10px] font-bold">Curating Editorial...</p>
                       </div>
                     )}
                   </div>
@@ -419,84 +461,82 @@ export default function App() {
             )}
 
             {activeTab === 'routes' && (
-              <section className="pt-28 px-6 max-w-4xl mx-auto animate-in slide-in-from-bottom-4">
+              <section className="pt-28 px-6 max-w-5xl mx-auto animate-in slide-in-from-bottom-8">
                 {selectedRoute ? (
                   <div className="max-w-2xl mx-auto">
-                    <button onClick={() => setSelectedRoute(null)} className="flex items-center gap-2 text-[#737373] text-xs uppercase mb-10 hover:text-white transition-colors"><ArrowLeft size={14} /> Back</button>
-                    <div className="flex justify-between items-end mb-12 border-b border-white/5 pb-12">
+                    <button onClick={() => setSelectedRoute(null)} className="flex items-center gap-2 text-[#78716C] text-[11px] uppercase tracking-widest mb-12 hover:text-[#EAE5D9] transition-colors"><ArrowLeft size={16} /> Directory</button>
+                    <div className="flex justify-between items-end mb-16 border-b border-[#EAE5D9]/10 pb-12">
                       <div>
-                        <span className={`text-[10px] px-3 py-1 rounded-full border mb-4 inline-block font-bold tracking-widest ${selectedRoute.type === 'TRAIL' ? 'text-orange-400 border-orange-400/30' : 'text-blue-400 border-blue-400/30'}`}>{selectedRoute.type}</span>
-                        <h2 className="text-5xl font-light italic">{selectedRoute.name}</h2>
+                        <span className={`text-[10px] px-4 py-1.5 rounded-full border mb-6 inline-block font-bold tracking-[0.2em] ${selectedRoute.type === 'TRAIL' ? 'text-[#C2410C] border-[#C2410C]/30 bg-[#C2410C]/5' : 'text-[#A8A29E] border-[#A8A29E]/30 bg-[#A8A29E]/5'}`}>{selectedRoute.type}</span>
+                        <h2 className="text-5xl font-light italic text-[#EAE5D9] leading-tight">{selectedRoute.name}</h2>
                       </div>
-                      <div className="text-right"><p className="text-[10px] text-[#525252] uppercase tracking-widest mb-1">Distance</p><p className="text-2xl font-light">{selectedRoute.distance}</p></div>
+                      <div className="text-right shrink-0">
+                        <p className="text-[10px] text-[#78716C] uppercase tracking-widest mb-2 font-bold">Distance</p>
+                        <p className="text-3xl font-light text-[#EAE5D9]">{selectedRoute.distance}</p>
+                      </div>
                     </div>
 
-                    {selectedRoute.curationSpot && (
-                      <div className="mb-20 animate-in fade-in">
-                        <p className="text-[10px] uppercase tracking-[0.4em] text-[#525252] mb-8 flex items-center gap-3"><Info size={14} /> Curation Spot</p>
-                        <div className="bg-[#1c1c1c] aspect-video mb-8 overflow-hidden rounded-sm">
-                           {selectedRoute.curationSpot.spotImage && <img src={urlFor(selectedRoute.curationSpot.spotImage)} className="w-full h-full object-cover grayscale" alt="" />}
-                        </div>
-                        <h3 className="text-2xl font-light italic mb-4">{selectedRoute.curationSpot.spotName}</h3>
-                        <p className="text-sm text-[#737373] leading-relaxed italic">{selectedRoute.curationSpot.spotDescription}</p>
-                      </div>
-                    )}
+                    <div className="mb-24"><EditorialRenderer blocks={selectedRoute.description} /></div>
 
-                    <div className="mb-20"><EditorialRenderer blocks={selectedRoute.description} /></div>
-
-                    <button 
-                      onClick={() => handleSyncGPX(selectedRoute._id)}
-                      className={`w-full py-4 rounded-full font-bold uppercase text-[12px] tracking-widest transition-all flex items-center justify-center gap-2 ${activeAiTarget === selectedRoute._id && syncSuccess ? 'bg-green-600' : 'bg-white text-black active:scale-95 shadow-xl disabled:bg-white/5 disabled:text-[#444]'}`}
-                    >
-                      {activeAiTarget === selectedRoute._id && syncSuccess ? <CheckCircle2 size={16} /> : <Watch size={16} />}
-                      {activeAiTarget === selectedRoute._id && syncSuccess ? 'Synced to Watch' : 'Sync GPX to Device'}
-                    </button>
-                    <div className="h-40" />
+                    <div className="bg-[#1A1918] p-8 border border-[#EAE5D9]/5 rounded-sm text-center mb-20">
+                      <Compass size={32} className="mx-auto text-[#78716C] mb-6" />
+                      <h3 className="text-xl font-light italic mb-8 text-[#EAE5D9]">Sync Route to Device</h3>
+                      <button 
+                        onClick={() => handleSyncGPX(selectedRoute._id)}
+                        className={`w-full py-5 rounded-sm font-bold uppercase text-[11px] tracking-[0.3em] transition-all flex items-center justify-center gap-3 ${activeAiTarget === selectedRoute._id && syncSuccess ? 'bg-[#166534] text-[#EAE5D9]' : 'bg-[#EAE5D9] text-[#151413] hover:bg-white'}`}
+                      >
+                        {activeAiTarget === selectedRoute._id && syncSuccess ? <CheckCircle2 size={18} /> : <Watch size={18} />}
+                        {activeAiTarget === selectedRoute._id && syncSuccess ? 'GPX Synced' : 'Send to Watch'}
+                      </button>
+                    </div>
+                    <div className="h-20" />
                   </div>
                 ) : (
-                  <div className="space-y-6">
-                    <div className="mb-10 flex flex-col md:flex-row justify-between items-start gap-6">
-                        <div><h2 className="text-3xl font-light italic mb-2">Narrative Explorer</h2><p className="text-[#737373] text-sm italic">지도로 탐색하는 러닝의 서사.</p></div>
-                        <div className="flex bg-[#1c1c1c] p-1 rounded-full border border-white/5">
-                            <button onClick={() => {setRouteViewMode('LIST'); setMapPopup(null);}} className={`px-4 py-1.5 rounded-full text-[10px] font-bold transition-all ${routeViewMode === 'LIST' ? 'bg-white text-black' : 'text-[#525252]'}`}><List size={12}/> List</button>
-                            <button onClick={() => setRouteViewMode('MAP')} className={`px-4 py-1.5 rounded-full text-[10px] font-bold transition-all ${routeViewMode === 'MAP' ? 'bg-white text-black' : 'text-[#525252]'}`}><MapIcon size={12}/> Map</button>
+                  <div className="space-y-8">
+                    <div className="mb-12 flex flex-col md:flex-row justify-between items-start gap-8">
+                        <div>
+                          <h2 className="text-4xl font-light italic mb-3 text-[#EAE5D9]">Narrative Explorer</h2>
+                          <p className="text-[#78716C] text-sm italic">지도로 탐색하는 러너들의 서사.</p>
+                        </div>
+                        <div className="flex bg-[#1A1918] p-1.5 rounded-sm border border-[#EAE5D9]/5">
+                            <button onClick={() => {setRouteViewMode('LIST'); setMapPopup(null);}} className={`px-6 py-2 rounded-sm text-[11px] font-bold tracking-widest transition-all ${routeViewMode === 'LIST' ? 'bg-[#EAE5D9] text-[#151413]' : 'text-[#78716C] hover:text-[#EAE5D9]'}`}><List size={14} className="inline mr-2 -mt-0.5"/> LIST</button>
+                            <button onClick={() => setRouteViewMode('MAP')} className={`px-6 py-2 rounded-sm text-[11px] font-bold tracking-widest transition-all ${routeViewMode === 'MAP' ? 'bg-[#EAE5D9] text-[#151413]' : 'text-[#78716C] hover:text-[#EAE5D9]'}`}><MapIcon size={14} className="inline mr-2 -mt-0.5"/> MAP</button>
                         </div>
                     </div>
                     
-                    <div className="mb-10">
-                        <div className="flex gap-6 border-b border-white/5 pb-4 mb-6 overflow-x-auto whitespace-nowrap">
-                            {['ALL', 'ORIGINAL', 'TRAIL', 'ROAD'].map(t => (<button key={t} onClick={() => setRouteTypeFilter(t)} className={`text-[10px] uppercase tracking-[0.3em] font-bold transition-all ${routeTypeFilter === t ? 'text-white border-b border-white pb-4 -mb-4' : 'text-[#404040]'}`}>{t}</button>))}
+                    <div className="mb-12">
+                        <div className="flex gap-8 border-b border-[#EAE5D9]/10 pb-5 mb-8 overflow-x-auto whitespace-nowrap hide-scrollbar">
+                            {['ALL', 'ORIGINAL', 'TRAIL', 'ROAD'].map(t => (<button key={t} onClick={() => setRouteTypeFilter(t)} className={`text-[11px] uppercase tracking-[0.3em] font-bold transition-all ${routeTypeFilter === t ? 'text-[#EAE5D9] border-b border-[#EAE5D9] pb-5 -mb-5' : 'text-[#5A5450] hover:text-[#A8A29E]'}`}>{t}</button>))}
                         </div>
-                        <div className="flex gap-6 border-b border-white/5 pb-4 overflow-x-auto whitespace-nowrap">
-                            {['ALL', 'SEOUL', 'JEJU', 'GYEONGGI', 'GANGWON'].map(r => (<button key={r} onClick={() => setRouteRegionFilter(r)} className={`text-[10px] uppercase tracking-[0.3em] font-bold transition-all ${routeRegionFilter === r ? 'text-white border-b border-white pb-4 -mb-4' : 'text-[#404040]'}`}>{r}</button>))}
+                        <div className="flex gap-8 border-b border-[#EAE5D9]/10 pb-5 overflow-x-auto whitespace-nowrap hide-scrollbar">
+                            {['ALL', 'SEOUL', 'JEJU', 'ALPS', 'CHAMONIX'].map(r => (<button key={r} onClick={() => setRouteRegionFilter(r)} className={`text-[11px] uppercase tracking-[0.3em] font-bold transition-all ${routeRegionFilter === r ? 'text-[#EAE5D9] border-b border-[#EAE5D9] pb-5 -mb-5' : 'text-[#5A5450] hover:text-[#A8A29E]'}`}>{r}</button>))}
                         </div>
                     </div>
 
                     {routeViewMode === 'MAP' ? (
-                      <div className="relative animate-in fade-in duration-500 min-h-[400px]">
-                        <div ref={mapRef} className="w-full aspect-[4/5] md:aspect-[16/9] bg-[#121212] rounded-sm overflow-hidden border border-white/5 shadow-2xl" />
+                      <div className="relative animate-in fade-in duration-700 min-h-[500px]">
+                        <div ref={mapRef} className="w-full aspect-square md:aspect-[21/9] bg-[#1A1918] rounded-sm overflow-hidden border border-[#EAE5D9]/5 shadow-2xl" />
                         {mapPopup && (
-                           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 bg-black border border-white/20 p-6 rounded-sm shadow-2xl z-[2000] animate-in zoom-in-95 text-center">
-                              <p className={`text-[8px] uppercase tracking-widest mb-1 font-bold ${mapPopup.type === 'TRAIL' ? 'text-orange-400' : 'text-blue-400'}`}>{mapPopup.type}</p>
-                              <h4 className="text-xl font-light italic mb-6 leading-tight">{mapPopup.name}</h4>
-                              <button onClick={() => setSelectedRoute(mapPopup)} className="w-full py-3 bg-white text-black text-[9px] uppercase font-bold tracking-widest">Explore Course</button>
-                              <button onClick={() => setMapPopup(null)} className="mt-4 text-[10px] text-[#444] uppercase hover:text-white transition-colors">Close</button>
+                           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 bg-[#151413]/95 backdrop-blur-md border border-[#EAE5D9]/10 p-8 rounded-sm shadow-2xl z-[2000] animate-in zoom-in-95 text-center">
+                              <p className={`text-[9px] uppercase tracking-[0.3em] mb-3 font-bold ${mapPopup.type === 'TRAIL' ? 'text-[#C2410C]' : 'text-[#A8A29E]'}`}>{mapPopup.type} • {mapPopup.region}</p>
+                              <h4 className="text-2xl font-light italic mb-8 leading-tight text-[#EAE5D9]">{mapPopup.name}</h4>
+                              <button onClick={() => setSelectedRoute(mapPopup)} className="w-full py-4 bg-[#EAE5D9] text-[#151413] text-[10px] uppercase font-bold tracking-[0.2em] rounded-sm">Explore Course</button>
+                              <button onClick={() => setMapPopup(null)} className="mt-5 text-[10px] text-[#78716C] uppercase tracking-widest hover:text-[#EAE5D9] transition-colors">Close</button>
                            </div>
                         )}
-                        {!siteContent.routes.length && <div className="absolute inset-0 flex items-center justify-center text-[#333] italic">No routes loaded from Sanity.</div>}
                       </div>
                     ) : (
-                      <div className="space-y-6">
+                      <div className="space-y-4">
                         {siteContent.routes.length > 0 ? siteContent.routes.filter(r => (routeTypeFilter === 'ALL' || r.type === routeTypeFilter) && (routeRegionFilter === 'ALL' || r.region === routeRegionFilter)).map(route => (
-                          <div key={route._id} onClick={() => setSelectedRoute(route)} className="p-8 bg-[#1c1c1c] border border-white/5 flex justify-between items-center cursor-pointer hover:border-white/20 transition-all group rounded-sm shadow-lg">
+                          <div key={route._id} onClick={() => setSelectedRoute(route)} className="p-8 md:p-10 bg-[#1A1918] border border-[#EAE5D9]/5 flex justify-between items-center cursor-pointer hover:border-[#EAE5D9]/20 transition-all duration-300 group rounded-sm shadow-lg">
                               <div>
-                                <p className={`text-[9px] uppercase font-bold tracking-widest mb-1 ${route.type === 'TRAIL' ? 'text-orange-400' : 'text-blue-400'}`}>{route.type} / {route.region}</p>
-                                <h4 className="text-2xl font-light italic group-hover:text-white transition-colors">{route.name}</h4>
+                                <p className={`text-[10px] uppercase font-bold tracking-[0.3em] mb-3 ${route.type === 'TRAIL' ? 'text-[#C2410C]' : 'text-[#A8A29E]'}`}>{route.type} / {route.region}</p>
+                                <h4 className="text-2xl md:text-3xl font-light italic group-hover:text-[#EAE5D9] text-[#EAE5D9]/90 transition-colors">{route.name}</h4>
                               </div>
-                              <span className="text-xl font-light text-[#525252] group-hover:text-white">{route.distance}</span>
+                              <span className="text-2xl font-light text-[#78716C] group-hover:text-[#EAE5D9] transition-colors">{route.distance}</span>
                           </div>
                         )) : (
-                          <div className="py-20 text-center text-[#333] italic">Waiting for Sanity Data...</div>
+                          <div className="py-32 text-center text-[#78716C] italic text-lg">해당 조건의 서사가 아직 기록되지 않았습니다.</div>
                         )}
                       </div>
                     )}
@@ -506,34 +546,36 @@ export default function App() {
             )}
 
             {activeTab === 'sessions' && (
-              <section className="pt-28 px-6 max-w-4xl mx-auto animate-in slide-in-from-bottom-4">
-                <div className="mb-12">
-                  <h2 className="text-3xl font-light italic mb-6">Race & Narrative</h2>
-                  <div className="flex gap-6 border-b border-white/5 pb-4 mb-10 overflow-x-auto whitespace-nowrap">
-                    {['ALL', 'TRAIL', 'ROAD'].map(type => (<button key={type} onClick={() => setRaceTypeFilter(type)} className={`text-[10px] uppercase tracking-[0.3em] font-bold transition-all ${raceTypeFilter === type ? 'text-white border-b border-white pb-4 -mb-4' : 'text-[#404040]'}`}>{type}</button>))}
+              <section className="pt-28 px-6 max-w-4xl mx-auto animate-in slide-in-from-bottom-8">
+                <div className="mb-16">
+                  <h2 className="text-4xl font-light italic mb-8 text-[#EAE5D9]">Race Calendar</h2>
+                  <div className="flex gap-8 border-b border-[#EAE5D9]/10 pb-5 mb-12 overflow-x-auto whitespace-nowrap hide-scrollbar">
+                    {['ALL', 'TRAIL', 'ROAD'].map(type => (<button key={type} onClick={() => setRaceTypeFilter(type)} className={`text-[11px] uppercase tracking-[0.3em] font-bold transition-all ${raceTypeFilter === type ? 'text-[#EAE5D9] border-b border-[#EAE5D9] pb-5 -mb-5' : 'text-[#5A5450] hover:text-[#A8A29E]'}`}>{type}</button>))}
                   </div>
                 </div>
 
-                <div className="space-y-20">
+                <div className="space-y-24">
                   {Object.entries(groupedRaces()).map(([month, monthRaces]) => (
                     <div key={month} className="animate-in fade-in">
-                       <div className="flex items-center gap-4 mb-8">
-                          <Calendar size={14} className="text-[#404040]" />
-                          <h3 className="text-[11px] uppercase tracking-[0.4em] font-bold text-[#525252]">{month}</h3>
-                          <div className="h-[1px] bg-white/5 flex-1"></div>
+                       <div className="flex items-center gap-4 mb-10">
+                          <Calendar size={16} className="text-[#A8A29E]" />
+                          <h3 className="text-[12px] uppercase tracking-[0.4em] font-bold text-[#A8A29E]">{month}</h3>
+                          <div className="h-[1px] bg-[#EAE5D9]/10 flex-1"></div>
                        </div>
-                       <div className="space-y-12">
+                       <div className="space-y-16">
                           {monthRaces.map(race => (
-                            <div key={race._id || race.id} className="group border-l border-white/5 pl-8 relative">
-                               <div className={`absolute left-[-4px] top-0 w-2 h-2 rounded-full ${race.type === 'TRAIL' ? 'bg-orange-400' : 'bg-blue-400'}`}></div>
-                               <h3 className="text-3xl font-light italic mb-4">{race.name}</h3>
-                               <p className="text-sm text-[#737373] font-light leading-relaxed max-w-xl mb-8">{race.description}</p>
-                               <div className="flex gap-3">
-                                  <button onClick={() => generateAiContent(race.name, `${race.name} 전략`)} className="flex items-center gap-2 bg-white/10 px-6 py-3 text-[10px] uppercase tracking-widest hover:bg-white hover:text-black transition-all"><Sparkles size={12} /> AI Strategy</button>
-                                  <button onClick={() => handleSyncGPX(race._id)} className={`flex items-center gap-2 py-3 px-6 text-[10px] uppercase tracking-widest border border-[#262626] transition-all ${activeAiTarget === race._id && syncSuccess ? 'bg-green-600 border-none' : ''}`}>{activeAiTarget === race._id && syncSuccess ? <CheckCircle2 size={12} /> : <Watch size={12} />} {activeAiTarget === race._id && syncSuccess ? 'Synced' : 'Sync GPX'}</button>
+                            <div key={race._id || race.id} className="group border-l-2 border-[#EAE5D9]/10 pl-8 md:pl-12 relative hover:border-[#EAE5D9]/50 transition-colors duration-500">
+                               <div className={`absolute left-[-5px] top-1.5 w-2 h-2 rounded-full ${race.type === 'TRAIL' ? 'bg-[#C2410C]' : 'bg-[#A8A29E]'}`}></div>
+                               <h3 className="text-3xl md:text-4xl font-light italic mb-5 text-[#EAE5D9]">{race.name}</h3>
+                               <p className="text-[15px] text-[#A8A29E] font-light leading-relaxed max-w-2xl mb-10">{race.description}</p>
+                               <div className="flex flex-wrap gap-4">
+                                  <button onClick={() => generateAiContent(race.name, `${race.name} 대회의 트레일/로드 전략을 어시(Earthy)하고 철학적인 톤앤매너 매거진 스타일로 3문장 이내로 작성해줘.`)} className="flex items-center gap-3 bg-[#EAE5D9]/5 px-8 py-4 text-[10px] uppercase font-bold tracking-[0.2em] rounded-sm hover:bg-[#EAE5D9]/10 transition-all text-[#EAE5D9]"><Sparkles size={14} /> AI Strategy</button>
+                                  <button onClick={() => handleSyncGPX(race._id)} className={`flex items-center gap-3 py-4 px-8 text-[10px] uppercase font-bold tracking-[0.2em] border transition-all rounded-sm ${activeAiTarget === race._id && syncSuccess ? 'bg-[#166534] border-[#166534] text-[#EAE5D9]' : 'border-[#EAE5D9]/20 text-[#A8A29E] hover:border-[#EAE5D9] hover:text-[#EAE5D9]'}`}>{activeAiTarget === race._id && syncSuccess ? <CheckCircle2 size={14} /> : <Watch size={14} />} {activeAiTarget === race._id && syncSuccess ? 'Synced' : 'Sync Event'}</button>
                                </div>
                                {activeAiTarget === race.name && aiResponse && (
-                                 <div className="mt-8 p-6 bg-white/5 border border-white/5 rounded-sm italic text-sm text-[#d4d4d4] font-light leading-relaxed">"{aiResponse}"</div>
+                                 <div className="mt-8 p-8 bg-[#1A1918] border border-[#EAE5D9]/5 rounded-sm italic text-[15px] text-[#EAE5D9]/80 font-light leading-[1.8] animate-in slide-in-from-top-4">
+                                   "{aiResponse}"
+                                 </div>
                                )}
                             </div>
                           ))}
@@ -545,24 +587,31 @@ export default function App() {
             )}
 
             {activeTab === 'gear' && (
-              <section className="pt-28 px-6 max-w-4xl mx-auto animate-in fade-in">
-                <div className="mb-12 flex flex-col md:flex-row justify-between items-end gap-6">
-                  <div><h2 className="text-3xl font-light italic mb-2">Essential Tools</h2><p className="text-[#525252] text-xs italic tracking-wide">에디터의 취향과 신뢰가 깃든 도구들에 대한 사설.</p></div>
-                  <div className="flex gap-4 border-b border-white/5 pb-1 overflow-x-auto whitespace-nowrap">
-                    {['ALL', 'TRAIL', 'ROAD', 'NUTRITION'].map(cat => (<button key={cat} onClick={() => setGearFilter(cat)} className={`text-[9px] uppercase tracking-widest font-bold transition-all ${gearFilter === cat ? 'text-white border-b border-white pb-2' : 'text-[#404040]'}`}>{cat}</button>))}
+              <section className="pt-28 px-6 max-w-5xl mx-auto animate-in fade-in">
+                <div className="mb-16 flex flex-col justify-between items-start gap-8 border-b border-[#EAE5D9]/10 pb-8">
+                  <div>
+                    <h2 className="text-4xl font-light italic mb-3 text-[#EAE5D9]">Essential Tools</h2>
+                    <p className="text-[#A8A29E] text-sm italic tracking-wide">디렉터 제민의 시선으로 큐레이션된, 기능과 미학의 교차점.</p>
+                  </div>
+                  <div className="flex gap-6 overflow-x-auto whitespace-nowrap hide-scrollbar w-full">
+                    {['ALL', 'PACK', 'APPAREL', 'EYEWEAR', 'ACCESSORY'].map(cat => (<button key={cat} onClick={() => setGearFilter(cat)} className={`text-[11px] uppercase tracking-[0.3em] font-bold transition-all px-4 py-2 rounded-full border ${gearFilter === cat ? 'bg-[#EAE5D9] text-[#151413] border-[#EAE5D9]' : 'text-[#78716C] border-transparent hover:border-[#EAE5D9]/20'}`}>{cat}</button>))}
                   </div>
                 </div>
 
-                <div className="space-y-32">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-24">
                   {siteContent.gearItems.filter(item => gearFilter === 'ALL' || item.category === gearFilter).map(item => (
-                    <div key={item._id} className="flex flex-col md:flex-row gap-12 items-start group">
-                      <div className="w-full md:w-1/2 aspect-[4/5] bg-[#1c1c1c] border border-white/5 overflow-hidden rounded-sm">
-                        {item.image && <img src={urlFor(item.image)} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-1000" alt={item.name} />}
+                    <div key={item._id} className="group">
+                      <div className="aspect-[4/5] bg-[#1A1918] border border-[#EAE5D9]/5 overflow-hidden rounded-sm mb-8 relative">
+                        {item.image && <img src={urlFor(item.image)} className="w-full h-full object-cover transition-transform duration-[15s] group-hover:scale-105" alt={item.name} />}
+                        <div className="absolute inset-0 bg-[#151413]/10 group-hover:bg-transparent transition-colors duration-700"></div>
                       </div>
-                      <div className="w-full md:w-1/2 pt-4">
-                        <p className="text-[10px] uppercase font-bold tracking-[0.3em] mb-4 text-[#525252]">{item.category} • {item.brand}</p>
-                        <h3 className="text-4xl font-light italic mb-8 group-hover:text-white transition-colors">{item.name}</h3>
-                        <div className="relative"><Quote size={18} className="absolute -left-8 -top-2 text-white/10" /><p className="text-sm leading-relaxed text-[#a3a3a3] italic">"{item.note}"</p></div>
+                      <div>
+                        <p className="text-[10px] uppercase font-bold tracking-[0.3em] mb-3 text-[#A8A29E] flex items-center gap-2">
+                          <span className="w-1.5 h-1.5 bg-[#C2410C] rounded-full inline-block"></span>
+                          {item.brand}
+                        </p>
+                        <h3 className="text-3xl font-light italic mb-6 text-[#EAE5D9] group-hover:text-white transition-colors">{item.name}</h3>
+                        <p className="text-[15px] leading-[1.8] text-[#78716C] italic font-light">"{item.note}"</p>
                       </div>
                     </div>
                   ))}
@@ -571,25 +620,43 @@ export default function App() {
             )}
 
             {activeTab === 'recovery' && (
-              <section className="px-6 pt-28 max-w-3xl mx-auto text-center animate-in slide-in-from-bottom-4">
-                <h2 className="text-3xl font-light italic mb-10">Recovery Ritual</h2>
-                <div className="py-24 border border-dashed border-white/10 rounded-sm relative bg-white/[0.02]">
+              <section className="px-6 pt-32 max-w-3xl mx-auto text-center animate-in slide-in-from-bottom-8">
+                <Flame size={40} className="mx-auto text-[#C2410C]/80 mb-8" />
+                <h2 className="text-4xl font-light italic mb-12 text-[#EAE5D9]">Recovery Ritual</h2>
+                
+                <div className="py-24 border border-dashed border-[#EAE5D9]/20 rounded-sm relative bg-[#1A1918]/50">
                   {connectedDevice ? (
-                    <div className="animate-in fade-in">
-                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
-                          <div className="bg-[#1c1c1c] p-6 border border-white/5 rounded-sm"><p className="text-[10px] uppercase tracking-widest text-[#737373] mb-4 font-bold">Recovery Score</p><div className="text-6xl font-light mb-2">84</div><p className="text-[9px] text-green-400 uppercase font-bold tracking-widest">Optimal</p></div>
-                          <div className="bg-[#1c1c1c] p-6 border border-white/5 rounded-sm"><p className="text-[10px] uppercase tracking-widest text-[#737373] mb-4 font-bold">Data Source</p><div className="text-2xl font-light uppercase tracking-tighter mt-4">{connectedDevice}</div></div>
-                          <div className="bg-[#1c1c1c] p-6 border border-white/5 rounded-sm"><p className="text-[10px] uppercase tracking-widest text-[#737373] mb-4 font-bold">Last Sync</p><div className="text-2xl font-light italic mt-4">Just Now</div></div>
+                    <div className="animate-in fade-in px-8">
+                       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
+                          <div className="bg-[#151413] p-8 border border-[#EAE5D9]/10 rounded-sm shadow-xl">
+                             <p className="text-[10px] uppercase tracking-widest text-[#78716C] mb-6 font-bold">Body Battery</p>
+                             <div className="text-6xl font-light mb-4 text-[#EAE5D9]">42</div>
+                             <p className="text-[10px] text-[#C2410C] uppercase font-bold tracking-widest">Needs Recovery</p>
+                          </div>
+                          <div className="bg-[#151413] p-8 border border-[#EAE5D9]/10 rounded-sm shadow-xl">
+                             <p className="text-[10px] uppercase tracking-widest text-[#78716C] mb-6 font-bold">Data Source</p>
+                             <div className="text-2xl font-light uppercase tracking-widest mt-6 text-[#EAE5D9]">{connectedDevice}</div>
+                          </div>
+                          <div className="bg-[#151413] p-8 border border-[#EAE5D9]/10 rounded-sm shadow-xl">
+                             <p className="text-[10px] uppercase tracking-widest text-[#78716C] mb-6 font-bold">Last Run</p>
+                             <div className="text-2xl font-light mt-6 text-[#EAE5D9]">18.2<span className="text-sm ml-1 text-[#78716C]">km</span></div>
+                          </div>
                        </div>
-                       <button onClick={() => generateAiContent('recovery', 'Recovery Ritual 조언')} className="px-12 py-4 bg-white text-black font-bold text-[11px] uppercase tracking-widest rounded-full shadow-2xl active:scale-95 transition-transform">Get AI Ritual</button>
-                       {activeAiTarget === 'recovery' && aiResponse && (<div className="mt-12 text-sm italic text-[#d4d4d4] font-light leading-relaxed max-w-md mx-auto">"{aiResponse}"</div>)}
-                       <button onClick={() => setIsWatchModalOpen(true)} className="mt-12 text-[10px] uppercase tracking-widest text-[#525252] hover:text-white block mx-auto underline underline-offset-4">Change Device</button>
+                       <button onClick={() => generateAiContent('recovery', '오늘 러닝 후 사우나와 관련된 회복(Recovery) 리추얼을 프리미엄 라이프스타일 매거진 톤으로 짧고 감각적이게 추천해줘.')} className="px-12 py-5 bg-[#EAE5D9] text-[#151413] font-bold text-[11px] uppercase tracking-[0.2em] rounded-sm shadow-2xl hover:bg-white active:scale-95 transition-all">Curate My Ritual</button>
+                       {activeAiTarget === 'recovery' && aiResponse && (
+                          <div className="mt-16 p-8 border border-[#EAE5D9]/5 bg-[#151413] text-[15px] italic text-[#EAE5D9]/90 font-light leading-[1.8] max-w-lg mx-auto rounded-sm">
+                             "{aiResponse}"
+                          </div>
+                       )}
+                       <button onClick={() => setIsWatchModalOpen(true)} className="mt-16 text-[10px] uppercase tracking-[0.3em] text-[#78716C] hover:text-[#EAE5D9] block mx-auto border-b border-[#78716C] pb-1 transition-colors">Switch Device</button>
                     </div>
                   ) : (
                     <div className="animate-in fade-in">
-                       <Zap size={48} className="mx-auto mb-6 text-[#333] animate-pulse"/>
-                       <p className="text-sm text-[#737373] mb-10 leading-relaxed font-light">워치 데이터를 동기화하여 <br/>오늘의 컨디션에 맞는 리추얼을 분석하세요.</p>
-                       <button onClick={() => setIsWatchModalOpen(true)} className="px-12 py-4 bg-white text-black font-bold text-[11px] uppercase tracking-widest rounded-full shadow-2xl active:scale-95 transition-transform">Connect Watch</button>
+                       <WatchIcon size={48} className="mx-auto mb-8 text-[#5A5450] animate-pulse"/>
+                       <p className="text-[15px] text-[#A8A29E] mb-12 leading-[1.8] font-light italic max-w-sm mx-auto">
+                         거친 트레일의 끝,<br/>당신의 심박수와 피로도를 동기화하여<br/>완벽한 회복의 서사를 완성하세요.
+                       </p>
+                       <button onClick={() => setIsWatchModalOpen(true)} className="px-12 py-5 bg-[#EAE5D9] text-[#151413] font-bold text-[11px] uppercase tracking-[0.2em] rounded-sm shadow-2xl hover:bg-white active:scale-95 transition-all">Connect Device</button>
                     </div>
                   )}
                 </div>
@@ -599,7 +666,7 @@ export default function App() {
         )}
       </main>
 
-      <nav className="fixed bottom-0 w-full z-[1001] px-10 py-6 bg-black/95 backdrop-blur-xl border-t border-white/5 flex justify-between items-center shadow-2xl transition-transform duration-500">
+      <nav className="fixed bottom-0 w-full z-[1001] px-6 md:px-16 py-6 bg-[#151413]/95 backdrop-blur-2xl border-t border-[#EAE5D9]/5 flex justify-between items-center shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
         <NavItem id="journal" icon={Wind} label="Journal" />
         <NavItem id="routes" icon={Compass} label="Routes" />
         <NavItem id="sessions" icon={Flag} label="Sessions" />
