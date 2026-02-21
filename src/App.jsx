@@ -3,7 +3,7 @@ import {
   Compass, ShoppingBag, Wind, User, ChevronRight, Activity, 
   Flag, Watch, CheckCircle2, Sparkles, Loader2, ArrowLeft, 
   Map as MapIcon, List, Calendar, Smartphone as WatchIcon, Quote,
-  Bookmark, BookmarkCheck
+  Bookmark, BookmarkCheck, ExternalLink
 } from 'lucide-react';
 
 /**
@@ -76,9 +76,9 @@ const FALLBACK_DATA = {
     }
   ],
   gearItems: [
-    { _id: 'g1', category: 'PACK', brand: 'PORTAL', name: 'Trail Running Belt', note: '가장 필요한 것만 남긴 미니멀리즘. 허리선을 완벽히 감싸는 안정감.', image: { isLocal: true, url: '포탈-러닝벨트.jpg' } },
+    { _id: 'g1', category: 'PACK', brand: 'PORTAL', name: 'Trail Running Belt', note: '가장 필요한 것만 남긴 미니멀리즘. 허리선을 완벽히 감싸는 안정감.', image: { isLocal: true, url: '포탈-러닝벨트.jpg' } },
     { _id: 'g2', category: 'APPAREL', brand: 'PORTAL', name: 'Womens Running Kit', note: '비에 젖은 숲속에서도 고요하게 빛나는 어시(Earthy) 그린의 우아함.', image: { isLocal: true, url: 'Portal-Running-Kit-Womens.webp' } },
-    { _id: 'g3', category: 'EYEWEAR', brand: 'DISTRICT VISION', name: 'Keiichi Standard', note: '빛을 통제하는 자가 트레일을 지배한다. 디렉터의 필수품.', image: { isLocal: true, url: '포탈-디렉터-패트릭-스탱바이.jpg' } },
+    { _id: 'g3', category: 'EYEWEAR', brand: 'DISTRICT VISION', name: 'Keiichi Standard', note: '빛을 통제하는 자가 트레일을 지배한다. 디렉터의 필수품.', image: { isLocal: true, url: '포탈-디렉터-패트릭-스탱바이.jpg' } },
     { _id: 'g4', category: 'ACCESSORY', brand: 'PORTAL', name: 'Signature Cap', note: '햇빛과 비, 그리고 거친 바람을 견뎌내는 러너의 가장 견고한 방패.', image: { isLocal: true, url: 'images (1).jpeg' } }
   ],
   routes: [
@@ -824,9 +824,26 @@ export default function App() {
                             <div key={race._id || race.id} className="group border-l-2 border-[#EAE5D9]/10 pl-8 md:pl-12 relative hover:border-[#EAE5D9]/50 transition-colors duration-500">
                                <div className={`absolute left-[-5px] top-1.5 w-2 h-2 rounded-full ${race.type === 'TRAIL' ? 'bg-[#C2410C]' : 'bg-[#A8A29E]'}`}></div>
                                <h3 className="text-3xl md:text-4xl font-light italic mb-5 text-[#EAE5D9]">{race.name}</h3>
+                               
+                               {/* 접수 기간 정보 추가 */}
+                               {race.registrationDate && (
+                                 <div className="flex items-center gap-2 mb-6">
+                                   <CheckCircle2 size={12} className="text-[#C2410C]" />
+                                   <p className="text-[11px] uppercase tracking-widest text-[#C2410C] font-bold">Registration: {race.registrationDate}</p>
+                                 </div>
+                               )}
+
                                <p className="text-[15px] text-[#A8A29E] font-light leading-relaxed max-w-2xl mb-10">{race.description}</p>
                                <div className="flex flex-wrap gap-4">
                                   <button onClick={() => generateAiContent(race.name, `${race.name} 대회의 트레일/로드 전략을 어시(Earthy)하고 철학적인 톤앤매너 매거진 스타일로 3문장 이내로 작성해줘.`)} className="flex items-center gap-3 bg-[#EAE5D9]/5 px-8 py-4 text-[10px] uppercase font-bold tracking-[0.2em] rounded-sm hover:bg-[#EAE5D9]/10 transition-all text-[#EAE5D9]"><Sparkles size={14} /> AI Strategy</button>
+                                  
+                                  {/* 접수처 공식 링크 버튼 추가 */}
+                                  {race.registrationUrl && (
+                                    <a href={race.registrationUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 bg-[#EAE5D9] px-8 py-4 text-[10px] uppercase font-bold tracking-[0.2em] rounded-sm text-[#151413] hover:bg-white transition-all shadow-lg">
+                                      Official Link <ExternalLink size={14} />
+                                    </a>
+                                  )}
+
                                   <button onClick={() => handleSyncGPX(race._id)} className={`flex items-center gap-3 py-4 px-8 text-[10px] uppercase font-bold tracking-[0.2em] border transition-all rounded-sm ${activeAiTarget === race._id && syncSuccess ? 'bg-[#166534] border-[#166534] text-[#EAE5D9]' : 'border-[#EAE5D9]/20 text-[#A8A29E] hover:border-[#EAE5D9] hover:text-[#EAE5D9]'}`}>{activeAiTarget === race._id && syncSuccess ? <CheckCircle2 size={14} /> : <Watch size={14} />} {activeAiTarget === race._id && syncSuccess ? 'Synced' : 'Sync Event'}</button>
                                </div>
                                {activeAiTarget === race.name && aiResponse && (
