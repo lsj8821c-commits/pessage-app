@@ -1,16 +1,13 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { 
-  Compass, ShoppingBag, Wind, User, MapPin, ArrowRight, ChevronRight, Activity, 
-  Flag, Watch, CheckCircle2, Sparkles, Loader2, Zap, Coffee, ArrowLeft, Download, 
-  TrendingUp, Heart, Settings, LogOut, Mail, Lock, UserPlus, Globe, Trophy, 
-  Smartphone, Moon, Check, Flame, CupSoda, Info, BookOpen, Quote, Layers, 
-  Map as MapIcon, List, X, XCircle, Maximize2, Music, ThermometerSnowflake, Leaf, Calendar,
-  Smartphone as WatchIcon, RefreshCw, Image as ImageIcon, Copy, AlertTriangle
+  Compass, ShoppingBag, Wind, User, ChevronRight, Activity, 
+  Flag, Watch, CheckCircle2, Sparkles, Loader2, ArrowLeft, 
+  Map as MapIcon, List, Calendar, Smartphone as WatchIcon, Flame, Quote
 } from 'lucide-react';
 
 /**
  * ============================================================
- * ☁️ SANITY CONFIGURATION (Project ID: 1pnkcp2x)
+ * ☁️ SANITY CONFIGURATION
  * ============================================================
  */
 const SANITY_CONFIG = {
@@ -26,18 +23,76 @@ const getSafeApiKey = () => {
 const apiKey = getSafeApiKey();
 
 // --- Sanity & Local 이미지 URL 변환 헬퍼 ---
-// 에디터의 로컬 에셋(제민님의 사진들)을 지원하기 위해 로직을 확장했습니다.
 const urlFor = (source) => {
   if (!source) return null;
-  if (source.isLocal) return source.url; // 제민님의 로컬 에셋 처리
+  if (source.isLocal) return source.url; 
   if (!source.asset || !source.asset._ref) return null;
   const ref = source.asset._ref;
   const [_file, id, dimensions, extension] = ref.split('-');
   return `https://cdn.sanity.io/images/${SANITY_CONFIG.projectId}/${SANITY_CONFIG.dataset}/${id}-${dimensions}.${extension}`;
 };
 
+// --- 🌟 PESSAGE x PORTAL Fallback Data (컴포넌트 외부로 분리하여 성능 최적화) ---
+const FALLBACK_DATA = {
+  articles: [
+    {
+      _id: 'portal-feature-1',
+      title: 'Shadows on the Trail',
+      subtitle: 'Brand Focus: Portal',
+      coverImage: { isLocal: true, url: '1769489952971.jpg' },
+      content: [
+        { _type: 'block', style: 'h2', children: [{ text: '빛과 그림자, 러닝의 이면' }] },
+        { _type: 'block', style: 'normal', children: [{ text: '거친 호흡이 지나간 자리, 러닝은 단순한 스포츠가 아닌 하나의 의식(Ritual)이 됩니다. 패트릭 스탱바이(Patrick Stangbye)가 디렉팅하는 포탈(Portal)은 이러한 러너의 고독한 여정을 완벽하게 담아냅니다.' }] },
+        { _type: 'image', isLocal: true, url: '_portal_1769489970754.jpeg', caption: '어반과 트레일을 넘나드는 고요한 모노톤의 조화.' },
+        { _type: 'block', style: 'normal', children: [{ text: 'PESSAGE가 주목하는 것은 바로 이 지점입니다. 땀에 젖은 채 기록에만 몰두하는 것을 넘어, 나를 감싸는 장비(Gear)의 질감, 발밑에서 부서지는 나뭇잎의 소리, 그리고 러닝 후 사우나에서 씻어내는 피로감까지. 모든 찰나가 에디토리얼이 됩니다.' }] },
+        { _type: 'quote', text: '가장 거친 자연 속에서 가장 정제된 나를 발견한다. 그것이 우리가 트레일로 들어서는 이유다.', author: 'Patrick Stangbye' },
+        { _type: 'image', isLocal: true, url: '1769489976034.jpeg', caption: '갈라진 대지와 하나된 러너의 맥박, 그리고 정밀한 시간의 기록.' },
+        { _type: 'block', style: 'h2', children: [{ text: 'Earthy Tones & Technical Perfection' }] },
+        { _type: 'block', style: 'normal', children: [{ text: '기능성을 위해 심미성을 포기할 필요는 없습니다. Portal의 컬렉션은 나무껍질, 마른 흙, 짙은 이끼의 색을 차용하여 아웃도어 환경에 이질감 없이 녹아듭니다.' }] },
+        { _type: 'image', isLocal: true, url: '1769489959201.jpeg', caption: '빛을 흡수하는 텍스처와 완벽한 피팅감.' },
+      ]
+    },
+    {
+      _id: 'portal-feature-2',
+      title: 'Autumn Cadence',
+      subtitle: 'City to Trail',
+      coverImage: { isLocal: true, url: 'Matt_DESK.jpg' },
+      content: [
+        { _type: 'block', style: 'h2', children: [{ text: '경계를 허무는 발걸음' }] },
+        { _type: 'block', style: 'normal', children: [{ text: '가을의 끝자락, 도심의 건축물과 붉게 물든 단풍 사이를 가로지르는 러닝은 완벽한 시각적 카타르시스를 제공합니다. 일상과 탈일상의 경계는 오직 두 발의 케이던스에 의해 지워집니다.' }] },
+        { _type: 'image', isLocal: true, url: 'images.jpeg', caption: '울창한 숲속, 무거운 흙을 박차고 나가는 가벼운 스텝.' }
+      ]
+    },
+    {
+      _id: 'portal-feature-3',
+      title: 'The Silent Pace',
+      subtitle: 'Editor\'s Note',
+      coverImage: { isLocal: true, url: '1769489976034.jpeg' },
+      content: [
+        { _type: 'block', style: 'h2', children: [{ text: '침묵 속의 전진' }] },
+        { _type: 'block', style: 'normal', children: [{ text: '어떠한 음악도 없이 오직 숨소리와 발자국 소리만으로 채워진 러닝은 명상과 다름없습니다. 거친 호흡만이 메트로놈이 되어 러너를 가장 깊은 내면으로 안내합니다.' }] }
+      ]
+    }
+  ],
+  gearItems: [
+    { _id: 'g1', category: 'PACK', brand: 'PORTAL', name: 'Trail Running Belt', note: '가장 필요한 것만 남긴 미니멀리즘. 허리선을 완벽히 감싸는 안정감.', image: { isLocal: true, url: '포탈-러닝벨트.jpg' } },
+    { _id: 'g2', category: 'APPAREL', brand: 'PORTAL', name: 'Womens Running Kit', note: '비에 젖은 숲속에서도 고요하게 빛나는 어시(Earthy) 그린의 우아함.', image: { isLocal: true, url: 'Portal-Running-Kit-Womens.webp' } },
+    { _id: 'g3', category: 'EYEWEAR', brand: 'DISTRICT VISION', name: 'Keiichi Standard', note: '빛을 통제하는 자가 트레일을 지배한다. 디렉터의 필수품.', image: { isLocal: true, url: '포탈-디렉터-패트릭-스탱바이.jpg' } },
+    { _id: 'g4', category: 'ACCESSORY', brand: 'PORTAL', name: 'Signature Cap', note: '햇빛과 비, 그리고 거친 바람을 견뎌내는 러너의 가장 견고한 방패.', image: { isLocal: true, url: 'images (1).jpeg' } }
+  ],
+  routes: [
+    { _id: 'r1', name: 'Seoul Forest to Namsan', type: 'ROAD', region: 'SEOUL', distance: '12.5 km', lat: 37.5443, lng: 127.0374, description: [{_type:'block', style:'normal', children:[{text:'단풍과 고층 빌딩이 교차하는 마법 같은 코스.'}]}] },
+    { _id: 'r2', name: 'Hallasan Yeongsil Trail', type: 'TRAIL', region: 'JEJU', distance: '18.2 km', lat: 33.3614, lng: 126.5292, description: [{_type:'block', style:'normal', children:[{text:'원시림의 숨결을 그대로 느낄 수 있는 궁극의 트레일.'}]}] }
+  ],
+  races: [
+    { _id: 'race1', name: 'Trans Jeju 100K', date: '2026-10-12', type: 'TRAIL', description: '화산섬의 척박한 땅을 달리는 국내 최대의 울트라 트레일 대제전.' },
+    { _id: 'race2', name: 'UTMB Mont-Blanc', date: '2026-08-28', type: 'TRAIL', description: '알프스의 심장부를 관통하는 트레일 러너들의 궁극적인 성지.' },
+    { _id: 'race3', name: 'Seoul Marathon', date: '2026-03-15', type: 'ROAD', description: '광화문에서 잠실까지, 서울의 랜드마크를 가로지르는 역사적인 레이스.' }
+  ]
+};
+
 /**
- * 🖋️ Editorial Content Renderer (PESSAGE x PORTAL Edition)
+ * 🖋️ Editorial Content Renderer
  */
 const EditorialRenderer = ({ blocks }) => {
   if (!blocks || !Array.isArray(blocks)) return null;
@@ -94,82 +149,27 @@ export default function App() {
   const [selectedArticle, setSelectedArticle] = useState(null);
   const [selectedRoute, setSelectedRoute] = useState(null);
   
-  // 필터 상태
   const [routeViewMode, setRouteViewMode] = useState('LIST'); 
   const [routeTypeFilter, setRouteTypeFilter] = useState('ALL');
   const [routeRegionFilter, setRouteRegionFilter] = useState('ALL');
   const [raceTypeFilter, setRaceTypeFilter] = useState('ALL');
   const [gearFilter, setGearFilter] = useState('ALL');
 
-  // 인터랙션 상태
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [aiResponse, setAiResponse] = useState(null);
   const [activeAiTarget, setActiveAiTarget] = useState(null);
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncSuccess, setSyncSuccess] = useState(false);
-  const [cmsError, setCmsError] = useState(null);
-  const [currentOrigin, setCurrentOrigin] = useState("");
+  
   const [isMapLoaded, setIsMapLoaded] = useState(false);
   const [mapPopup, setMapPopup] = useState(null);
 
-  // 지도 참조
   const mapRef = useRef(null);
   const leafletMap = useRef(null);
   const markerGroupRef = useRef(null);
 
-  // --- 🌟 PESSAGE x PORTAL Fallback Data (제민님의 에셋 활용) ---
-  const FALLBACK_DATA = {
-    articles: [
-      {
-        _id: 'portal-feature-1',
-        title: 'Shadows on the Trail',
-        subtitle: 'Brand Focus: Portal',
-        coverImage: { isLocal: true, url: '1769489952971.jpg' },
-        content: [
-          { _type: 'block', style: 'h2', children: [{ text: '빛과 그림자, 러닝의 이면' }] },
-          { _type: 'block', style: 'normal', children: [{ text: '거친 호흡이 지나간 자리, 러닝은 단순한 스포츠가 아닌 하나의 의식(Ritual)이 됩니다. 패트릭 스탱바이(Patrick Stangbye)가 디렉팅하는 포탈(Portal)은 이러한 러너의 고독한 여정을 완벽하게 담아냅니다. 도심의 차가운 벽면과 강렬하게 대비되는 러너의 그림자는 우리가 왜 달리는지에 대한 시각적 웅변과도 같습니다.' }] },
-          { _type: 'image', isLocal: true, url: '_portal_1769489970754.jpeg', caption: '어반과 트레일을 넘나드는 고요한 모노톤의 조화.' },
-          { _type: 'block', style: 'normal', children: [{ text: 'PESSAGE가 주목하는 것은 바로 이 지점입니다. 땀에 젖은 채 기록에만 몰두하는 것을 넘어, 나를 감싸는 장비(Gear)의 질감, 발밑에서 부서지는 나뭇잎의 소리, 그리고 러닝 후 사우나에서 씻어내는 피로감까지. 모든 찰나가 에디토리얼이 됩니다.' }] },
-          { _type: 'quote', text: '가장 거친 자연 속에서 가장 정제된 나를 발견한다. 그것이 우리가 트레일로 들어서는 이유다.', author: 'Patrick Stangbye' },
-          { _type: 'image', isLocal: true, url: '1769489976034.jpeg', caption: '갈라진 대지와 하나된 러너의 맥박, 그리고 정밀한 시간의 기록.' },
-          { _type: 'block', style: 'h2', children: [{ text: 'Earthy Tones & Technical Perfection' }] },
-          { _type: 'block', style: 'normal', children: [{ text: '기능성을 위해 심미성을 포기할 필요는 없습니다. Portal의 컬렉션은 나무껍질, 마른 흙, 짙은 이끼의 색을 차용하여 아웃도어 환경에 이질감 없이 녹아듭니다. 이는 PESSAGE가 지향하는 리커버리 리추얼과도 맞닿아 있습니다.' }] },
-          { _type: 'image', isLocal: true, url: '1769489959201.jpeg', caption: '빛을 흡수하는 텍스처와 완벽한 피팅감.' },
-        ]
-      },
-      {
-        _id: 'portal-feature-2',
-        title: 'Autumn Cadence',
-        subtitle: 'City to Trail',
-        coverImage: { isLocal: true, url: 'Matt_DESK.jpg' },
-        content: [
-          { _type: 'block', style: 'h2', children: [{ text: '경계를 허무는 발걸음' }] },
-          { _type: 'block', style: 'normal', children: [{ text: '가을의 끝자락, 도심의 건축물과 붉게 물든 단풍 사이를 가로지르는 러닝은 완벽한 시각적 카타르시스를 제공합니다. 일상과 탈일상의 경계는 오직 두 발의 케이던스에 의해 지워집니다.' }] },
-          { _type: 'image', isLocal: true, url: 'images.jpeg', caption: '울창한 숲속, 무거운 흙을 박차고 나가는 가벼운 스텝.' }
-        ]
-      }
-    ],
-    gearItems: [
-      { _id: 'g1', category: 'PACK', brand: 'PORTAL', name: 'Trail Running Belt', note: '가장 필요한 것만 남긴 미니멀리즘. 허리선을 완벽히 감싸는 안정감.', image: { isLocal: true, url: '포탈-러닝벨트.jpg' } },
-      { _id: 'g2', category: 'APPAREL', brand: 'PORTAL', name: 'Womens Running Kit', note: '비에 젖은 숲속에서도 고요하게 빛나는 어시(Earthy) 그린의 우아함.', image: { isLocal: true, url: 'Portal-Running-Kit-Womens.webp' } },
-      { _id: 'g3', category: 'EYEWEAR', brand: 'DISTRICT VISION', name: 'Keiichi Standard', note: '빛을 통제하는 자가 트레일을 지배한다. 디렉터의 필수품.', image: { isLocal: true, url: '포탈-디렉터-패트릭-스탱바이.jpg' } },
-      { _id: 'g4', category: 'ACCESSORY', brand: 'PORTAL', name: 'Signature Cap', note: '햇빛과 비, 그리고 거친 바람을 견뎌내는 러너의 가장 견고한 방패.', image: { isLocal: true, url: 'images (1).jpeg' } }
-    ],
-    routes: [
-      { _id: 'r1', name: 'Seoul Forest to Namsan', type: 'ROAD', region: 'SEOUL', distance: '12.5 km', lat: 37.5443, lng: 127.0374, description: [{_type:'block', style:'normal', children:[{text:'단풍과 고층 빌딩이 교차하는 마법 같은 코스.'}]}] },
-      { _id: 'r2', name: 'Hallasan Yeongsil Trail', type: 'TRAIL', region: 'JEJU', distance: '18.2 km', lat: 33.3614, lng: 126.5292, description: [{_type:'block', style:'normal', children:[{text:'원시림의 숨결을 그대로 느낄 수 있는 궁극의 트레일.'}]}] }
-    ],
-    races: [
-      { _id: 'race1', name: 'Trans Jeju 100K', date: '2026-10-12', type: 'TRAIL', description: '화산섬의 척박한 땅을 달리는 국내 최대의 울트라 트레일 대제전.' },
-      { _id: 'race2', name: 'UTMB Mont-Blanc', date: '2026-08-28', type: 'TRAIL', description: '알프스의 심장부를 관통하는 트레일 러너들의 궁극적인 성지.' },
-      { _id: 'race3', name: 'Seoul Marathon', date: '2026-03-15', type: 'ROAD', description: '광화문에서 잠실까지, 서울의 랜드마크를 가로지르는 역사적인 레이스.' }
-    ]
-  };
-
   // --- 1. CMS 데이터 페칭 ---
   useEffect(() => {
-    setCurrentOrigin(window.location.origin);
-    
     const fetchCmsData = async () => {
       const query = encodeURIComponent(`{
         "articles": *[_type == "journal"] | order(publishedAt desc),
@@ -182,10 +182,9 @@ export default function App() {
 
       try {
         const response = await fetch(endpoint);
-        if (!response.ok) throw new Error(`Fetch Error: ${response.status}`);
+        if (!response.ok) throw new Error(`Fetch Error`);
         const result = await response.json();
         
-        // CMS에 데이터가 없을 경우 제민님의 에셋이 담긴 FALLBACK_DATA 사용
         const data = result.result;
         setSiteContent({
           articles: data.articles?.length > 0 ? data.articles : FALLBACK_DATA.articles,
@@ -193,16 +192,14 @@ export default function App() {
           gearItems: data.gearItems?.length > 0 ? data.gearItems : FALLBACK_DATA.gearItems,
           races: data.races?.length > 0 ? data.races : FALLBACK_DATA.races
         });
-        setCmsError(null);
       } catch (e) {
-        console.error("CMS Sync Error, Using Fallback:", e);
-        setSiteContent(FALLBACK_DATA); // 에러 시 완벽한 오프라인 모드로 제민님 에셋 렌더링
+        setSiteContent(FALLBACK_DATA); 
       }
     };
     fetchCmsData();
   }, []);
 
-  // --- 2. 라이브러리 주입 및 스크롤 ---
+  // --- 2. 라이브러리 스크립트 주입 ---
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50);
     window.addEventListener('scroll', handleScroll);
@@ -220,11 +217,10 @@ export default function App() {
     } else {
       setIsMapLoaded(true);
     }
-
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // --- 3. 마커 업데이트 로직 ---
+  // --- 3. 맵 마커 렌더링 ---
   const updateMapMarkers = useCallback(() => {
     if (!leafletMap.current || !markerGroupRef.current) return;
     const L = window.L;
@@ -239,7 +235,6 @@ export default function App() {
       const bounds = L.latLngBounds();
       filtered.forEach(route => {
         if (!route.lat || !route.lng) return;
-        // PESSAGE 맵 무드: 트레일은 번트 오렌지, 로드는 스톤 블루
         const pinColor = route.type === 'TRAIL' ? '#C2410C' : route.type === 'ROAD' ? '#78716C' : '#ffffff';
         const customIcon = L.divIcon({ 
           className: 'custom-pin', 
@@ -251,22 +246,18 @@ export default function App() {
         markerGroupRef.current.addLayer(marker);
         bounds.extend([route.lat, route.lng]);
       });
-      
       if (routeRegionFilter !== 'ALL' || routeTypeFilter !== 'ALL') {
         leafletMap.current.fitBounds(bounds, { padding: [50, 50], maxZoom: 12 });
       }
     }
   }, [siteContent.routes, routeTypeFilter, routeRegionFilter]);
 
-  // --- 4. 지도 초기화 ---
+  // --- 4. 맵 초기화 ---
   useEffect(() => {
     if (activeTab === 'routes' && routeViewMode === 'MAP' && isMapLoaded && mapRef.current) {
       const L = window.L;
       if (!leafletMap.current) {
-        const map = L.map(mapRef.current, { 
-          center: [36.5, 127.8], zoom: 7, zoomControl: false, attributionControl: false 
-        });
-        // 다크 어시(Dark Earthy) 무드의 지도 타일
+        const map = L.map(mapRef.current, { center: [36.5, 127.8], zoom: 7, zoomControl: false, attributionControl: false });
         L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 20 }).addTo(map);
         leafletMap.current = map;
         markerGroupRef.current = L.layerGroup().addTo(map);
@@ -281,8 +272,8 @@ export default function App() {
     }
   }, [activeTab, routeViewMode, isMapLoaded, updateMapMarkers]);
 
-  // --- 5. 이벤트 핸들러 ---
-  const handleSocialLogin = (platform) => {
+  // --- 5. 액션 핸들러 ---
+  const handleSocialLogin = () => {
     setIsAiLoading(true);
     setTimeout(() => { setIsLoggedIn(true); setAuthMode(null); setIsAiLoading(false); }, 1500);
   };
@@ -329,7 +320,6 @@ export default function App() {
     return groups;
   };
 
-  // 배경 컬러 변경: 완전한 블랙(#121212)에서 약간의 웜톤을 머금은 딥 어시 컬러(#151413)로 변경
   return (
     <div className="min-h-screen bg-[#151413] text-[#EAE5D9] font-sans selection:bg-[#EAE5D9] selection:text-[#151413]">
       <style>{`
@@ -340,7 +330,6 @@ export default function App() {
         ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
       `}</style>
       
-      {/* ⌚ Device Modal */}
       {isWatchModalOpen && (
         <div className="fixed inset-0 z-[2000] bg-black/95 backdrop-blur-xl flex items-center justify-center p-6 animate-in fade-in">
           <div className="max-w-sm w-full bg-[#1A1918] border border-[#EAE5D9]/10 p-10 rounded-sm shadow-2xl">
@@ -358,7 +347,6 @@ export default function App() {
         </div>
       )}
 
-      {/* 🔄 Loading Overlay */}
       {(isAiLoading || isSyncing) && (
         <div className="fixed inset-0 z-[3000] bg-black/90 backdrop-blur-md flex flex-col items-center justify-center animate-in fade-in">
           <Loader2 size={36} className="animate-spin text-[#EAE5D9] mb-8" />
@@ -387,8 +375,8 @@ export default function App() {
           <section className="pt-32 px-6 max-w-sm mx-auto animate-in slide-in-from-bottom-8 text-center">
              <h2 className="text-4xl font-light italic mb-12 text-[#EAE5D9]">Join the Pack</h2>
              <div className="space-y-4 mb-12">
-                <button onClick={() => handleSocialLogin('kakao')} className="w-full py-5 bg-[#FEE500] text-black text-[11px] font-bold tracking-[0.2em] rounded-sm">KAKAO CONNECT</button>
-                <button onClick={() => handleSocialLogin('google')} className="w-full py-5 bg-transparent text-[#EAE5D9] text-[11px] font-bold tracking-[0.2em] border border-[#EAE5D9]/20 hover:border-[#EAE5D9]/60 transition-colors rounded-sm">GOOGLE CONNECT</button>
+                <button onClick={handleSocialLogin} className="w-full py-5 bg-[#FEE500] text-black text-[11px] font-bold tracking-[0.2em] rounded-sm">KAKAO CONNECT</button>
+                <button onClick={handleSocialLogin} className="w-full py-5 bg-transparent text-[#EAE5D9] text-[11px] font-bold tracking-[0.2em] border border-[#EAE5D9]/20 hover:border-[#EAE5D9]/60 transition-colors rounded-sm">GOOGLE CONNECT</button>
              </div>
              <button onClick={() => setAuthMode(null)} className="text-[10px] uppercase tracking-widest text-[#78716C] hover:text-[#EAE5D9] border-b border-[#78716C] pb-1 transition-colors">Return to Journal</button>
           </section>
@@ -427,29 +415,57 @@ export default function App() {
                     <div className="h-40" />
                   </div>
                 ) : (
-                  <div className="pt-28 space-y-32 max-w-5xl mx-auto text-center">
-                    {siteContent.articles.length > 0 ? siteContent.articles.map(article => (
-                      <div key={article._id} onClick={() => setSelectedArticle(article)} className="group cursor-pointer relative">
-                        {/* 백그라운드 텍스트 효과 (선택적) */}
-                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[150px] font-bold italic text-white/[0.02] whitespace-nowrap pointer-events-none z-0 tracking-tighter transition-transform duration-1000 group-hover:scale-110">
-                          {article.subtitle?.split(' ')[0] || 'JOURNAL'}
-                        </div>
-                        
-                        <div className="relative z-10">
-                          <p className="text-[10px] tracking-[0.4em] uppercase mb-6 text-[#A8A29E] font-bold">{article.subtitle || 'Volume 01'}</p>
-                          <h2 className="text-5xl md:text-8xl font-light italic leading-[1.1] text-[#EAE5D9]/80 group-hover:text-[#EAE5D9] transition-colors duration-500 mb-10">{article.title}</h2>
-                          
-                          {/* 썸네일 프리뷰 영역 추가 */}
-                          {article.coverImage && (
-                             <div className="w-48 h-32 md:w-64 md:h-40 mx-auto mb-10 overflow-hidden opacity-0 group-hover:opacity-100 transition-opacity duration-700 rounded-sm border border-[#EAE5D9]/10">
-                               <img src={urlFor(article.coverImage)} className="w-full h-full object-cover" alt="Preview"/>
-                             </div>
-                          )}
+                  <div className="pt-24 max-w-6xl mx-auto">
+                    {siteContent.articles.length > 0 ? (
+                      <>
+                        {(() => {
+                          const heroArticle = siteContent.articles[0];
+                          return (
+                            <div 
+                              onClick={() => setSelectedArticle(heroArticle)} 
+                              className="group cursor-pointer relative mb-24 md:mb-32 block overflow-hidden rounded-sm border border-[#EAE5D9]/10"
+                            >
+                              <div className="w-full aspect-square md:aspect-[21/9] bg-[#1A1918] relative">
+                                {heroArticle.coverImage && (
+                                  <img 
+                                    src={urlFor(heroArticle.coverImage)} 
+                                    className="w-full h-full object-cover transition-transform duration-[30s] group-hover:scale-105" 
+                                    alt={heroArticle.title}
+                                  />
+                                )}
+                                <div className="absolute inset-0 bg-gradient-to-t from-[#151413] via-[#151413]/40 to-transparent"></div>
+                              </div>
+                              <div className="absolute bottom-10 left-8 md:bottom-16 md:left-16 z-10 w-[90%] md:w-2/3">
+                                <p className="text-[10px] tracking-[0.4em] uppercase mb-4 text-[#A8A29E] font-bold">{heroArticle.subtitle || 'Latest Feature'}</p>
+                                <h2 className="text-4xl md:text-7xl font-light italic leading-[1.1] text-[#EAE5D9] group-hover:text-white transition-colors duration-500 mb-8">{heroArticle.title}</h2>
+                                <button className="text-[11px] uppercase tracking-[0.3em] font-bold border-b border-[#EAE5D9]/30 pb-1.5 group-hover:border-[#EAE5D9] transition-colors">Read the Story</button>
+                              </div>
+                            </div>
+                          );
+                        })()}
 
-                          <button className="text-[11px] uppercase tracking-[0.3em] font-bold border-b border-[#EAE5D9]/30 pb-1.5 group-hover:border-[#EAE5D9] transition-colors">Read the Story</button>
-                        </div>
-                      </div>
-                    )) : (
+                        {siteContent.articles.length > 1 && (
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-16 pb-20">
+                            {siteContent.articles.slice(1).map(article => (
+                              <div key={article._id} onClick={() => setSelectedArticle(article)} className="group cursor-pointer flex flex-col">
+                                <div className="w-full aspect-[4/3] bg-[#1A1918] overflow-hidden rounded-sm mb-6 border border-[#EAE5D9]/5 relative">
+                                  {article.coverImage && (
+                                    <img 
+                                      src={urlFor(article.coverImage)} 
+                                      className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700" 
+                                      alt={article.title}
+                                    />
+                                  )}
+                                  <div className="absolute inset-0 bg-[#151413]/10 group-hover:bg-transparent transition-colors duration-700"></div>
+                                </div>
+                                <p className="text-[9px] tracking-[0.4em] uppercase mb-3 text-[#78716C] font-bold">{article.subtitle || 'Volume'}</p>
+                                <h3 className="text-3xl md:text-4xl font-light italic leading-tight text-[#EAE5D9]/90 group-hover:text-[#EAE5D9] transition-colors duration-300">{article.title}</h3>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </>
+                    ) : (
                       <div className="h-[60vh] flex flex-col items-center justify-center text-[#78716C] italic gap-6">
                         <Loader2 size={40} className="animate-spin text-[#EAE5D9]/30" />
                         <p className="tracking-widest uppercase text-[10px] font-bold">Curating Editorial...</p>
