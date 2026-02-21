@@ -94,9 +94,9 @@ const FALLBACK_DATA = {
     }
   ],
   races: [
-    { _id: 'race1', name: 'Trans Jeju 100K', date: '2026-10-12', type: 'TRAIL', description: '화산섬의 척박한 땅을 달리는 국내 최대의 울트라 트레일 대제전.' },
-    { _id: 'race2', name: 'UTMB Mont-Blanc', date: '2026-08-28', type: 'TRAIL', description: '알프스의 심장부를 관통하는 트레일 러너들의 궁극적인 성지.' },
-    { _id: 'race3', name: 'Seoul Marathon', date: '2026-03-15', type: 'ROAD', description: '광화문에서 잠실까지, 서울의 랜드마크를 가로지르는 역사적인 레이스.' }
+    { _id: 'race1', name: 'Trans Jeju 100K', date: '2026-10-12', registrationDate: '2026.04 오픈 예정', registrationUrl: 'https://transjeju.com', type: 'TRAIL', description: '화산섬의 척박한 땅을 달리는 국내 최대의 울트라 트레일 대제전.' },
+    { _id: 'race2', name: 'UTMB Mont-Blanc', date: '2026-08-28', registrationDate: '추첨 접수 완료', registrationUrl: 'https://utmb.world', type: 'TRAIL', description: '알프스의 심장부를 관통하는 트레일 러너들의 궁극적인 성지.' },
+    { _id: 'race3', name: 'Seoul Marathon', date: '2026-03-15', registrationDate: '2025.06 선착순 마감', registrationUrl: 'http://seoul-marathon.com', type: 'ROAD', description: '광화문에서 잠실까지, 서울의 랜드마크를 가로지르는 역사적인 레이스.' }
   ]
 };
 
