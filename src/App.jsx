@@ -2,7 +2,8 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { 
   Compass, ShoppingBag, Wind, User, ChevronRight, Activity, 
   Flag, Watch, CheckCircle2, Sparkles, Loader2, ArrowLeft, 
-  Map as MapIcon, List, Calendar, Smartphone as WatchIcon, Quote
+  Map as MapIcon, List, Calendar, Smartphone as WatchIcon, Quote,
+  Bookmark, BookmarkCheck
 } from 'lucide-react';
 
 /**
@@ -81,8 +82,16 @@ const FALLBACK_DATA = {
     { _id: 'g4', category: 'ACCESSORY', brand: 'PORTAL', name: 'Signature Cap', note: '햇빛과 비, 그리고 거친 바람을 견뎌내는 러너의 가장 견고한 방패.', image: { isLocal: true, url: 'images (1).jpeg' } }
   ],
   routes: [
-    { _id: 'r1', name: 'Seoul Forest to Namsan', type: 'ROAD', region: 'SEOUL', distance: '12.5 km', lat: 37.5443, lng: 127.0374, description: [{_type:'block', style:'normal', children:[{text:'단풍과 고층 빌딩이 교차하는 마법 같은 코스.'}]}] },
-    { _id: 'r2', name: 'Hallasan Yeongsil Trail', type: 'TRAIL', region: 'JEJU', distance: '18.2 km', lat: 33.3614, lng: 126.5292, description: [{_type:'block', style:'normal', children:[{text:'원시림의 숨결을 그대로 느낄 수 있는 궁극의 트레일.'}]}] }
+    { 
+      _id: 'r1', name: 'Seoul Forest to Namsan', type: 'ROAD', region: 'SEOUL', distance: '12.5 km', lat: 37.5443, lng: 127.0374, 
+      description: [{_type:'block', style:'normal', children:[{text:'단풍과 고층 빌딩이 교차하는 마법 같은 코스. 남산의 고도를 오르며 진정한 심박수를 마주합니다.'}]}],
+      mockCoords: [[37.5443, 127.0374], [37.5460, 127.0350], [37.5480, 127.0310], [37.5500, 127.0250], [37.5520, 127.0200], [37.5511, 126.9882]]
+    },
+    { 
+      _id: 'r2', name: 'Hallasan Yeongsil Trail', type: 'TRAIL', region: 'JEJU', distance: '18.2 km', lat: 33.3614, lng: 126.5292, 
+      description: [{_type:'block', style:'normal', children:[{text:'원시림의 숨결을 그대로 느낄 수 있는 궁극의 트레일. 거친 현무암 위를 달리는 야생의 감각을 선사합니다.'}]}],
+      mockCoords: [[33.3614, 126.5292], [33.3630, 126.5300], [33.3650, 126.5320], [33.3680, 126.5330], [33.3720, 126.5350]]
+    }
   ],
   races: [
     { _id: 'race1', name: 'Trans Jeju 100K', date: '2026-10-12', type: 'TRAIL', description: '화산섬의 척박한 땅을 달리는 국내 최대의 울트라 트레일 대제전.' },
@@ -140,11 +149,14 @@ export default function App() {
   const [siteContent, setSiteContent] = useState({ articles: [], routes: [], gearItems: [], races: [] });
   const [activeTab, setActiveTab] = useState('journal');
   const [scrolled, setScrolled] = useState(false);
+  
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [authMode, setAuthMode] = useState(null); 
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [connectedDevice, setConnectedDevice] = useState(null);
   const [isWatchModalOpen, setIsWatchModalOpen] = useState(false);
+  
+  const [savedItems, setSavedItems] = useState({ articles: [], gear: [] });
   const [selectedArticle, setSelectedArticle] = useState(null);
   const [selectedRoute, setSelectedRoute] = useState(null);
   
@@ -163,9 +175,15 @@ export default function App() {
   const [isMapLoaded, setIsMapLoaded] = useState(false);
   const [mapPopup, setMapPopup] = useState(null);
 
-  const mapRef = useRef(null);
+  // Map Refs
+  const mapRef = useRef(null); // 메인 탐색 맵
   const leafletMap = useRef(null);
   const markerGroupRef = useRef(null);
+  const gpxLayerRef = useRef(null); // 메인 맵 GPX 레이어
+
+  const detailMapRef = useRef(null); // 상세 페이지 맵
+  const detailLeafletMap = useRef(null);
+  const detailGpxLayerRef = useRef(null); // 상세 맵 GPX 레이어
 
   // --- 1. CMS 데이터 페칭 ---
   useEffect(() => {
@@ -219,7 +237,7 @@ export default function App() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // --- 3. 맵 마커 렌더링 ---
+  // --- 3. 메인 맵 마커 렌더링 ---
   const updateMapMarkers = useCallback(() => {
     if (!leafletMap.current || !markerGroupRef.current) return;
     const L = window.L;
@@ -251,9 +269,9 @@ export default function App() {
     }
   }, [siteContent.routes, routeTypeFilter, routeRegionFilter]);
 
-  // --- 4. 맵 초기화 ---
+  // --- 4. 메인 맵 초기화 및 "선택적 GPX 궤적" 렌더링 ---
   useEffect(() => {
-    if (activeTab === 'routes' && routeViewMode === 'MAP' && isMapLoaded && mapRef.current) {
+    if (activeTab === 'routes' && !selectedRoute && routeViewMode === 'MAP' && isMapLoaded && mapRef.current) {
       const L = window.L;
       if (!leafletMap.current) {
         const map = L.map(mapRef.current, { center: [36.5, 127.8], zoom: 7, zoomControl: false, attributionControl: false });
@@ -261,27 +279,108 @@ export default function App() {
         leafletMap.current = map;
         markerGroupRef.current = L.layerGroup().addTo(map);
       }
+      
+      const mapInstance = leafletMap.current;
       updateMapMarkers();
+
+      // 기존 GPX 궤적 지우기
+      if (gpxLayerRef.current) {
+        gpxLayerRef.current.remove();
+        gpxLayerRef.current = null;
+      }
+
+      // 팝업이 띄워졌을 때(클릭)만 해당 궤적 스케치 (호기심에 반응하는 UX)
+      if (mapPopup) {
+        const drawPreviewLine = async () => {
+          let coords = mapPopup.mockCoords || [];
+          if (mapPopup.gpxUrl && coords.length === 0) {
+            try {
+              const res = await fetch(mapPopup.gpxUrl);
+              const text = await res.text();
+              const xml = new DOMParser().parseFromString(text, "text/xml");
+              const trkpts = xml.getElementsByTagName("trkpt");
+              for(let i=0; i<trkpts.length; i++) {
+                coords.push([parseFloat(trkpts[i].getAttribute("lat")), parseFloat(trkpts[i].getAttribute("lon"))]);
+              }
+            } catch(e) { console.error("GPX Parsing Error", e); }
+          }
+          
+          if (coords.length > 0 && leafletMap.current === mapInstance) {
+            const lineColor = mapPopup.type === 'TRAIL' ? '#C2410C' : '#A8A29E';
+            gpxLayerRef.current = L.polyline(coords, {
+              color: lineColor, weight: 3, opacity: 0.7, dashArray: '5, 8', lineCap: 'round'
+            }).addTo(mapInstance);
+          }
+        };
+        drawPreviewLine();
+      }
+
       const t1 = setTimeout(() => { if (leafletMap.current) leafletMap.current.invalidateSize(); }, 100);
       return () => clearTimeout(t1);
-    } else if (leafletMap.current && (activeTab !== 'routes' || routeViewMode !== 'MAP')) {
+    } else if (leafletMap.current && (activeTab !== 'routes' || routeViewMode !== 'MAP' || selectedRoute)) {
       leafletMap.current.remove();
       leafletMap.current = null;
       markerGroupRef.current = null;
+      gpxLayerRef.current = null;
     }
-  }, [activeTab, routeViewMode, isMapLoaded, updateMapMarkers]);
+  }, [activeTab, routeViewMode, isMapLoaded, updateMapMarkers, mapPopup, selectedRoute]);
 
-  // --- 5. 액션 핸들러 ---
+  // --- 5. 상세 페이지(Detail) 시네마틱 맵 렌더링 ---
+  useEffect(() => {
+    if (activeTab === 'routes' && selectedRoute && detailMapRef.current && isMapLoaded) {
+      const L = window.L;
+      if (!detailLeafletMap.current) {
+        const map = L.map(detailMapRef.current, { zoomControl: false, attributionControl: false, scrollWheelZoom: false });
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 20 }).addTo(map);
+        detailLeafletMap.current = map;
+      }
+      
+      const mapInstance = detailLeafletMap.current;
+      
+      const drawImmersiveLine = async () => {
+        let coords = selectedRoute.mockCoords || [];
+        if (selectedRoute.gpxUrl && coords.length === 0) {
+          try {
+            const res = await fetch(selectedRoute.gpxUrl);
+            const text = await res.text();
+            const xml = new DOMParser().parseFromString(text, "text/xml");
+            const trkpts = xml.getElementsByTagName("trkpt");
+            for(let i=0; i<trkpts.length; i++) {
+              coords.push([parseFloat(trkpts[i].getAttribute("lat")), parseFloat(trkpts[i].getAttribute("lon"))]);
+            }
+          } catch(e) {}
+        }
+
+        if (coords.length > 0 && detailLeafletMap.current === mapInstance) {
+          if (detailGpxLayerRef.current) detailGpxLayerRef.current.remove();
+          const lineColor = selectedRoute.type === 'TRAIL' ? '#C2410C' : '#EAE5D9';
+          const polyline = L.polyline(coords, {
+            color: lineColor, weight: 4, opacity: 0.9, lineCap: 'round', lineJoin: 'round'
+          }).addTo(mapInstance);
+          
+          detailGpxLayerRef.current = polyline;
+          mapInstance.fitBounds(polyline.getBounds(), { padding: [50, 50] });
+        } else if (selectedRoute.lat && selectedRoute.lng) {
+          mapInstance.setView([selectedRoute.lat, selectedRoute.lng], 13);
+        }
+      };
+      drawImmersiveLine();
+
+      const t1 = setTimeout(() => { if (detailLeafletMap.current) detailLeafletMap.current.invalidateSize(); }, 150);
+      return () => clearTimeout(t1);
+    } else {
+      if (detailLeafletMap.current) {
+        detailLeafletMap.current.remove();
+        detailLeafletMap.current = null;
+        detailGpxLayerRef.current = null;
+      }
+    }
+  }, [activeTab, selectedRoute, isMapLoaded]);
+
+  // --- 6. 액션 핸들러 ---
   const handleSocialLogin = () => {
     setIsAiLoading(true);
     setTimeout(() => { setIsLoggedIn(true); setAuthMode(null); setIsAiLoading(false); }, 1500);
-  };
-
-  const handleSyncGPX = (targetId) => {
-    if (!isLoggedIn) { setAuthMode('login'); return; }
-    if (!connectedDevice) { setIsWatchModalOpen(true); return; }
-    setActiveAiTarget(targetId); setIsSyncing(true);
-    setTimeout(() => { setIsSyncing(false); setSyncSuccess(true); setTimeout(() => { setSyncSuccess(false); setActiveAiTarget(null); }, 3000); }, 2000);
   };
 
   const handleDeviceConnectClick = () => {
@@ -290,6 +389,25 @@ export default function App() {
     } else {
       setIsWatchModalOpen(true);
     }
+  };
+
+  const toggleSave = (e, type, item) => {
+    e.stopPropagation(); 
+    if (!isLoggedIn) { setAuthMode('login'); return; }
+    setSavedItems(prev => {
+      const isSaved = prev[type].some(i => i._id === item._id);
+      if (isSaved) return { ...prev, [type]: prev[type].filter(i => i._id !== item._id) };
+      else return { ...prev, [type]: [...prev[type], item] };
+    });
+  };
+
+  const isItemSaved = (type, id) => savedItems[type].some(i => i._id === id);
+
+  const handleSyncGPX = (targetId) => {
+    if (!isLoggedIn) { setAuthMode('login'); return; }
+    if (!connectedDevice) { setIsWatchModalOpen(true); return; }
+    setActiveAiTarget(targetId); setIsSyncing(true);
+    setTimeout(() => { setIsSyncing(false); setSyncSuccess(true); setTimeout(() => { setSyncSuccess(false); setActiveAiTarget(null); }, 3000); }, 2000);
   };
 
   const generateAiContent = async (target, prompt) => {
@@ -308,9 +426,9 @@ export default function App() {
   const NavItem = ({ id, icon: Icon, label }) => (
     <button 
       onClick={() => { setActiveTab(id); setSelectedArticle(null); setSelectedRoute(null); setAiResponse(null); setActiveAiTarget(null); setAuthMode(null); setIsProfileOpen(false); }} 
-      className={`flex flex-col items-center gap-1.5 transition-all duration-300 ${activeTab === id && !authMode ? 'text-[#EAE5D9]' : 'text-[#78716C] hover:text-[#EAE5D9]'}`}
+      className={`flex flex-col items-center gap-1.5 transition-all duration-300 ${activeTab === id && !authMode && !isProfileOpen ? 'text-[#EAE5D9]' : 'text-[#78716C] hover:text-[#EAE5D9]'}`}
     >
-      <Icon size={20} strokeWidth={activeTab === id && !authMode ? 2 : 1.5} />
+      <Icon size={20} strokeWidth={activeTab === id && !authMode && !isProfileOpen ? 2 : 1.5} />
       <span className="text-[9px] uppercase tracking-widest font-medium">{label}</span>
     </button>
   );
@@ -331,7 +449,8 @@ export default function App() {
     <div className="min-h-screen bg-[#151413] text-[#EAE5D9] font-sans selection:bg-[#EAE5D9] selection:text-[#151413]">
       <style>{`
         .leaflet-container { background: #151413 !important; border: none; } 
-        .custom-pin { display: flex; align-items: center; justify-content: center; }
+        .custom-pin { display: flex; align-items: center; justify-content: center; transition: transform 0.3s; cursor: pointer; }
+        .custom-pin:hover { transform: scale(1.5); }
         ::-webkit-scrollbar { width: 4px; height: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
@@ -362,14 +481,14 @@ export default function App() {
       )}
 
       <header className={`fixed top-0 w-full z-[1000] transition-all duration-700 px-6 py-5 flex justify-between items-center ${scrolled ? 'bg-[#151413]/90 backdrop-blur-lg border-b border-[#EAE5D9]/5' : 'bg-gradient-to-b from-[#151413]/80 to-transparent'}`}>
-        <h1 className="text-2xl font-bold tracking-[0.3em] italic cursor-pointer" onClick={() => {setActiveTab('journal'); setSelectedArticle(null); setAuthMode(null);}}>PESSAGE</h1>
+        <h1 className="text-2xl font-bold tracking-[0.3em] italic cursor-pointer" onClick={() => {setActiveTab('journal'); setSelectedArticle(null); setAuthMode(null); setIsProfileOpen(false);}}>PESSAGE</h1>
         <div className="flex gap-5 items-center">
           {isLoggedIn ? (
             <>
               <div className={`text-[10px] tracking-widest uppercase px-4 py-1.5 rounded-full border transition-all ${connectedDevice ? 'border-[#C2410C]/40 text-[#C2410C] bg-[#C2410C]/10 font-bold' : 'border-[#EAE5D9]/20 text-[#78716C]'}`}>
                 {connectedDevice ? connectedDevice.toUpperCase() : 'NO DEVICE'}
               </div>
-              <button onClick={() => {setIsProfileOpen(!isProfileOpen); setAuthMode(null);}} className={`p-1.5 transition-all ${isProfileOpen ? 'text-[#EAE5D9]' : 'text-[#78716C] hover:text-[#EAE5D9]'}`}><User size={20} /></button>
+              <button onClick={() => {setIsProfileOpen(!isProfileOpen); setAuthMode(null);}} className={`p-1.5 transition-all ${isProfileOpen ? 'text-[#EAE5D9] bg-[#EAE5D9]/10 rounded-full' : 'text-[#78716C] hover:text-[#EAE5D9]'}`}><User size={20} /></button>
             </>
           ) : (
             <button onClick={() => setAuthMode('login')} className="text-[10px] uppercase tracking-widest bg-[#EAE5D9] text-[#151413] px-6 py-2.5 rounded-full font-bold shadow-lg hover:bg-white active:scale-95 transition-all">SIGN IN</button>
@@ -382,16 +501,16 @@ export default function App() {
           <section className="pt-32 px-6 max-w-sm mx-auto animate-in slide-in-from-bottom-8 text-center">
              <h2 className="text-4xl font-light italic mb-12 text-[#EAE5D9]">Join the Pack</h2>
              <div className="space-y-4 mb-12">
-                <button onClick={handleSocialLogin} className="w-full py-5 bg-transparent text-[#EAE5D9] text-[11px] font-bold tracking-[0.2em] border border-[#EAE5D9]/20 hover:border-[#EAE5D9]/60 transition-colors rounded-sm">GOOGLE CONNECT</button>
-                <button onClick={handleSocialLogin} className="w-full py-5 bg-[#FEE500] text-black text-[11px] font-bold tracking-[0.2em] rounded-sm">KAKAO CONNECT</button>
-                <button onClick={handleSocialLogin} className="w-full py-5 bg-[#03C75A] text-white text-[11px] font-bold tracking-[0.2em] rounded-sm">NAVER CONNECT</button>
+                <button onClick={handleSocialLogin} className="w-full flex items-center justify-center py-5 bg-transparent text-[#EAE5D9] text-[11px] font-bold tracking-[0.2em] border border-[#EAE5D9]/20 hover:border-[#EAE5D9]/60 transition-colors rounded-sm">GOOGLE CONNECT</button>
+                <button onClick={handleSocialLogin} className="w-full flex items-center justify-center py-5 bg-[#FEE500] text-black text-[11px] font-bold tracking-[0.2em] rounded-sm hover:bg-[#e6cf00] transition-colors">KAKAO CONNECT</button>
+                <button onClick={handleSocialLogin} className="w-full flex items-center justify-center py-5 bg-[#03C75A] text-white text-[11px] font-bold tracking-[0.2em] rounded-sm hover:bg-[#02b350] transition-colors">NAVER CONNECT</button>
              </div>
              <button onClick={() => setAuthMode(null)} className="text-[10px] uppercase tracking-widest text-[#78716C] hover:text-[#EAE5D9] border-b border-[#78716C] pb-1 transition-colors">Return</button>
           </section>
         ) : isProfileOpen && isLoggedIn ? (
-          <section className="pt-32 px-6 max-w-2xl mx-auto animate-in slide-in-from-bottom-8">
+          <section className="pt-32 px-6 max-w-4xl mx-auto animate-in slide-in-from-bottom-8">
              <div className="flex items-center gap-6 mb-12">
-                <div className="w-20 h-20 rounded-full bg-[#292524] flex items-center justify-center border border-[#EAE5D9]/10">
+                <div className="w-20 h-20 rounded-full bg-[#292524] flex items-center justify-center border border-[#EAE5D9]/10 shadow-lg">
                   <User size={32} className="text-[#A8A29E]" />
                 </div>
                 <div>
@@ -399,9 +518,55 @@ export default function App() {
                   <p className="text-[11px] uppercase tracking-[0.3em] text-[#78716C]">Creative Director</p>
                 </div>
              </div>
-             <div className="grid grid-cols-2 gap-4 mb-16">
+             <div className="grid grid-cols-2 gap-4 mb-20">
                 <div className="bg-[#1A1918] p-8 border border-[#EAE5D9]/5 rounded-sm"><p className="text-[10px] text-[#78716C] uppercase tracking-widest mb-3">Ritual Score</p><span className="text-4xl font-light">92</span></div>
                 <div className="bg-[#1A1918] p-8 border border-[#EAE5D9]/5 rounded-sm"><p className="text-[10px] text-[#78716C] uppercase tracking-widest mb-3">Total Mileage</p><span className="text-4xl font-light">128.4<span className="text-lg text-[#78716C] ml-1">km</span></span></div>
+             </div>
+
+             <div className="mb-20">
+                <h3 className="text-2xl font-light italic mb-8 text-[#EAE5D9] border-b border-[#EAE5D9]/10 pb-4">My Archive</h3>
+                <div className="space-y-16">
+                  <div>
+                    <h4 className="text-[11px] uppercase tracking-[0.3em] font-bold text-[#78716C] mb-6">Saved Journals ({savedItems.articles.length})</h4>
+                    {savedItems.articles.length > 0 ? (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {savedItems.articles.map(article => (
+                          <div key={article._id} onClick={() => {setSelectedArticle(article); setIsProfileOpen(false); setActiveTab('journal');}} className="flex gap-4 p-4 bg-[#1A1918] border border-[#EAE5D9]/5 rounded-sm cursor-pointer hover:border-[#EAE5D9]/20 transition-all">
+                            <div className="w-24 h-24 shrink-0 rounded-sm overflow-hidden">
+                              {article.coverImage && <img src={urlFor(article.coverImage)} className="w-full h-full object-cover grayscale hover:grayscale-0" alt=""/>}
+                            </div>
+                            <div className="flex flex-col justify-center">
+                              <p className="text-[9px] uppercase tracking-widest text-[#78716C] mb-2">{article.subtitle}</p>
+                              <h5 className="text-lg font-light italic text-[#EAE5D9] line-clamp-2">{article.title}</h5>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm italic text-[#5A5450]">아직 수집된 에디토리얼이 없습니다.</p>
+                    )}
+                  </div>
+                  <div>
+                    <h4 className="text-[11px] uppercase tracking-[0.3em] font-bold text-[#78716C] mb-6">Saved Gear ({savedItems.gear.length})</h4>
+                    {savedItems.gear.length > 0 ? (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {savedItems.gear.map(gear => (
+                          <div key={gear._id} onClick={() => {setIsProfileOpen(false); setActiveTab('gear');}} className="flex gap-4 p-4 bg-[#1A1918] border border-[#EAE5D9]/5 rounded-sm cursor-pointer hover:border-[#EAE5D9]/20 transition-all">
+                            <div className="w-24 h-24 shrink-0 rounded-sm overflow-hidden bg-[#151413]">
+                              {gear.image && <img src={urlFor(gear.image)} className="w-full h-full object-cover" alt=""/>}
+                            </div>
+                            <div className="flex flex-col justify-center">
+                              <p className="text-[9px] uppercase tracking-widest text-[#C2410C] mb-2">{gear.brand}</p>
+                              <h5 className="text-lg font-light italic text-[#EAE5D9] line-clamp-2">{gear.name}</h5>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm italic text-[#5A5450]">아직 수집된 장비가 없습니다.</p>
+                    )}
+                  </div>
+                </div>
              </div>
              <button onClick={() => {setIsLoggedIn(false); setIsProfileOpen(false);}} className="w-full py-5 bg-[#C2410C]/10 text-[#C2410C] text-[10px] uppercase font-bold tracking-[0.3em] rounded-sm hover:bg-[#C2410C]/20 transition-colors">TERMINATE SESSION</button>
           </section>
@@ -418,7 +583,15 @@ export default function App() {
                         <div className="absolute inset-0 bg-gradient-to-t from-[#151413] via-transparent to-transparent opacity-80"></div>
                       </div>
                     )}
-                    <h2 className="text-5xl md:text-6xl font-light italic mb-16 leading-[1.1] text-[#EAE5D9]">{selectedArticle.title}</h2>
+                    <div className="flex justify-between items-start mb-16">
+                      <h2 className="text-5xl md:text-6xl font-light italic leading-[1.1] text-[#EAE5D9] max-w-[80%]">{selectedArticle.title}</h2>
+                      <button 
+                        onClick={(e) => toggleSave(e, 'articles', selectedArticle)}
+                        className={`p-3 rounded-full border transition-all ${isItemSaved('articles', selectedArticle._id) ? 'bg-[#EAE5D9] text-[#151413] border-[#EAE5D9]' : 'border-[#EAE5D9]/20 text-[#EAE5D9] hover:bg-[#EAE5D9]/10'}`}
+                      >
+                        {isItemSaved('articles', selectedArticle._id) ? <BookmarkCheck size={20} /> : <Bookmark size={20} />}
+                      </button>
+                    </div>
                     <EditorialRenderer blocks={selectedArticle.content} />
                     <div className="h-40" />
                   </div>
@@ -428,6 +601,7 @@ export default function App() {
                       <>
                         {(() => {
                           const heroArticle = siteContent.articles[0];
+                          const saved = isItemSaved('articles', heroArticle._id);
                           return (
                             <div 
                               onClick={() => setSelectedArticle(heroArticle)} 
@@ -443,33 +617,53 @@ export default function App() {
                                 )}
                                 <div className="absolute inset-0 bg-gradient-to-t from-[#151413] via-[#151413]/40 to-transparent"></div>
                               </div>
-                              <div className="absolute bottom-10 left-8 md:bottom-16 md:left-16 z-10 w-[90%] md:w-2/3">
+                              <div className="absolute bottom-10 left-8 md:bottom-16 md:left-16 z-10 w-[80%] md:w-2/3">
                                 <p className="text-[10px] tracking-[0.4em] uppercase mb-4 text-[#A8A29E] font-bold">{heroArticle.subtitle || 'Latest Feature'}</p>
                                 <h2 className="text-4xl md:text-7xl font-light italic leading-[1.1] text-[#EAE5D9] group-hover:text-white transition-colors duration-500 mb-8">{heroArticle.title}</h2>
                                 <button className="text-[11px] uppercase tracking-[0.3em] font-bold border-b border-[#EAE5D9]/30 pb-1.5 group-hover:border-[#EAE5D9] transition-colors">Read the Story</button>
                               </div>
+                              <button 
+                                onClick={(e) => toggleSave(e, 'articles', heroArticle)}
+                                className={`absolute top-6 right-6 z-20 p-3 rounded-full backdrop-blur-md border transition-all ${saved ? 'bg-[#EAE5D9] text-[#151413] border-[#EAE5D9]' : 'bg-black/30 border-white/20 text-white hover:bg-black/60'}`}
+                              >
+                                {saved ? <BookmarkCheck size={20} /> : <Bookmark size={20} />}
+                              </button>
                             </div>
                           );
                         })()}
 
                         {siteContent.articles.length > 1 && (
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-16 pb-20">
-                            {siteContent.articles.slice(1).map(article => (
-                              <div key={article._id} onClick={() => setSelectedArticle(article)} className="group cursor-pointer flex flex-col">
-                                <div className="w-full aspect-[4/3] bg-[#1A1918] overflow-hidden rounded-sm mb-6 border border-[#EAE5D9]/5 relative">
-                                  {article.coverImage && (
-                                    <img 
-                                      src={urlFor(article.coverImage)} 
-                                      className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700" 
-                                      alt={article.title}
-                                    />
-                                  )}
-                                  <div className="absolute inset-0 bg-[#151413]/10 group-hover:bg-transparent transition-colors duration-700"></div>
+                            {siteContent.articles.slice(1).map(article => {
+                              const saved = isItemSaved('articles', article._id);
+                              return (
+                                <div key={article._id} onClick={() => setSelectedArticle(article)} className="group cursor-pointer flex flex-col relative">
+                                  <div className="w-full aspect-[4/3] bg-[#1A1918] overflow-hidden rounded-sm mb-6 border border-[#EAE5D9]/5 relative">
+                                    {article.coverImage && (
+                                      <img 
+                                        src={urlFor(article.coverImage)} 
+                                        className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700" 
+                                        alt={article.title}
+                                      />
+                                    )}
+                                    <div className="absolute inset-0 bg-[#151413]/10 group-hover:bg-transparent transition-colors duration-700"></div>
+                                  </div>
+                                  
+                                  <div className="flex justify-between items-start">
+                                    <div>
+                                      <p className="text-[9px] tracking-[0.4em] uppercase mb-3 text-[#78716C] font-bold">{article.subtitle || 'Volume'}</p>
+                                      <h3 className="text-3xl md:text-4xl font-light italic leading-tight text-[#EAE5D9]/90 group-hover:text-[#EAE5D9] transition-colors duration-300 pr-4">{article.title}</h3>
+                                    </div>
+                                    <button 
+                                      onClick={(e) => toggleSave(e, 'articles', article)}
+                                      className={`p-2.5 rounded-full border transition-all mt-1 ${saved ? 'bg-[#EAE5D9] text-[#151413] border-[#EAE5D9]' : 'border-[#EAE5D9]/20 text-[#A8A29E] hover:text-[#EAE5D9] hover:bg-[#EAE5D9]/10'}`}
+                                    >
+                                      {saved ? <BookmarkCheck size={16} /> : <Bookmark size={16} />}
+                                    </button>
+                                  </div>
                                 </div>
-                                <p className="text-[9px] tracking-[0.4em] uppercase mb-3 text-[#78716C] font-bold">{article.subtitle || 'Volume'}</p>
-                                <h3 className="text-3xl md:text-4xl font-light italic leading-tight text-[#EAE5D9]/90 group-hover:text-[#EAE5D9] transition-colors duration-300">{article.title}</h3>
-                              </div>
-                            ))}
+                              );
+                            })}
                           </div>
                         )}
                       </>
@@ -485,24 +679,31 @@ export default function App() {
             )}
 
             {activeTab === 'routes' && (
-              <section className="pt-28 px-6 max-w-5xl mx-auto animate-in slide-in-from-bottom-8">
+              <section className="pt-28 px-4 md:px-6 max-w-5xl mx-auto animate-in slide-in-from-bottom-8">
                 {selectedRoute ? (
-                  <div className="max-w-2xl mx-auto">
-                    <button onClick={() => setSelectedRoute(null)} className="flex items-center gap-2 text-[#78716C] text-[11px] uppercase tracking-widest mb-12 hover:text-[#EAE5D9] transition-colors"><ArrowLeft size={16} /> Directory</button>
-                    <div className="flex justify-between items-end mb-16 border-b border-[#EAE5D9]/10 pb-12">
+                  <div className="max-w-4xl mx-auto">
+                    <button onClick={() => setSelectedRoute(null)} className="flex items-center gap-2 text-[#78716C] text-[11px] uppercase tracking-widest mb-10 hover:text-[#EAE5D9] transition-colors"><ArrowLeft size={16} /> Directory</button>
+                    
+                    <div className="flex justify-between items-end mb-12 border-b border-[#EAE5D9]/10 pb-8 px-2">
                       <div>
-                        <span className={`text-[10px] px-4 py-1.5 rounded-full border mb-6 inline-block font-bold tracking-[0.2em] ${selectedRoute.type === 'TRAIL' ? 'text-[#C2410C] border-[#C2410C]/30 bg-[#C2410C]/5' : 'text-[#A8A29E] border-[#A8A29E]/30 bg-[#A8A29E]/5'}`}>{selectedRoute.type}</span>
-                        <h2 className="text-5xl font-light italic text-[#EAE5D9] leading-tight">{selectedRoute.name}</h2>
+                        <span className={`text-[10px] px-4 py-1.5 rounded-full border mb-6 inline-block font-bold tracking-[0.2em] ${selectedRoute.type === 'TRAIL' ? 'text-[#C2410C] border-[#C2410C]/30 bg-[#C2410C]/5' : 'text-[#EAE5D9] border-[#EAE5D9]/30 bg-[#EAE5D9]/5'}`}>{selectedRoute.type}</span>
+                        <h2 className="text-4xl md:text-5xl font-light italic text-[#EAE5D9] leading-tight">{selectedRoute.name}</h2>
                       </div>
                       <div className="text-right shrink-0">
                         <p className="text-[10px] text-[#78716C] uppercase tracking-widest mb-2 font-bold">Distance</p>
-                        <p className="text-3xl font-light text-[#EAE5D9]">{selectedRoute.distance}</p>
+                        <p className="text-2xl md:text-3xl font-light text-[#EAE5D9]">{selectedRoute.distance}</p>
                       </div>
                     </div>
 
-                    <div className="mb-24"><EditorialRenderer blocks={selectedRoute.description} /></div>
+                    {/* 🗺️ 상세 화면 시네마틱 맵 렌더링 영역 */}
+                    <div ref={detailMapRef} className="w-full aspect-[4/3] md:aspect-[21/9] bg-[#1A1918] mb-16 rounded-sm border border-[#EAE5D9]/5 relative z-0 overflow-hidden shadow-2xl">
+                        {/* 지도 그라데이션 오버레이 */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-[#151413] via-transparent to-transparent z-[400] pointer-events-none"></div>
+                    </div>
 
-                    <div className="bg-[#1A1918] p-8 border border-[#EAE5D9]/5 rounded-sm text-center mb-20">
+                    <div className="mb-24 max-w-2xl mx-auto px-2"><EditorialRenderer blocks={selectedRoute.description} /></div>
+
+                    <div className="bg-[#1A1918] max-w-2xl mx-auto p-8 border border-[#EAE5D9]/5 rounded-sm text-center mb-20">
                       <Compass size={32} className="mx-auto text-[#78716C] mb-6" />
                       <h3 className="text-xl font-light italic mb-8 text-[#EAE5D9]">Sync Route to Device</h3>
                       <button 
@@ -520,7 +721,7 @@ export default function App() {
                     <div className="mb-12 flex flex-col md:flex-row justify-between items-start gap-8">
                         <div>
                           <h2 className="text-4xl font-light italic mb-3 text-[#EAE5D9]">Narrative Explorer</h2>
-                          <p className="text-[#78716C] text-sm italic">지도로 탐색하는 러너들의 서사.</p>
+                          <p className="text-[#78716C] text-sm italic">지도로 탐색하는 러너들의 서사. 마커를 클릭하여 숨겨진 궤적을 확인하세요.</p>
                         </div>
                         <div className="flex bg-[#1A1918] p-1.5 rounded-sm border border-[#EAE5D9]/5">
                             <button onClick={() => {setRouteViewMode('LIST'); setMapPopup(null);}} className={`px-6 py-2 rounded-sm text-[11px] font-bold tracking-widest transition-all ${routeViewMode === 'LIST' ? 'bg-[#EAE5D9] text-[#151413]' : 'text-[#78716C] hover:text-[#EAE5D9]'}`}><List size={14} className="inline mr-2 -mt-0.5"/> LIST</button>
@@ -539,7 +740,7 @@ export default function App() {
 
                     {routeViewMode === 'MAP' ? (
                       <div className="relative animate-in fade-in duration-700 min-h-[500px]">
-                        <div ref={mapRef} className="w-full aspect-square md:aspect-[21/9] bg-[#1A1918] rounded-sm overflow-hidden border border-[#EAE5D9]/5 shadow-2xl" />
+                        <div ref={mapRef} className="w-full aspect-square md:aspect-[21/9] bg-[#1A1918] rounded-sm overflow-hidden border border-[#EAE5D9]/5 shadow-2xl z-0" />
                         {mapPopup && (
                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 bg-[#151413]/95 backdrop-blur-md border border-[#EAE5D9]/10 p-8 rounded-sm shadow-2xl z-[2000] animate-in zoom-in-95 text-center">
                               <p className={`text-[9px] uppercase tracking-[0.3em] mb-3 font-bold ${mapPopup.type === 'TRAIL' ? 'text-[#C2410C]' : 'text-[#A8A29E]'}`}>{mapPopup.type} • {mapPopup.region}</p>
@@ -623,22 +824,32 @@ export default function App() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-24">
-                  {siteContent.gearItems.filter(item => gearFilter === 'ALL' || item.category === gearFilter).map(item => (
-                    <div key={item._id} className="group">
-                      <div className="aspect-[4/5] bg-[#1A1918] border border-[#EAE5D9]/5 overflow-hidden rounded-sm mb-8 relative">
-                        {item.image && <img src={urlFor(item.image)} className="w-full h-full object-cover transition-transform duration-[15s] group-hover:scale-105" alt={item.name} />}
-                        <div className="absolute inset-0 bg-[#151413]/10 group-hover:bg-transparent transition-colors duration-700"></div>
+                  {siteContent.gearItems.filter(item => gearFilter === 'ALL' || item.category === gearFilter).map(item => {
+                    const saved = isItemSaved('gear', item._id);
+                    return (
+                      <div key={item._id} className="group relative">
+                        <div className="aspect-[4/5] bg-[#1A1918] border border-[#EAE5D9]/5 overflow-hidden rounded-sm mb-8 relative">
+                          {item.image && <img src={urlFor(item.image)} className="w-full h-full object-cover transition-transform duration-[15s] group-hover:scale-105" alt={item.name} />}
+                          <div className="absolute inset-0 bg-[#151413]/10 group-hover:bg-transparent transition-colors duration-700"></div>
+                          
+                          <button 
+                            onClick={(e) => toggleSave(e, 'gear', item)}
+                            className={`absolute top-6 right-6 z-20 p-3 rounded-full backdrop-blur-md border transition-all ${saved ? 'bg-[#EAE5D9] text-[#151413] border-[#EAE5D9]' : 'bg-black/30 border-white/20 text-white hover:bg-black/60 opacity-0 group-hover:opacity-100'}`}
+                          >
+                            {saved ? <BookmarkCheck size={20} /> : <Bookmark size={20} />}
+                          </button>
+                        </div>
+                        <div>
+                          <p className="text-[10px] uppercase font-bold tracking-[0.3em] mb-3 text-[#A8A29E] flex items-center gap-2">
+                            <span className="w-1.5 h-1.5 bg-[#C2410C] rounded-full inline-block"></span>
+                            {item.brand}
+                          </p>
+                          <h3 className="text-3xl font-light italic mb-6 text-[#EAE5D9] group-hover:text-white transition-colors">{item.name}</h3>
+                          <p className="text-[15px] leading-[1.8] text-[#78716C] italic font-light">"{item.note}"</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-[10px] uppercase font-bold tracking-[0.3em] mb-3 text-[#A8A29E] flex items-center gap-2">
-                          <span className="w-1.5 h-1.5 bg-[#C2410C] rounded-full inline-block"></span>
-                          {item.brand}
-                        </p>
-                        <h3 className="text-3xl font-light italic mb-6 text-[#EAE5D9] group-hover:text-white transition-colors">{item.name}</h3>
-                        <p className="text-[15px] leading-[1.8] text-[#78716C] italic font-light">"{item.note}"</p>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </section>
             )}
