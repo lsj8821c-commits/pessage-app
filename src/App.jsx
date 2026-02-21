@@ -176,16 +176,16 @@ export default function App() {
   const [mapPopup, setMapPopup] = useState(null);
 
   // Map Refs
-  const mapRef = useRef(null); // 메인 탐색 맵
+  const mapRef = useRef(null);
   const leafletMap = useRef(null);
   const markerGroupRef = useRef(null);
-  const gpxLayerRef = useRef(null); // 메인 맵 GPX 레이어
+  const gpxLayerRef = useRef(null); 
 
-  const detailMapRef = useRef(null); // 상세 페이지 맵
+  const detailMapRef = useRef(null);
   const detailLeafletMap = useRef(null);
-  const detailGpxLayerRef = useRef(null); // 상세 맵 GPX 레이어
+  const detailGpxLayerRef = useRef(null);
 
-  // --- 1. CMS 데이터 페칭 ---
+  // --- 1. CMS 데이터 페칭 & 📍 GPX 자동 좌표 추출 ---
   useEffect(() => {
     const fetchCmsData = async () => {
       const query = encodeURIComponent(`{
@@ -203,9 +203,39 @@ export default function App() {
         const result = await response.json();
         
         const data = result.result;
+
+        // [핵심 추가] Sanity에서 lat, lng를 비워두었더라도 gpxUrl이 있으면 추출하여 맵핑
+        const enrichRoutesWithGpxCoordinates = async (routes) => {
+          return Promise.all(routes.map(async (route) => {
+            if ((!route.lat || !route.lng) && route.gpxUrl) {
+              try {
+                const res = await fetch(route.gpxUrl);
+                const text = await res.text();
+                const xml = new DOMParser().parseFromString(text, "text/xml");
+                // trkpt(트랙 포인트) 또는 wpt(웨이 포인트)의 첫 번째 요소를 시작점으로 잡음
+                const firstPoint = xml.getElementsByTagName("trkpt")[0] || xml.getElementsByTagName("wpt")[0];
+                
+                if (firstPoint) {
+                  return {
+                    ...route,
+                    lat: parseFloat(firstPoint.getAttribute("lat")),
+                    lng: parseFloat(firstPoint.getAttribute("lon"))
+                  };
+                }
+              } catch (e) {
+                console.warn(`GPX Auto-extraction failed for route: ${route.name}`, e);
+              }
+            }
+            return route;
+          }));
+        };
+
+        const fetchedRoutes = data.routes?.length > 0 ? data.routes : FALLBACK_DATA.routes;
+        const finalEnrichedRoutes = await enrichRoutesWithGpxCoordinates(fetchedRoutes);
+
         setSiteContent({
           articles: data.articles?.length > 0 ? data.articles : FALLBACK_DATA.articles,
-          routes: data.routes?.length > 0 ? data.routes : FALLBACK_DATA.routes,
+          routes: finalEnrichedRoutes, // 위경도가 완벽하게 채워진 라우트들
           gearItems: data.gearItems?.length > 0 ? data.gearItems : FALLBACK_DATA.gearItems,
           races: data.races?.length > 0 ? data.races : FALLBACK_DATA.races
         });
@@ -251,7 +281,9 @@ export default function App() {
     if (filtered.length > 0) {
       const bounds = L.latLngBounds();
       filtered.forEach(route => {
-        if (!route.lat || !route.lng) return;
+        // 이 시점에서 route.lat과 route.lng는 수동 입력되었거나, GPX에서 자동 추출된 상태입니다.
+        if (!route.lat || !route.lng) return; 
+
         const pinColor = route.type === 'TRAIL' ? '#C2410C' : route.type === 'ROAD' ? '#78716C' : '#ffffff';
         const customIcon = L.divIcon({ 
           className: 'custom-pin', 
