@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { 
   Compass, ShoppingBag, Wind, User, ChevronRight, Activity, 
   Flag, Watch, CheckCircle2, Sparkles, Loader2, ArrowLeft, 
-  Map as MapIcon, List, Calendar, Smartphone as WatchIcon, Flame, Quote
+  Map as MapIcon, List, Calendar, Smartphone as WatchIcon, Quote
 } from 'lucide-react';
 
 /**
@@ -32,7 +32,7 @@ const urlFor = (source) => {
   return `https://cdn.sanity.io/images/${SANITY_CONFIG.projectId}/${SANITY_CONFIG.dataset}/${id}-${dimensions}.${extension}`;
 };
 
-// --- 🌟 PESSAGE x PORTAL Fallback Data (컴포넌트 외부로 분리하여 성능 최적화) ---
+// --- 🌟 PESSAGE x PORTAL Fallback Data ---
 const FALLBACK_DATA = {
   articles: [
     {
@@ -137,7 +137,6 @@ const EditorialRenderer = ({ blocks }) => {
 };
 
 export default function App() {
-  // --- 상태 관리 ---
   const [siteContent, setSiteContent] = useState({ articles: [], routes: [], gearItems: [], races: [] });
   const [activeTab, setActiveTab] = useState('journal');
   const [scrolled, setScrolled] = useState(false);
@@ -285,6 +284,14 @@ export default function App() {
     setTimeout(() => { setIsSyncing(false); setSyncSuccess(true); setTimeout(() => { setSyncSuccess(false); setActiveAiTarget(null); }, 3000); }, 2000);
   };
 
+  const handleDeviceConnectClick = () => {
+    if (!isLoggedIn) {
+      setAuthMode('login');
+    } else {
+      setIsWatchModalOpen(true);
+    }
+  };
+
   const generateAiContent = async (target, prompt) => {
     if (!apiKey) return;
     setIsAiLoading(true); setActiveAiTarget(target);
@@ -375,10 +382,11 @@ export default function App() {
           <section className="pt-32 px-6 max-w-sm mx-auto animate-in slide-in-from-bottom-8 text-center">
              <h2 className="text-4xl font-light italic mb-12 text-[#EAE5D9]">Join the Pack</h2>
              <div className="space-y-4 mb-12">
-                <button onClick={handleSocialLogin} className="w-full py-5 bg-[#FEE500] text-black text-[11px] font-bold tracking-[0.2em] rounded-sm">KAKAO CONNECT</button>
                 <button onClick={handleSocialLogin} className="w-full py-5 bg-transparent text-[#EAE5D9] text-[11px] font-bold tracking-[0.2em] border border-[#EAE5D9]/20 hover:border-[#EAE5D9]/60 transition-colors rounded-sm">GOOGLE CONNECT</button>
+                <button onClick={handleSocialLogin} className="w-full py-5 bg-[#FEE500] text-black text-[11px] font-bold tracking-[0.2em] rounded-sm">KAKAO CONNECT</button>
+                <button onClick={handleSocialLogin} className="w-full py-5 bg-[#03C75A] text-white text-[11px] font-bold tracking-[0.2em] rounded-sm">NAVER CONNECT</button>
              </div>
-             <button onClick={() => setAuthMode(null)} className="text-[10px] uppercase tracking-widest text-[#78716C] hover:text-[#EAE5D9] border-b border-[#78716C] pb-1 transition-colors">Return to Journal</button>
+             <button onClick={() => setAuthMode(null)} className="text-[10px] uppercase tracking-widest text-[#78716C] hover:text-[#EAE5D9] border-b border-[#78716C] pb-1 transition-colors">Return</button>
           </section>
         ) : isProfileOpen && isLoggedIn ? (
           <section className="pt-32 px-6 max-w-2xl mx-auto animate-in slide-in-from-bottom-8">
@@ -525,7 +533,7 @@ export default function App() {
                             {['ALL', 'ORIGINAL', 'TRAIL', 'ROAD'].map(t => (<button key={t} onClick={() => setRouteTypeFilter(t)} className={`text-[11px] uppercase tracking-[0.3em] font-bold transition-all ${routeTypeFilter === t ? 'text-[#EAE5D9] border-b border-[#EAE5D9] pb-5 -mb-5' : 'text-[#5A5450] hover:text-[#A8A29E]'}`}>{t}</button>))}
                         </div>
                         <div className="flex gap-8 border-b border-[#EAE5D9]/10 pb-5 overflow-x-auto whitespace-nowrap hide-scrollbar">
-                            {['ALL', 'SEOUL', 'JEJU', 'ALPS', 'CHAMONIX'].map(r => (<button key={r} onClick={() => setRouteRegionFilter(r)} className={`text-[11px] uppercase tracking-[0.3em] font-bold transition-all ${routeRegionFilter === r ? 'text-[#EAE5D9] border-b border-[#EAE5D9] pb-5 -mb-5' : 'text-[#5A5450] hover:text-[#A8A29E]'}`}>{r}</button>))}
+                            {['ALL', 'SEOUL', 'GYEONGGI', 'GANGWON', 'CHUNGCHEONG', 'GYEONGSANG', 'JEJU'].map(r => (<button key={r} onClick={() => setRouteRegionFilter(r)} className={`text-[11px] uppercase tracking-[0.3em] font-bold transition-all ${routeRegionFilter === r ? 'text-[#EAE5D9] border-b border-[#EAE5D9] pb-5 -mb-5' : 'text-[#5A5450] hover:text-[#A8A29E]'}`}>{r}</button>))}
                         </div>
                     </div>
 
@@ -637,7 +645,6 @@ export default function App() {
 
             {activeTab === 'recovery' && (
               <section className="px-6 pt-32 max-w-3xl mx-auto text-center animate-in slide-in-from-bottom-8">
-                <Flame size={40} className="mx-auto text-[#C2410C]/80 mb-8" />
                 <h2 className="text-4xl font-light italic mb-12 text-[#EAE5D9]">Recovery Ritual</h2>
                 
                 <div className="py-24 border border-dashed border-[#EAE5D9]/20 rounded-sm relative bg-[#1A1918]/50">
@@ -664,7 +671,7 @@ export default function App() {
                              "{aiResponse}"
                           </div>
                        )}
-                       <button onClick={() => setIsWatchModalOpen(true)} className="mt-16 text-[10px] uppercase tracking-[0.3em] text-[#78716C] hover:text-[#EAE5D9] block mx-auto border-b border-[#78716C] pb-1 transition-colors">Switch Device</button>
+                       <button onClick={handleDeviceConnectClick} className="mt-16 text-[10px] uppercase tracking-[0.3em] text-[#78716C] hover:text-[#EAE5D9] block mx-auto border-b border-[#78716C] pb-1 transition-colors">Switch Device</button>
                     </div>
                   ) : (
                     <div className="animate-in fade-in">
@@ -672,7 +679,7 @@ export default function App() {
                        <p className="text-[15px] text-[#A8A29E] mb-12 leading-[1.8] font-light italic max-w-sm mx-auto">
                          거친 트레일의 끝,<br/>당신의 심박수와 피로도를 동기화하여<br/>완벽한 회복의 서사를 완성하세요.
                        </p>
-                       <button onClick={() => setIsWatchModalOpen(true)} className="px-12 py-5 bg-[#EAE5D9] text-[#151413] font-bold text-[11px] uppercase tracking-[0.2em] rounded-sm shadow-2xl hover:bg-white active:scale-95 transition-all">Connect Device</button>
+                       <button onClick={handleDeviceConnectClick} className="px-12 py-5 bg-[#EAE5D9] text-[#151413] font-bold text-[11px] uppercase tracking-[0.2em] rounded-sm shadow-2xl hover:bg-white active:scale-95 transition-all">Connect Device</button>
                     </div>
                   )}
                 </div>
