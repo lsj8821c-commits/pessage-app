@@ -1166,7 +1166,7 @@ export default function App() {
                           <ArrowLeft size={16} /> Back to Gear
                         </button>
                         {selectedGear.image && (
-                          <div className="-mx-4 md:mx-0 aspect-[4/3] md:aspect-[16/9] w-[calc(100%+2rem)] md:w-full overflow-hidden mb-16 md:rounded-sm md:border md:border-[#EAE5D9]/5" style={{backgroundColor: '#151413'}}>
+                          <div className="aspect-[4/3] md:aspect-[16/9] overflow-hidden mb-16" style={{backgroundColor: '#151413', width: '100vw', marginLeft: 'calc(50% - 50vw)'}}>
                             <img src={urlFor(selectedGear.image)} alt={selectedGear.name} className="w-full h-full object-contain" />
                           </div>
                         )}
@@ -1175,7 +1175,7 @@ export default function App() {
                           {selectedGear.brand} · {selectedGear.category}
                         </p>
                         <div className="flex justify-between items-start mb-10">
-                          <h2 className="text-5xl md:text-6xl font-light italic leading-[1.1] text-[#EAE5D9] max-w-[85%]">{selectedGear.name}</h2>
+                          <h2 className="text-[24px] md:text-4xl font-light italic leading-[1.2] text-[#EAE5D9] max-w-[85%]">{selectedGear.name}</h2>
                           <button
                             onClick={(e) => toggleSave(e, 'gear', selectedGear)}
                             className={`p-3 rounded-full border transition-all shrink-0 ${isItemSaved('gear', selectedGear._id) ? 'bg-[#EAE5D9] text-[#151413] border-[#EAE5D9]' : 'border-[#EAE5D9]/20 text-[#EAE5D9] hover:bg-[#EAE5D9]/10'}`}
