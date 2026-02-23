@@ -28,7 +28,7 @@ export default async function handler(req, res) {
 
     const { access_token, athlete } = tokenData;
 
-    // 2. 최근 러닝 활동 조회 (최대 10개)
+    // 2. 최근 러닝 활동 조회 (최대 10개, recentRuns용)
     const activitiesRes = await fetch(
       'https://www.strava.com/api/v3/athlete/activities?per_page=10',
       { headers: { Authorization: `Bearer ${access_token}` } }
@@ -65,23 +65,55 @@ export default async function handler(req, res) {
       };
     }
 
-    // 4. 이번 주 (월요일 00:00 이후) 활동 조회
+    // 4. 이번 주 월요일 기준 설정
     const now = new Date();
-    const dayOfWeek = now.getDay(); // 0=Sun
+    const dayOfWeek = now.getDay();
     const daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
     const weekStart = new Date(now);
     weekStart.setHours(0, 0, 0, 0);
     weekStart.setDate(weekStart.getDate() - daysToMonday);
-    const weekStartTs = Math.floor(weekStart.getTime() / 1000);
 
-    const weekRes = await fetch(
-      `https://www.strava.com/api/v3/athlete/activities?after=${weekStartTs}&per_page=50`,
+    // 5. 8주치 활동 조회 (이번 주 통계 + 연속 활동 주 수 모두 계산)
+    const eightWeeksAgo = new Date(weekStart);
+    eightWeeksAgo.setDate(eightWeeksAgo.getDate() - 49); // 7주 전까지 = 8주치
+    const historyRes = await fetch(
+      `https://www.strava.com/api/v3/athlete/activities?after=${Math.floor(eightWeeksAgo.getTime() / 1000)}&per_page=200`,
       { headers: { Authorization: `Bearer ${access_token}` } }
     );
-    const weekActivities = await weekRes.json();
-    const weekRuns = Array.isArray(weekActivities)
-      ? weekActivities.filter(a => a.type === 'Run' || a.sport_type === 'Run')
+    const historyActivities = await historyRes.json();
+    const historyRuns = Array.isArray(historyActivities)
+      ? historyActivities.filter(a => a.type === 'Run' || a.sport_type === 'Run')
       : [];
+
+    // 이번 주 통계
+    const weekStartTs = Math.floor(weekStart.getTime() / 1000);
+    const weekRuns = historyRuns.filter(a =>
+      new Date(a.start_date).getTime() / 1000 >= weekStartTs
+    );
+
+    // 연속 활동 주 수 (현재 주부터 역순)
+    let consecutiveWeeks = 0;
+    for (let i = 0; i < 8; i++) {
+      const wkStart = new Date(weekStart);
+      wkStart.setDate(wkStart.getDate() - i * 7);
+      const wkEnd = new Date(wkStart);
+      wkEnd.setDate(wkEnd.getDate() + 7);
+      const wkStartTs = Math.floor(wkStart.getTime() / 1000);
+      const wkEndTs = Math.floor(wkEnd.getTime() / 1000);
+      const hasRun = historyRuns.some(a => {
+        const ts = new Date(a.start_date).getTime() / 1000;
+        return ts >= wkStartTs && ts < wkEndTs;
+      });
+      if (hasRun) consecutiveWeeks++;
+      else break;
+    }
+
+    // 6. 연간 통계 (Total Mileage용)
+    const statsRes = await fetch(
+      `https://www.strava.com/api/v3/athletes/${athlete.id}/stats`,
+      { headers: { Authorization: `Bearer ${access_token}` } }
+    );
+    const stats = await statsRes.json();
 
     return res.status(200).json({
       id: String(athlete.id),
@@ -92,6 +124,8 @@ export default async function handler(req, res) {
         distanceM: weekRuns.reduce((sum, a) => sum + a.distance, 0),
         count: weekRuns.length,
       },
+      consecutiveWeeks,
+      ytdDistanceM: stats.ytd_run_totals?.distance || 0,
       recentRuns: runs.slice(0, 5).map(a => {
         const dk = a.distance / 1000;
         return {

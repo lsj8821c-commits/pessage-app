@@ -1,10 +1,11 @@
 import { initializeApp } from "firebase/app";
-import { 
-  getAuth, 
-  signInWithPopup, 
-  GoogleAuthProvider, 
+import {
+  getAuth,
+  signInWithPopup,
+  GoogleAuthProvider,
   signOut,
-  onAuthStateChanged
+  onAuthStateChanged,
+  updateProfile
 } from "firebase/auth";
 
 const firebaseConfig = {
@@ -43,6 +44,12 @@ export const loginWithNaver = async () => {
   const state = Math.random().toString(36).substring(2);
   sessionStorage.setItem('naver_oauth_state', state);
   window.location.href = `https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id=${naverClientId}&redirect_uri=${redirectUri}&state=${state}`;
+};
+
+export const updateUserProfile = async (displayName) => {
+  if (auth.currentUser) {
+    await updateProfile(auth.currentUser, { displayName });
+  }
 };
 
 export const logout = () => signOut(auth);

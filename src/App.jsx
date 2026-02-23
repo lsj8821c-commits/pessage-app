@@ -1,17 +1,38 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { 
-  Compass, ShoppingBag, Wind, User, ChevronRight, Activity, 
-  Flag, Watch, CheckCircle2, Sparkles, Loader2, ArrowLeft, 
+import {
+  Compass, ShoppingBag, Wind, User, ChevronRight, Activity,
+  Flag, Watch, CheckCircle2, Sparkles, Loader2, ArrowLeft,
   Map as MapIcon, List, Calendar, Smartphone as WatchIcon, Quote,
-  Bookmark, BookmarkCheck, ExternalLink
+  Bookmark, BookmarkCheck, ExternalLink, Pencil
 } from 'lucide-react';
-import { loginWithGoogle, loginWithKakao, loginWithNaver, loginWithStrava, logout, onAuthChange } from './firebase';
+import { loginWithGoogle, loginWithKakao, loginWithNaver, loginWithStrava, logout, onAuthChange, updateUserProfile } from './firebase';
 
 const formatPace = (secsPerKm) => {
   if (!secsPerKm) return '—';
   const mins = Math.floor(secsPerKm / 60);
   const secs = secsPerKm % 60;
   return `${mins}'${String(secs).padStart(2, '0')}"`;
+};
+
+// Ritual Score 계산 (Strava 데이터 기반, 최대 100점)
+const calcRitualScore = (stravaData) => {
+  if (!stravaData) return null;
+  let score = 0;
+  // 이번 주 활동 횟수 (최대 40점)
+  const weekCount = stravaData.weeklyStats?.count || 0;
+  if (weekCount >= 4) score += 40;
+  else if (weekCount === 3) score += 30;
+  else if (weekCount === 2) score += 20;
+  else if (weekCount >= 1) score += 10;
+  // 연속 활동 주 수 (최대 30점)
+  const consecutive = stravaData.consecutiveWeeks || 0;
+  if (consecutive >= 3) score += 30;
+  else if (consecutive === 2) score += 20;
+  else if (consecutive >= 1) score += 10;
+  // 적정 심박수 유지 140~165 bpm (30점)
+  const avgHR = stravaData.lastRun?.average_heartrate;
+  if (avgHR && avgHR >= 140 && avgHR <= 165) score += 30;
+  return score;
 };
 
 /**
@@ -186,6 +207,8 @@ export default function App() {
   const [stravaData, setStravaData] = useState(() => {
     try { const s = sessionStorage.getItem('strava_data'); return s ? JSON.parse(s) : null; } catch { return null; }
   });
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [editNameValue, setEditNameValue] = useState('');
 
   // Map Refs
   const mapRef = useRef(null);
@@ -556,6 +579,22 @@ export default function App() {
   // ✅ 네이버 로그인
   const handleNaverLogin = () => loginWithNaver();
 
+  const handleSaveName = async () => {
+    const trimmed = editNameValue.trim();
+    if (!trimmed) return;
+    try { await updateUserProfile(trimmed); } catch (e) {}
+    ['kakao_user', 'naver_user'].forEach(key => {
+      const saved = sessionStorage.getItem(key);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        parsed.name = trimmed;
+        sessionStorage.setItem(key, JSON.stringify(parsed));
+      }
+    });
+    setCurrentUser(prev => ({ ...prev, displayName: trimmed }));
+    setIsEditingName(false);
+  };
+
   const handleDeviceConnectClick = () => {
     if (!isLoggedIn) {
       setAuthMode('login');
@@ -617,6 +656,8 @@ export default function App() {
     });
     return groups;
   };
+
+  const ritualScore = calcRitualScore(stravaData);
 
   return (
     <div className="min-h-screen bg-[#151413] text-[#EAE5D9] font-sans selection:bg-[#EAE5D9] selection:text-[#151413]">
@@ -683,22 +724,102 @@ export default function App() {
           </section>
         ) : isProfileOpen && isLoggedIn ? (
           <section className="pt-32 px-6 max-w-4xl mx-auto animate-in slide-in-from-bottom-8">
-             <div className="flex items-center gap-6 mb-12">
-                <div className="w-20 h-20 rounded-full bg-[#292524] flex items-center justify-center border border-[#EAE5D9]/10 shadow-lg overflow-hidden">
+             {/* 이름 + 아바타 */}
+             <div className="flex items-center gap-6 mb-10">
+                <div className="w-20 h-20 rounded-full bg-[#292524] flex items-center justify-center border border-[#EAE5D9]/10 shadow-lg overflow-hidden shrink-0">
                   {currentUser?.photoURL ? (
                     <img src={currentUser.photoURL} alt="profile" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                   ) : (
                     <User size={32} className="text-[#A8A29E]" />
                   )}
                 </div>
-                <div>
-                  <h2 className="text-3xl font-light italic text-[#EAE5D9] mb-1">{currentUser?.displayName || 'Runner'}</h2>
+                <div className="flex-1 min-w-0">
+                  {isEditingName ? (
+                    <div className="flex items-center gap-3 flex-wrap">
+                      <input
+                        value={editNameValue}
+                        onChange={e => setEditNameValue(e.target.value)}
+                        onKeyDown={e => { if (e.key === 'Enter') handleSaveName(); if (e.key === 'Escape') setIsEditingName(false); }}
+                        className="text-2xl font-light italic bg-transparent border-b border-[#EAE5D9]/40 text-[#EAE5D9] focus:outline-none focus:border-[#EAE5D9] w-48 mb-1"
+                        autoFocus
+                      />
+                      <button onClick={handleSaveName} className="text-[10px] uppercase tracking-widest text-[#151413] bg-[#EAE5D9] px-3 py-1.5 rounded-sm hover:bg-white transition-colors">Save</button>
+                      <button onClick={() => setIsEditingName(false)} className="text-[10px] uppercase tracking-widest text-[#78716C] hover:text-[#EAE5D9] transition-colors">Cancel</button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2 mb-1">
+                      <h2 className="text-3xl font-light italic text-[#EAE5D9] truncate">{currentUser?.displayName || 'Runner'}</h2>
+                      <button onClick={() => { setEditNameValue(currentUser?.displayName || ''); setIsEditingName(true); }} className="text-[#5A5450] hover:text-[#A8A29E] transition-colors shrink-0"><Pencil size={14} /></button>
+                    </div>
+                  )}
                   <p className="text-[11px] uppercase tracking-[0.3em] text-[#78716C]">{currentUser?.email || ''}</p>
                 </div>
              </div>
-             <div className="grid grid-cols-2 gap-4 mb-20">
-                <div className="bg-[#1A1918] p-8 border border-[#EAE5D9]/5 rounded-sm"><p className="text-[10px] text-[#78716C] uppercase tracking-widest mb-3">Ritual Score</p><span className="text-4xl font-light">92</span></div>
-                <div className="bg-[#1A1918] p-8 border border-[#EAE5D9]/5 rounded-sm"><p className="text-[10px] text-[#78716C] uppercase tracking-widest mb-3">Total Mileage</p><span className="text-4xl font-light">128.4<span className="text-lg text-[#78716C] ml-1">km</span></span></div>
+
+             {/* Ritual Score + Total Mileage */}
+             <div className="grid grid-cols-2 gap-4 mb-6">
+                <div className="bg-[#1A1918] p-8 border border-[#EAE5D9]/5 rounded-sm">
+                  <p className="text-[10px] text-[#78716C] uppercase tracking-widest mb-3">Ritual Score</p>
+                  <div className="flex items-baseline gap-1 mb-4">
+                    <span className="text-4xl font-light">{ritualScore !== null ? ritualScore : '—'}</span>
+                    {ritualScore !== null && <span className="text-lg text-[#78716C]">/100</span>}
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[9px] text-[#5A5450]">이번 주 활동 ×10점 <span className="text-[#78716C]">(최대 40)</span></p>
+                    <p className="text-[9px] text-[#5A5450]">연속 활동 주 ×10점 <span className="text-[#78716C]">(최대 30)</span></p>
+                    <p className="text-[9px] text-[#5A5450]">적정 심박수 140–165bpm <span className="text-[#78716C]">(30점)</span></p>
+                    {!stravaData && <p className="text-[9px] text-[#FC4C02] pt-1">Strava 연동 시 활성화</p>}
+                  </div>
+                </div>
+                <div className="bg-[#1A1918] p-8 border border-[#EAE5D9]/5 rounded-sm">
+                  <p className="text-[10px] text-[#78716C] uppercase tracking-widest mb-3">Total Mileage</p>
+                  {stravaData?.ytdDistanceM > 0 ? (
+                    <>
+                      <span className="text-4xl font-light">{(stravaData.ytdDistanceM / 1000).toFixed(1)}</span>
+                      <span className="text-lg text-[#78716C] ml-1">km</span>
+                      <p className="text-[9px] text-[#5A5450] mt-4">{new Date().getFullYear()}년 연간 누적</p>
+                    </>
+                  ) : (
+                    <>
+                      <span className="text-4xl font-light text-[#5A5450]">—</span>
+                      {!stravaData && <p className="text-[9px] text-[#FC4C02] mt-4">Strava 연동 시 활성화</p>}
+                    </>
+                  )}
+                </div>
+             </div>
+
+             {/* 연결된 디바이스 */}
+             <div className="mb-10 bg-[#1A1918] border border-[#EAE5D9]/5 rounded-sm p-8">
+               <h4 className="text-[10px] uppercase tracking-widest text-[#78716C] mb-6 font-bold">Connected Device</h4>
+               {stravaData ? (
+                 <div className="flex items-center justify-between">
+                   <div className="flex items-center gap-3">
+                     <span className="w-2 h-2 rounded-full bg-[#FC4C02] inline-block"></span>
+                     <span className="text-[13px] text-[#EAE5D9] font-light">Strava</span>
+                     <span className="text-[11px] text-[#78716C]">{stravaData.name}</span>
+                   </div>
+                   <button onClick={() => { sessionStorage.removeItem('strava_data'); setStravaData(null); }} className="text-[10px] uppercase tracking-widest text-[#5A5450] hover:text-[#C2410C] transition-colors">Disconnect</button>
+                 </div>
+               ) : connectedDevice ? (
+                 <div className="flex items-center justify-between">
+                   <div className="flex items-center gap-3">
+                     <span className="w-2 h-2 rounded-full bg-[#C2410C] inline-block"></span>
+                     <span className="text-[13px] text-[#EAE5D9] font-light">{connectedDevice}</span>
+                   </div>
+                   <button onClick={() => { setIsProfileOpen(false); setIsWatchModalOpen(true); }} className="text-[10px] uppercase tracking-widest text-[#78716C] hover:text-[#EAE5D9] transition-colors">Change</button>
+                 </div>
+               ) : (
+                 <div className="flex flex-col gap-3">
+                   <button onClick={() => { setIsProfileOpen(false); setActiveTab('recovery'); }} className="flex items-center justify-between p-4 border border-[#EAE5D9]/10 rounded-sm hover:border-[#FC4C02]/40 transition-all group">
+                     <span className="text-[11px] uppercase tracking-[0.2em] font-bold text-[#A8A29E] group-hover:text-[#FC4C02] transition-colors">Connect Strava</span>
+                     <ChevronRight size={14} className="text-[#5A5450]" />
+                   </button>
+                   <button onClick={() => { setIsProfileOpen(false); setIsWatchModalOpen(true); }} className="flex items-center justify-between p-4 border border-[#EAE5D9]/10 rounded-sm hover:border-[#EAE5D9]/30 transition-all group">
+                     <span className="text-[11px] uppercase tracking-[0.2em] font-bold text-[#A8A29E] group-hover:text-[#EAE5D9] transition-colors">Connect Device</span>
+                     <ChevronRight size={14} className="text-[#5A5450]" />
+                   </button>
+                 </div>
+               )}
              </div>
 
              <div className="mb-20">
@@ -1048,7 +1169,22 @@ export default function App() {
 
             {activeTab === 'recovery' && (
               <section className="px-6 pt-32 max-w-3xl mx-auto animate-in slide-in-from-bottom-8">
-                <h2 className="text-4xl font-light italic mb-3 text-[#EAE5D9]">Recovery Ritual</h2>
+                {/* 헤더 + Ritual Score 배너 */}
+                <div className="flex items-start justify-between mb-3">
+                  <h2 className="text-4xl font-light italic text-[#EAE5D9]">Recovery Ritual</h2>
+                  <div className="text-right shrink-0 ml-4">
+                    <p className="text-[9px] uppercase tracking-widest text-[#78716C] mb-1 font-bold">Ritual Score</p>
+                    <p className="text-3xl font-light text-[#EAE5D9]">
+                      {ritualScore !== null ? ritualScore : '—'}
+                      <span className="text-sm text-[#78716C] ml-0.5">/100</span>
+                    </p>
+                    {ritualScore !== null && (
+                      <p className="text-[9px] text-[#5A5450] mt-1">
+                        {ritualScore >= 80 ? 'Excellent' : ritualScore >= 60 ? 'Good' : ritualScore >= 40 ? 'Building' : 'Getting Started'}
+                      </p>
+                    )}
+                  </div>
+                </div>
                 {stravaData && (
                   <p className="text-[10px] uppercase tracking-widest text-[#FC4C02] mb-10 font-bold flex items-center gap-2">
                     <span className="w-1.5 h-1.5 rounded-full bg-[#FC4C02] inline-block animate-pulse"></span>
