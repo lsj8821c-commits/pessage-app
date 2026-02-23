@@ -556,9 +556,6 @@ export default function App() {
   // ✅ 네이버 로그인
   const handleNaverLogin = () => loginWithNaver();
 
-  // ✅ 스트라바 로그인
-  const handleStravaLogin = () => loginWithStrava();
-
   const handleDeviceConnectClick = () => {
     if (!isLoggedIn) {
       setAuthMode('login');
