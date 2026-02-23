@@ -5,6 +5,7 @@ import {
   Map as MapIcon, List, Calendar, Smartphone as WatchIcon, Quote,
   Bookmark, BookmarkCheck, ExternalLink
 } from 'lucide-react';
+import { loginWithGoogle, loginWithKakao, loginWithNaver, logout, onAuthChange } from './firebase';
 
 /**
  * ============================================================
@@ -204,7 +205,6 @@ export default function App() {
         
         const data = result.result;
 
-        // [핵심 추가] Sanity에서 lat, lng를 비워두었더라도 gpxUrl이 있으면 추출하여 맵핑
         const enrichRoutesWithGpxCoordinates = async (routes) => {
           return Promise.all(routes.map(async (route) => {
             if ((!route.lat || !route.lng) && route.gpxUrl) {
@@ -212,7 +212,6 @@ export default function App() {
                 const res = await fetch(route.gpxUrl);
                 const text = await res.text();
                 const xml = new DOMParser().parseFromString(text, "text/xml");
-                // trkpt(트랙 포인트) 또는 wpt(웨이 포인트)의 첫 번째 요소를 시작점으로 잡음
                 const firstPoint = xml.getElementsByTagName("trkpt")[0] || xml.getElementsByTagName("wpt")[0];
                 
                 if (firstPoint) {
@@ -235,7 +234,7 @@ export default function App() {
 
         setSiteContent({
           articles: data.articles?.length > 0 ? data.articles : FALLBACK_DATA.articles,
-          routes: finalEnrichedRoutes, // 위경도가 완벽하게 채워진 라우트들
+          routes: finalEnrichedRoutes,
           gearItems: data.gearItems?.length > 0 ? data.gearItems : FALLBACK_DATA.gearItems,
           races: data.races?.length > 0 ? data.races : FALLBACK_DATA.races
         });
@@ -267,6 +266,19 @@ export default function App() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // --- ✅ Firebase 로그인 상태 감지 ---
+  useEffect(() => {
+    const unsubscribe = onAuthChange((user) => {
+      if (user) {
+        setIsLoggedIn(true);
+        setAuthMode(null);
+      } else {
+        setIsLoggedIn(false);
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
   // --- 3. 메인 맵 마커 렌더링 ---
   const updateMapMarkers = useCallback(() => {
     if (!leafletMap.current || !markerGroupRef.current) return;
@@ -281,7 +293,6 @@ export default function App() {
     if (filtered.length > 0) {
       const bounds = L.latLngBounds();
       filtered.forEach(route => {
-        // 이 시점에서 route.lat과 route.lng는 수동 입력되었거나, GPX에서 자동 추출된 상태입니다.
         if (!route.lat || !route.lng) return; 
 
         const pinColor = route.type === 'TRAIL' ? '#C2410C' : route.type === 'ROAD' ? '#78716C' : '#ffffff';
@@ -301,7 +312,7 @@ export default function App() {
     }
   }, [siteContent.routes, routeTypeFilter, routeRegionFilter]);
 
-  // --- 4. 메인 맵 초기화 및 "선택적 GPX 궤적" 렌더링 ---
+  // --- 4. 메인 맵 초기화 및 GPX 궤적 렌더링 ---
   useEffect(() => {
     if (activeTab === 'routes' && !selectedRoute && routeViewMode === 'MAP' && isMapLoaded && mapRef.current) {
       const L = window.L;
@@ -315,13 +326,11 @@ export default function App() {
       const mapInstance = leafletMap.current;
       updateMapMarkers();
 
-      // 기존 GPX 궤적 지우기
       if (gpxLayerRef.current) {
         gpxLayerRef.current.remove();
         gpxLayerRef.current = null;
       }
 
-      // 팝업이 띄워졌을 때(클릭)만 해당 궤적 스케치 (호기심에 반응하는 UX)
       if (mapPopup) {
         const drawPreviewLine = async () => {
           let coords = mapPopup.mockCoords || [];
@@ -357,7 +366,7 @@ export default function App() {
     }
   }, [activeTab, routeViewMode, isMapLoaded, updateMapMarkers, mapPopup, selectedRoute]);
 
-  // --- 5. 상세 페이지(Detail) 시네마틱 맵 렌더링 ---
+  // --- 5. 상세 페이지 시네마틱 맵 렌더링 ---
   useEffect(() => {
     if (activeTab === 'routes' && selectedRoute && detailMapRef.current && isMapLoaded) {
       const L = window.L;
@@ -410,10 +419,25 @@ export default function App() {
   }, [activeTab, selectedRoute, isMapLoaded]);
 
   // --- 6. 액션 핸들러 ---
-  const handleSocialLogin = () => {
-    setIsAiLoading(true);
-    setTimeout(() => { setIsLoggedIn(true); setAuthMode(null); setIsAiLoading(false); }, 1500);
+
+  // ✅ Google 로그인
+  const handleGoogleLogin = async () => {
+    try {
+      setIsAiLoading(true);
+      await loginWithGoogle();
+      setAuthMode(null);
+    } catch (e) {
+      console.error('Google 로그인 실패:', e);
+    } finally {
+      setIsAiLoading(false);
+    }
   };
+
+  // ✅ 카카오 로그인
+  const handleKakaoLogin = () => loginWithKakao();
+
+  // ✅ 네이버 로그인
+  const handleNaverLogin = () => loginWithNaver();
 
   const handleDeviceConnectClick = () => {
     if (!isLoggedIn) {
@@ -533,9 +557,10 @@ export default function App() {
           <section className="pt-32 px-6 max-w-sm mx-auto animate-in slide-in-from-bottom-8 text-center">
              <h2 className="text-4xl font-light italic mb-12 text-[#EAE5D9]">Join the Pack</h2>
              <div className="space-y-4 mb-12">
-                <button onClick={handleSocialLogin} className="w-full flex items-center justify-center py-5 bg-transparent text-[#EAE5D9] text-[11px] font-bold tracking-[0.2em] border border-[#EAE5D9]/20 hover:border-[#EAE5D9]/60 transition-colors rounded-sm">GOOGLE CONNECT</button>
-                <button onClick={handleSocialLogin} className="w-full flex items-center justify-center py-5 bg-[#FEE500] text-black text-[11px] font-bold tracking-[0.2em] rounded-sm hover:bg-[#e6cf00] transition-colors">KAKAO CONNECT</button>
-                <button onClick={handleSocialLogin} className="w-full flex items-center justify-center py-5 bg-[#03C75A] text-white text-[11px] font-bold tracking-[0.2em] rounded-sm hover:bg-[#02b350] transition-colors">NAVER CONNECT</button>
+                {/* ✅ 실제 로그인 함수 연결 */}
+                <button onClick={handleGoogleLogin} className="w-full flex items-center justify-center py-5 bg-transparent text-[#EAE5D9] text-[11px] font-bold tracking-[0.2em] border border-[#EAE5D9]/20 hover:border-[#EAE5D9]/60 transition-colors rounded-sm">GOOGLE CONNECT</button>
+                <button onClick={handleKakaoLogin} className="w-full flex items-center justify-center py-5 bg-[#FEE500] text-black text-[11px] font-bold tracking-[0.2em] rounded-sm hover:bg-[#e6cf00] transition-colors">KAKAO CONNECT</button>
+                <button onClick={handleNaverLogin} className="w-full flex items-center justify-center py-5 bg-[#03C75A] text-white text-[11px] font-bold tracking-[0.2em] rounded-sm hover:bg-[#02b350] transition-colors">NAVER CONNECT</button>
              </div>
              <button onClick={() => setAuthMode(null)} className="text-[10px] uppercase tracking-widest text-[#78716C] hover:text-[#EAE5D9] border-b border-[#78716C] pb-1 transition-colors">Return</button>
           </section>
@@ -600,7 +625,8 @@ export default function App() {
                   </div>
                 </div>
              </div>
-             <button onClick={() => {setIsLoggedIn(false); setIsProfileOpen(false);}} className="w-full py-5 bg-[#C2410C]/10 text-[#C2410C] text-[10px] uppercase font-bold tracking-[0.3em] rounded-sm hover:bg-[#C2410C]/20 transition-colors">TERMINATE SESSION</button>
+             {/* ✅ 실제 로그아웃 함수 연결 */}
+             <button onClick={async () => { await logout(); setIsProfileOpen(false); }} className="w-full py-5 bg-[#C2410C]/10 text-[#C2410C] text-[10px] uppercase font-bold tracking-[0.3em] rounded-sm hover:bg-[#C2410C]/20 transition-colors">TERMINATE SESSION</button>
           </section>
         ) : (
           <>
@@ -727,9 +753,7 @@ export default function App() {
                       </div>
                     </div>
 
-                    {/* 🗺️ 상세 화면 시네마틱 맵 렌더링 영역 */}
                     <div ref={detailMapRef} className="w-full aspect-[4/3] md:aspect-[21/9] bg-[#1A1918] mb-16 rounded-sm border border-[#EAE5D9]/5 relative z-0 overflow-hidden shadow-2xl">
-                        {/* 지도 그라데이션 오버레이 */}
                         <div className="absolute inset-0 bg-gradient-to-t from-[#151413] via-transparent to-transparent z-[400] pointer-events-none"></div>
                     </div>
 
@@ -825,7 +849,6 @@ export default function App() {
                                <div className={`absolute left-[-5px] top-1.5 w-2 h-2 rounded-full ${race.type === 'TRAIL' ? 'bg-[#C2410C]' : 'bg-[#A8A29E]'}`}></div>
                                <h3 className="text-3xl md:text-4xl font-light italic mb-5 text-[#EAE5D9]">{race.name}</h3>
                                
-                               {/* 접수 기간 정보 추가 */}
                                {race.registrationDate && (
                                  <div className="flex items-center gap-2 mb-6">
                                    <CheckCircle2 size={12} className="text-[#C2410C]" />
@@ -837,7 +860,6 @@ export default function App() {
                                <div className="flex flex-wrap gap-4">
                                   <button onClick={() => generateAiContent(race.name, `${race.name} 대회의 트레일/로드 전략을 어시(Earthy)하고 철학적인 톤앤매너 매거진 스타일로 3문장 이내로 작성해줘.`)} className="flex items-center gap-3 bg-[#EAE5D9]/5 px-8 py-4 text-[10px] uppercase font-bold tracking-[0.2em] rounded-sm hover:bg-[#EAE5D9]/10 transition-all text-[#EAE5D9]"><Sparkles size={14} /> AI Strategy</button>
                                   
-                                  {/* 접수처 공식 링크 버튼 추가 */}
                                   {race.registrationUrl && (
                                     <a href={race.registrationUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 bg-[#EAE5D9] px-8 py-4 text-[10px] uppercase font-bold tracking-[0.2em] rounded-sm text-[#151413] hover:bg-white transition-all shadow-lg">
                                       Official Link <ExternalLink size={14} />
