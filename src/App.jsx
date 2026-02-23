@@ -276,8 +276,13 @@ export default function App() {
         setAuthMode(null);
       } else {
         const kakaoUser = sessionStorage.getItem('kakao_user');
+        const naverUser = sessionStorage.getItem('naver_user');
         if (kakaoUser) {
           const parsed = JSON.parse(kakaoUser);
+          setCurrentUser({ displayName: parsed.name, email: parsed.email, photoURL: parsed.photo });
+          setIsLoggedIn(true);
+        } else if (naverUser) {
+          const parsed = JSON.parse(naverUser);
           setCurrentUser({ displayName: parsed.name, email: parsed.email, photoURL: parsed.photo });
           setIsLoggedIn(true);
         } else {
@@ -313,6 +318,38 @@ export default function App() {
         }
       } catch (e) {
         console.error('Kakao callback error:', e);
+      } finally {
+        window.history.replaceState({}, '', '/');
+      }
+    };
+    exchangeCode();
+  }, []);
+
+  // --- Naver OAuth 콜백 처리 ---
+  useEffect(() => {
+    if (window.location.pathname !== '/auth/naver/callback') return;
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get('code');
+    const state = params.get('state');
+    if (!code || !state) return;
+
+    const exchangeCode = async () => {
+      try {
+        const redirectUri = `${window.location.origin}/auth/naver/callback`;
+        const res = await fetch('/api/naver/callback', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code, state, redirect_uri: redirectUri }),
+        });
+        const user = await res.json();
+        if (user.id) {
+          sessionStorage.setItem('naver_user', JSON.stringify(user));
+          setCurrentUser({ displayName: user.name, email: user.email, photoURL: user.photo });
+          setIsLoggedIn(true);
+          setAuthMode(null);
+        }
+      } catch (e) {
+        console.error('Naver callback error:', e);
       } finally {
         window.history.replaceState({}, '', '/');
       }
@@ -671,7 +708,7 @@ export default function App() {
                 </div>
              </div>
              {/* ✅ 실제 로그아웃 함수 연결 */}
-             <button onClick={async () => { await logout(); sessionStorage.removeItem('kakao_user'); setCurrentUser(null); setIsLoggedIn(false); setIsProfileOpen(false); }} className="w-full py-5 bg-[#C2410C]/10 text-[#C2410C] text-[10px] uppercase font-bold tracking-[0.3em] rounded-sm hover:bg-[#C2410C]/20 transition-colors">LOG OUT</button>
+             <button onClick={async () => { await logout(); sessionStorage.removeItem('kakao_user'); sessionStorage.removeItem('naver_user'); setCurrentUser(null); setIsLoggedIn(false); setIsProfileOpen(false); }} className="w-full py-5 bg-[#C2410C]/10 text-[#C2410C] text-[10px] uppercase font-bold tracking-[0.3em] rounded-sm hover:bg-[#C2410C]/20 transition-colors">LOG OUT</button>
           </section>
         ) : (
           <>

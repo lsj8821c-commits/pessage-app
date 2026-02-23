@@ -28,7 +28,7 @@ export const loginWithGoogle = async () => {
 export const loginWithKakao = async () => {
   const kakaoJsKey = import.meta.env.VITE_KAKAO_REST_API_KEY;
   const redirectUri = `${window.location.origin}/auth/kakao/callback`;
-  window.location.href = `https://kauth.kakao.com/oauth/authorize?client_id=${kakaoJsKey}&redirect_uri=${redirectUri}&response_type=code`;
+  window.location.href = `https://kauth.kakao.com/oauth/authorize?client_id=${kakaoJsKey}&redirect_uri=${redirectUri}&response_type=code&scope=profile,account_email`;
 };
 
 export const loginWithNaver = async () => {
