@@ -152,7 +152,8 @@ export default function App() {
   const [scrolled, setScrolled] = useState(false);
   
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [authMode, setAuthMode] = useState(null); 
+  const [currentUser, setCurrentUser] = useState(null);
+  const [authMode, setAuthMode] = useState(null);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [connectedDevice, setConnectedDevice] = useState(null);
   const [isWatchModalOpen, setIsWatchModalOpen] = useState(false);
@@ -271,9 +272,11 @@ export default function App() {
     const unsubscribe = onAuthChange((user) => {
       if (user) {
         setIsLoggedIn(true);
+        setCurrentUser(user);
         setAuthMode(null);
       } else {
         setIsLoggedIn(false);
+        setCurrentUser(null);
       }
     });
     return () => unsubscribe();
@@ -567,12 +570,16 @@ export default function App() {
         ) : isProfileOpen && isLoggedIn ? (
           <section className="pt-32 px-6 max-w-4xl mx-auto animate-in slide-in-from-bottom-8">
              <div className="flex items-center gap-6 mb-12">
-                <div className="w-20 h-20 rounded-full bg-[#292524] flex items-center justify-center border border-[#EAE5D9]/10 shadow-lg">
-                  <User size={32} className="text-[#A8A29E]" />
+                <div className="w-20 h-20 rounded-full bg-[#292524] flex items-center justify-center border border-[#EAE5D9]/10 shadow-lg overflow-hidden">
+                  {currentUser?.photoURL ? (
+                    <img src={currentUser.photoURL} alt="profile" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                  ) : (
+                    <User size={32} className="text-[#A8A29E]" />
+                  )}
                 </div>
                 <div>
-                  <h2 className="text-3xl font-light italic text-[#EAE5D9] mb-1">Patrick Jemin</h2>
-                  <p className="text-[11px] uppercase tracking-[0.3em] text-[#78716C]">Creative Director</p>
+                  <h2 className="text-3xl font-light italic text-[#EAE5D9] mb-1">{currentUser?.displayName || 'Runner'}</h2>
+                  <p className="text-[11px] uppercase tracking-[0.3em] text-[#78716C]">{currentUser?.email || ''}</p>
                 </div>
              </div>
              <div className="grid grid-cols-2 gap-4 mb-20">
