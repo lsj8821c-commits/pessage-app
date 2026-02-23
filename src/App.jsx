@@ -275,11 +275,49 @@ export default function App() {
         setCurrentUser(user);
         setAuthMode(null);
       } else {
-        setIsLoggedIn(false);
-        setCurrentUser(null);
+        const kakaoUser = sessionStorage.getItem('kakao_user');
+        if (kakaoUser) {
+          const parsed = JSON.parse(kakaoUser);
+          setCurrentUser({ displayName: parsed.name, email: parsed.email, photoURL: parsed.photo });
+          setIsLoggedIn(true);
+        } else {
+          setIsLoggedIn(false);
+          setCurrentUser(null);
+        }
       }
     });
     return () => unsubscribe();
+  }, []);
+
+  // --- Kakao OAuth 콜백 처리 ---
+  useEffect(() => {
+    if (window.location.pathname !== '/auth/kakao/callback') return;
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get('code');
+    if (!code) return;
+
+    const exchangeCode = async () => {
+      try {
+        const redirectUri = `${window.location.origin}/auth/kakao/callback`;
+        const res = await fetch('/api/kakao/callback', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code, redirect_uri: redirectUri }),
+        });
+        const user = await res.json();
+        if (user.id) {
+          sessionStorage.setItem('kakao_user', JSON.stringify(user));
+          setCurrentUser({ displayName: user.name, email: user.email, photoURL: user.photo });
+          setIsLoggedIn(true);
+          setAuthMode(null);
+        }
+      } catch (e) {
+        console.error('Kakao callback error:', e);
+      } finally {
+        window.history.replaceState({}, '', '/');
+      }
+    };
+    exchangeCode();
   }, []);
 
   // --- 3. 메인 맵 마커 렌더링 ---
@@ -633,7 +671,7 @@ export default function App() {
                 </div>
              </div>
              {/* ✅ 실제 로그아웃 함수 연결 */}
-             <button onClick={async () => { await logout(); setIsProfileOpen(false); }} className="w-full py-5 bg-[#C2410C]/10 text-[#C2410C] text-[10px] uppercase font-bold tracking-[0.3em] rounded-sm hover:bg-[#C2410C]/20 transition-colors">LOG OUT</button>
+             <button onClick={async () => { await logout(); sessionStorage.removeItem('kakao_user'); setCurrentUser(null); setIsLoggedIn(false); setIsProfileOpen(false); }} className="w-full py-5 bg-[#C2410C]/10 text-[#C2410C] text-[10px] uppercase font-bold tracking-[0.3em] rounded-sm hover:bg-[#C2410C]/20 transition-colors">LOG OUT</button>
           </section>
         ) : (
           <>
