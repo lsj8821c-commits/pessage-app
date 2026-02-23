@@ -1166,9 +1166,8 @@ export default function App() {
                           <ArrowLeft size={16} /> Back to Gear
                         </button>
                         {selectedGear.image && (
-                          <div className="aspect-[4/3] md:aspect-[16/9] w-full overflow-hidden mb-16 rounded-sm border border-[#EAE5D9]/5 relative group">
-                            <img src={urlFor(selectedGear.image)} alt={selectedGear.name} className="w-full h-full object-cover transition-transform duration-[30s] group-hover:scale-105" />
-                            <div className="absolute inset-0 bg-gradient-to-t from-[#151413] via-transparent to-transparent opacity-60"></div>
+                          <div className="aspect-[4/3] md:aspect-[16/9] w-full overflow-hidden mb-16 rounded-sm border border-[#EAE5D9]/5 relative group" style={{backgroundColor: '#151413'}}>
+                            <img src={urlFor(selectedGear.image)} alt={selectedGear.name} className="w-full h-full object-contain" />
                           </div>
                         )}
                         <p className="text-[10px] uppercase font-bold tracking-[0.3em] mb-4 text-[#A8A29E] flex items-center gap-2">
