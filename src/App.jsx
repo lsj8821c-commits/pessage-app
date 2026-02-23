@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Compass, ShoppingBag, Wind, User, ChevronRight, Activity,
-  Flag, Watch, CheckCircle2, Sparkles, Loader2, ArrowLeft,
+  Flag, Watch, CheckCircle2, Sparkles, Loader2, ArrowLeft, ArrowRight,
   Map as MapIcon, List, Calendar, Smartphone as WatchIcon, Quote,
   Bookmark, BookmarkCheck, ExternalLink, Pencil
 } from 'lucide-react';
@@ -227,7 +227,7 @@ export default function App() {
       const query = encodeURIComponent(`{
         "articles": *[_type == "journal"] | order(publishedAt desc),
         "routes": *[_type == "route"] { ..., "gpxUrl": gpxFile.asset->url, "gallery": images[].asset->url },
-        "gearItems": *[_type == "gear"],
+        "gearItems": *[_type == "gear"] | order(publishedAt desc),
         "races": *[_type == "race"] | order(date asc) 
       }`);
       
@@ -278,6 +278,17 @@ export default function App() {
       }
     };
     fetchCmsData();
+  }, []);
+
+  // --- gear 뒤로가기 popstate 처리 ---
+  useEffect(() => {
+    const handlePopState = () => {
+      if (!window.location.pathname.startsWith('/gear/')) {
+        setSelectedGear(null);
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
   // --- 2. 라이브러리 스크립트 주입 ---
@@ -1132,72 +1143,126 @@ export default function App() {
             )}
 
             {activeTab === 'gear' && (
-              <section className="pt-28 px-6 max-w-5xl mx-auto animate-in fade-in">
-                <div className="mb-16 flex flex-col justify-between items-start gap-8 border-b border-[#EAE5D9]/10 pb-8">
-                  <div>
-                    <h2 className="text-4xl font-light italic mb-3 text-[#EAE5D9]">Essential Tools</h2>
-                    <p className="text-[#A8A29E] text-sm italic tracking-wide">디렉터 제민의 시선으로 큐레이션된, 기능과 미학의 교차점.</p>
-                  </div>
-                  <div className="flex gap-6 overflow-x-auto whitespace-nowrap hide-scrollbar w-full">
-                    {['ALL', 'PACK', 'APPAREL', 'EYEWEAR', 'ACCESSORY'].map(cat => (<button key={cat} onClick={() => setGearFilter(cat)} className={`text-[11px] uppercase tracking-[0.3em] font-bold transition-all px-4 py-2 rounded-full border ${gearFilter === cat ? 'bg-[#EAE5D9] text-[#151413] border-[#EAE5D9]' : 'text-[#78716C] border-transparent hover:border-[#EAE5D9]/20'}`}>{cat}</button>))}
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-24">
-                  {siteContent.gearItems.filter(item => gearFilter === 'ALL' || item.category === gearFilter).map(item => {
-                    const saved = isItemSaved('gear', item._id);
+              <section className="px-4 md:px-6 animate-in fade-in duration-700">
+                {selectedGear ? (
+                  /* ── Gear 상세 페이지 ── */
+                  (() => {
+                    const allGear = siteContent.gearItems;
+                    const currentIdx = allGear.findIndex(g => g._id === selectedGear._id);
+                    const prevGear = currentIdx > 0 ? allGear[currentIdx - 1] : null;
+                    const nextGear = currentIdx < allGear.length - 1 ? allGear[currentIdx + 1] : null;
+                    const goToGear = (item) => {
+                      setSelectedGear(item);
+                      const slug = item.slug?.current || item._id;
+                      window.history.pushState({ gearId: item._id }, '', `/gear/${slug}`);
+                    };
+                    const goBack = () => {
+                      setSelectedGear(null);
+                      window.history.pushState({}, '', '/');
+                    };
                     return (
-                      <div key={item._id} className="group relative">
-                        <div className="aspect-[4/5] bg-[#1A1918] border border-[#EAE5D9]/5 overflow-hidden rounded-sm mb-8 relative">
-                          {item.image && <img src={urlFor(item.image)} className="w-full h-full object-cover transition-transform duration-[15s] group-hover:scale-105" alt={item.name} />}
-                          <div className="absolute inset-0 bg-[#151413]/10 group-hover:bg-transparent transition-colors duration-700"></div>
-                          
-                          <button 
-                            onClick={(e) => toggleSave(e, 'gear', item)}
-                            className={`absolute top-6 right-6 z-20 p-3 rounded-full backdrop-blur-md border transition-all ${saved ? 'bg-[#EAE5D9] text-[#151413] border-[#EAE5D9]' : 'bg-black/30 border-white/20 text-white hover:bg-black/60 opacity-0 group-hover:opacity-100'}`}
+                      <div className="pt-24 max-w-3xl mx-auto">
+                        <button onClick={goBack} className="flex items-center gap-2 text-[#78716C] text-[11px] uppercase tracking-widest mb-12 hover:text-[#EAE5D9] transition-colors">
+                          <ArrowLeft size={16} /> Back to Gear
+                        </button>
+                        {selectedGear.image && (
+                          <div className="aspect-[4/3] md:aspect-[16/9] w-full overflow-hidden mb-16 rounded-sm border border-[#EAE5D9]/5 relative group">
+                            <img src={urlFor(selectedGear.image)} alt={selectedGear.name} className="w-full h-full object-cover transition-transform duration-[30s] group-hover:scale-105" />
+                            <div className="absolute inset-0 bg-gradient-to-t from-[#151413] via-transparent to-transparent opacity-60"></div>
+                          </div>
+                        )}
+                        <p className="text-[10px] uppercase font-bold tracking-[0.3em] mb-4 text-[#A8A29E] flex items-center gap-2">
+                          <span className="w-1.5 h-1.5 bg-[#C2410C] rounded-full inline-block"></span>
+                          {selectedGear.brand} · {selectedGear.category}
+                        </p>
+                        <div className="flex justify-between items-start mb-10">
+                          <h2 className="text-5xl md:text-6xl font-light italic leading-[1.1] text-[#EAE5D9] max-w-[85%]">{selectedGear.name}</h2>
+                          <button
+                            onClick={(e) => toggleSave(e, 'gear', selectedGear)}
+                            className={`p-3 rounded-full border transition-all shrink-0 ${isItemSaved('gear', selectedGear._id) ? 'bg-[#EAE5D9] text-[#151413] border-[#EAE5D9]' : 'border-[#EAE5D9]/20 text-[#EAE5D9] hover:bg-[#EAE5D9]/10'}`}
                           >
-                            {saved ? <BookmarkCheck size={20} /> : <Bookmark size={20} />}
+                            {isItemSaved('gear', selectedGear._id) ? <BookmarkCheck size={20} /> : <Bookmark size={20} />}
                           </button>
                         </div>
-                        <div>
-                          <p className="text-[10px] uppercase font-bold tracking-[0.3em] mb-3 text-[#A8A29E] flex items-center gap-2">
-                            <span className="w-1.5 h-1.5 bg-[#C2410C] rounded-full inline-block"></span>
-                            {item.brand}
-                          </p>
-                          <h3 className="text-3xl font-light italic mb-6 text-[#EAE5D9] group-hover:text-white transition-colors">{item.name}</h3>
-                          <p className="text-[15px] leading-[1.8] text-[#78716C] italic font-light line-clamp-2">"{item.note}"</p>
-                          <button
-                            onClick={() => setSelectedGear(item)}
-                            className="mt-3 text-[10px] uppercase tracking-[0.2em] text-[#A8A29E] hover:text-[#EAE5D9] border-b border-[#A8A29E]/40 hover:border-[#EAE5D9] pb-0.5 transition-colors"
-                          >Read More</button>
+                        {selectedGear.note && (
+                          <p className="text-[17px] leading-[1.9] text-[#78716C] italic font-light mb-12 border-l-2 border-[#C2410C]/40 pl-6">"{selectedGear.note}"</p>
+                        )}
+                        {selectedGear.body && <EditorialRenderer blocks={selectedGear.body} />}
+                        {/* 이전/다음 네비게이션 */}
+                        <div className="flex justify-between items-center mt-20 pt-10 border-t border-[#EAE5D9]/10">
+                          {prevGear ? (
+                            <button onClick={() => goToGear(prevGear)} className="flex items-center gap-3 text-left group max-w-[45%]">
+                              <ArrowLeft size={16} className="text-[#78716C] group-hover:text-[#EAE5D9] transition-colors shrink-0" />
+                              <div>
+                                <p className="text-[9px] uppercase tracking-widest text-[#78716C] mb-1">이전 글</p>
+                                <p className="text-[13px] font-light italic text-[#A8A29E] group-hover:text-[#EAE5D9] transition-colors line-clamp-1">{prevGear.name}</p>
+                              </div>
+                            </button>
+                          ) : <div />}
+                          {nextGear ? (
+                            <button onClick={() => goToGear(nextGear)} className="flex items-center gap-3 text-right group max-w-[45%]">
+                              <div>
+                                <p className="text-[9px] uppercase tracking-widest text-[#78716C] mb-1">다음 글</p>
+                                <p className="text-[13px] font-light italic text-[#A8A29E] group-hover:text-[#EAE5D9] transition-colors line-clamp-1">{nextGear.name}</p>
+                              </div>
+                              <ArrowRight size={16} className="text-[#78716C] group-hover:text-[#EAE5D9] transition-colors shrink-0" />
+                            </button>
+                          ) : <div />}
                         </div>
+                        <div className="h-40" />
                       </div>
                     );
-                  })}
-                </div>
-              </section>
-            )}
-
-            {/* Gear Detail Modal */}
-            {selectedGear && (
-              <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/70 backdrop-blur-sm" onClick={() => setSelectedGear(null)}>
-                <div className="bg-[#1A1918] border border-[#EAE5D9]/10 rounded-t-2xl md:rounded-sm w-full md:max-w-lg max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-                  {selectedGear.image && (
-                    <div className="aspect-[3/2] overflow-hidden">
-                      <img src={urlFor(selectedGear.image)} className="w-full h-full object-cover" alt={selectedGear.name} />
+                  })()
+                ) : (
+                  /* ── Gear 목록 ── */
+                  <div className="pt-28 max-w-5xl mx-auto">
+                    <div className="mb-16 flex flex-col justify-between items-start gap-8 border-b border-[#EAE5D9]/10 pb-8">
+                      <div>
+                        <h2 className="text-4xl font-light italic mb-3 text-[#EAE5D9]">Essential Tools</h2>
+                        <p className="text-[#A8A29E] text-sm italic tracking-wide">디렉터 제민의 시선으로 큐레이션된, 기능과 미학의 교차점.</p>
+                      </div>
+                      <div className="flex gap-6 overflow-x-auto whitespace-nowrap hide-scrollbar w-full">
+                        {['ALL', 'PACK', 'APPAREL', 'EYEWEAR', 'ACCESSORY'].map(cat => (<button key={cat} onClick={() => setGearFilter(cat)} className={`text-[11px] uppercase tracking-[0.3em] font-bold transition-all px-4 py-2 rounded-full border ${gearFilter === cat ? 'bg-[#EAE5D9] text-[#151413] border-[#EAE5D9]' : 'text-[#78716C] border-transparent hover:border-[#EAE5D9]/20'}`}>{cat}</button>))}
+                      </div>
                     </div>
-                  )}
-                  <div className="p-8">
-                    <p className="text-[10px] uppercase font-bold tracking-[0.3em] mb-3 text-[#A8A29E] flex items-center gap-2">
-                      <span className="w-1.5 h-1.5 bg-[#C2410C] rounded-full inline-block"></span>
-                      {selectedGear.brand}
-                    </p>
-                    <h3 className="text-3xl font-light italic mb-6 text-[#EAE5D9]">{selectedGear.name}</h3>
-                    <p className="text-[15px] leading-[1.9] text-[#A8A29E] italic font-light">"{selectedGear.note}"</p>
-                    <button onClick={() => setSelectedGear(null)} className="mt-10 text-[10px] uppercase tracking-widest text-[#78716C] hover:text-[#EAE5D9] border-b border-[#78716C] pb-1 transition-colors">Close</button>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-24">
+                      {siteContent.gearItems.filter(item => gearFilter === 'ALL' || item.category === gearFilter).map(item => {
+                        const saved = isItemSaved('gear', item._id);
+                        return (
+                          <div key={item._id} className="group relative">
+                            <div className="aspect-[4/5] bg-[#1A1918] border border-[#EAE5D9]/5 overflow-hidden rounded-sm mb-8 relative">
+                              {item.image && <img src={urlFor(item.image)} className="w-full h-full object-cover transition-transform duration-[15s] group-hover:scale-105" alt={item.name} />}
+                              <div className="absolute inset-0 bg-[#151413]/10 group-hover:bg-transparent transition-colors duration-700"></div>
+                              <button
+                                onClick={(e) => toggleSave(e, 'gear', item)}
+                                className={`absolute top-6 right-6 z-20 p-3 rounded-full backdrop-blur-md border transition-all ${saved ? 'bg-[#EAE5D9] text-[#151413] border-[#EAE5D9]' : 'bg-black/30 border-white/20 text-white hover:bg-black/60 opacity-0 group-hover:opacity-100'}`}
+                              >
+                                {saved ? <BookmarkCheck size={20} /> : <Bookmark size={20} />}
+                              </button>
+                            </div>
+                            <div>
+                              <p className="text-[10px] uppercase font-bold tracking-[0.3em] mb-3 text-[#A8A29E] flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 bg-[#C2410C] rounded-full inline-block"></span>
+                                {item.brand}
+                              </p>
+                              <h3 className="text-3xl font-light italic mb-6 text-[#EAE5D9] group-hover:text-white transition-colors">{item.name}</h3>
+                              <p className="text-[15px] leading-[1.8] text-[#78716C] italic font-light line-clamp-2">"{item.note}"</p>
+                              <button
+                                onClick={() => {
+                                  setSelectedGear(item);
+                                  const slug = item.slug?.current || item._id;
+                                  window.history.pushState({ gearId: item._id }, '', `/gear/${slug}`);
+                                }}
+                                className="mt-3 text-[10px] uppercase tracking-[0.2em] text-[#A8A29E] hover:text-[#EAE5D9] border-b border-[#A8A29E]/40 hover:border-[#EAE5D9] pb-0.5 transition-colors"
+                              >Read More</button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
-              </div>
+                )}
+              </section>
             )}
 
             {activeTab === 'recovery' && (
