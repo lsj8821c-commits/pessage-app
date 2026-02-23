@@ -723,13 +723,10 @@ export default function App() {
              <p className="text-[9px] text-[#78716C] mb-10 leading-relaxed">
                By signing in, you agree to our{' '}
                <a href="/privacy" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-[#A8A29E] transition-colors">Privacy Policy</a>
+               <span className="mx-1.5 opacity-40">·</span>
+               <a href="/privacy-ko" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-[#A8A29E] transition-colors">개인정보처리방침</a>
              </p>
              <button onClick={() => setAuthMode(null)} className="text-[10px] uppercase tracking-widest text-[#78716C] hover:text-[#EAE5D9] border-b border-[#78716C] pb-1 transition-colors">Return</button>
-             <div className="mt-10 flex items-center justify-center gap-3 text-[#78716C]">
-               <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-[9px] tracking-widest uppercase hover:text-[#EAE5D9] transition-colors">Privacy Policy</a>
-               <span className="text-[#78716C]/40">|</span>
-               <a href="/privacy-ko" target="_blank" rel="noopener noreferrer" className="text-[9px] tracking-widest uppercase hover:text-[#EAE5D9] transition-colors">개인정보처리방침</a>
-             </div>
           </section>
         ) : isProfileOpen && isLoggedIn ? (
           <section className="pt-32 px-6 max-w-4xl mx-auto animate-in slide-in-from-bottom-8">
