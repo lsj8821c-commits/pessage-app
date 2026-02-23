@@ -1369,7 +1369,7 @@ export default function App() {
                     )}
 
                     {/* AI Ritual */}
-                    <div className="text-center pt-4 pb-8">
+                    <div className="text-center pt-8 pb-6">
                       <button
                         onClick={() => generateAiContent('recovery', `Strava 실데이터 기반 러너: 마지막 러닝 ${stravaData.lastRun ? (stravaData.lastRun.distance / 1000).toFixed(1) : '?'}km · 페이스 ${formatPace(stravaData.lastRun?.paceSecsPerKm)} · 평균 심박수 ${stravaData.lastRun?.average_heartrate ? Math.round(stravaData.lastRun.average_heartrate) : '?'}bpm · 이번 주 ${stravaData.weeklyStats ? (stravaData.weeklyStats.distanceM / 1000).toFixed(1) : '?'}km 완주. 이 러너를 위한 오늘의 회복(Recovery) 리추얼을 프리미엄 라이프스타일 매거진 톤으로 짧고 감각적이게 추천해줘.`)}
                         className="px-12 py-5 bg-[#EAE5D9] text-[#151413] font-bold text-[11px] uppercase tracking-[0.2em] rounded-sm shadow-2xl hover:bg-white active:scale-95 transition-all"
@@ -1379,10 +1379,12 @@ export default function App() {
                           "{aiResponse}"
                         </div>
                       )}
-                      <button
-                        onClick={() => { sessionStorage.removeItem('strava_data'); setStravaData(null); }}
-                        className="mt-8 text-[10px] uppercase tracking-[0.3em] text-[#5A5450] hover:text-[#78716C] transition-colors"
-                      >Disconnect Strava</button>
+                      <div className="mt-16">
+                        <button
+                          onClick={() => { sessionStorage.removeItem('strava_data'); setStravaData(null); }}
+                          className="text-[9px] uppercase tracking-[0.3em] text-[#3A3532] hover:text-[#78716C] transition-colors"
+                        >Disconnect Strava</button>
+                      </div>
                     </div>
                   </div>
                 ) : (
