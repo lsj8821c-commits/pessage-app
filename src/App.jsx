@@ -633,7 +633,7 @@ export default function App() {
                 </div>
              </div>
              {/* ✅ 실제 로그아웃 함수 연결 */}
-             <button onClick={async () => { await logout(); setIsProfileOpen(false); }} className="w-full py-5 bg-[#C2410C]/10 text-[#C2410C] text-[10px] uppercase font-bold tracking-[0.3em] rounded-sm hover:bg-[#C2410C]/20 transition-colors">TERMINATE SESSION</button>
+             <button onClick={async () => { await logout(); setIsProfileOpen(false); }} className="w-full py-5 bg-[#C2410C]/10 text-[#C2410C] text-[10px] uppercase font-bold tracking-[0.3em] rounded-sm hover:bg-[#C2410C]/20 transition-colors">LOG OUT</button>
           </section>
         ) : (
           <>
