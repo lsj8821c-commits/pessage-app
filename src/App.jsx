@@ -1166,7 +1166,7 @@ export default function App() {
                           <ArrowLeft size={16} /> Back to Gear
                         </button>
                         {selectedGear.image && (
-                          <div className="aspect-[4/3] md:aspect-[16/9] w-full overflow-hidden mb-16 rounded-sm border border-[#EAE5D9]/5 relative group" style={{backgroundColor: '#151413'}}>
+                          <div className="-mx-4 md:mx-0 aspect-[4/3] md:aspect-[16/9] w-[calc(100%+2rem)] md:w-full overflow-hidden mb-16 md:rounded-sm md:border md:border-[#EAE5D9]/5" style={{backgroundColor: '#151413'}}>
                             <img src={urlFor(selectedGear.image)} alt={selectedGear.name} className="w-full h-full object-contain" />
                           </div>
                         )}
