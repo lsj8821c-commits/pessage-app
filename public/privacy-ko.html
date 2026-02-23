@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>개인정보처리방침 — PESSAGE</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: #151413;
+      color: #EAE5D9;
+      font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+      font-weight: 300;
+      line-height: 1.9;
+      -webkit-font-smoothing: antialiased;
+      word-break: keep-all;
+    }
+
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+
+    a { color: #A8A29E; text-decoration: none; border-bottom: 1px solid #A8A29E44; transition: color 0.2s, border-color 0.2s; }
+    a:hover { color: #EAE5D9; border-color: #EAE5D9; }
+
+    header {
+      position: fixed;
+      top: 0;
+      width: 100%;
+      z-index: 100;
+      padding: 20px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(21, 20, 19, 0.9);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(234, 229, 217, 0.05);
+    }
+
+    .logo {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: 0.3em;
+      font-style: italic;
+      color: #EAE5D9;
+      text-decoration: none;
+      border: none;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+    .logo:hover { color: #fff; border: none; }
+
+    .lang-switch {
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #78716C;
+      border-bottom: 1px solid #78716C44;
+    }
+    .lang-switch:hover { color: #EAE5D9; border-color: #EAE5D9; }
+
+    main {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 140px 24px 100px;
+    }
+
+    .badge {
+      display: inline-block;
+      font-size: 10px;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: #78716C;
+      border: 1px solid rgba(234, 229, 217, 0.15);
+      padding: 6px 14px;
+      border-radius: 100px;
+      margin-bottom: 24px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    h1 {
+      font-size: clamp(30px, 5vw, 48px);
+      font-weight: 300;
+      line-height: 1.2;
+      color: #EAE5D9;
+      margin-bottom: 16px;
+    }
+
+    .meta {
+      font-size: 12px;
+      letter-spacing: 0.05em;
+      color: #5A5450;
+      margin-bottom: 60px;
+      padding-bottom: 60px;
+      border-bottom: 1px solid rgba(234, 229, 217, 0.08);
+    }
+
+    section {
+      margin-bottom: 56px;
+    }
+
+    h2 {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: #A8A29E;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+    h2::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: rgba(234, 229, 217, 0.08);
+    }
+
+    h3 {
+      font-size: 15px;
+      font-weight: 500;
+      color: #EAE5D9;
+      margin: 24px 0 10px;
+    }
+
+    p {
+      font-size: 15px;
+      color: #A8A29E;
+      margin-bottom: 14px;
+    }
+
+    .card {
+      background: #1A1918;
+      border: 1px solid rgba(234, 229, 217, 0.06);
+      border-radius: 2px;
+      padding: 28px 32px;
+      margin-bottom: 16px;
+    }
+
+    .card-title {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #78716C;
+      margin-bottom: 14px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    .card p {
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+    .card p:last-child { margin-bottom: 0; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+      margin-top: 8px;
+    }
+    th {
+      text-align: left;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #78716C;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(234, 229, 217, 0.08);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+    td {
+      color: #A8A29E;
+      padding: 14px 0;
+      border-bottom: 1px solid rgba(234, 229, 217, 0.04);
+      vertical-align: top;
+    }
+    td:first-child { color: #EAE5D9; width: 140px; padding-right: 20px; font-weight: 400; }
+    tr:last-child td { border-bottom: none; }
+
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+    ul li {
+      font-size: 15px;
+      color: #A8A29E;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(234, 229, 217, 0.04);
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    ul li:last-child { border-bottom: none; }
+    ul li::before {
+      content: '';
+      display: inline-block;
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: #5A5450;
+      margin-top: 11px;
+      flex-shrink: 0;
+    }
+
+    .highlight {
+      background: rgba(194, 65, 12, 0.08);
+      border: 1px solid rgba(194, 65, 12, 0.2);
+      border-radius: 2px;
+      padding: 20px 24px;
+      margin: 24px 0;
+    }
+    .highlight p {
+      color: #A8A29E;
+      font-size: 14px;
+      margin: 0;
+    }
+
+    .article-num {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      color: #5A5450;
+      margin-bottom: 8px;
+      display: block;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    footer {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 40px 24px 60px;
+      border-top: 1px solid rgba(234, 229, 217, 0.06);
+    }
+    .footer-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+    .footer-logo {
+      font-size: 18px;
+      font-weight: 700;
+      font-style: italic;
+      letter-spacing: 0.3em;
+      color: #3D3A37;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+    .footer-text {
+      font-size: 11px;
+      color: #3D3A37;
+      letter-spacing: 0.03em;
+      text-align: right;
+    }
+
+    @media (max-width: 600px) {
+      main { padding: 120px 20px 80px; }
+      .card { padding: 20px; }
+      td:first-child { width: 100px; }
+      .footer-content { flex-direction: column; align-items: flex-start; }
+      .footer-text { text-align: left; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <a href="/" class="logo">PESSAGE</a>
+  <a href="/privacy" class="lang-switch">English</a>
+</header>
+
+<main>
+  <span class="badge">Legal</span>
+  <h1>개인정보처리방침</h1>
+  <p class="meta">시행일: 2026년 2월 23일 &nbsp;·&nbsp; 최종 수정일: 2026년 2월 23일</p>
+
+  <!-- 제1조 총칙 -->
+  <section>
+    <h2>제1조 &nbsp; 총칙</h2>
+    <p>PESSAGE(이하 "서비스")는 러너를 위한 에디토리얼 콘텐츠, 러닝 루트, 레이스 캘린더, 기어 큐레이션 및 리커버리 데이터를 제공하는 라이프스타일 플랫폼입니다.</p>
+    <p>서비스 운영자(이하 "운영자")는 「개인정보 보호법」 및 관련 법령에 따라 이용자의 개인정보를 보호하고, 이와 관련한 고충을 신속하고 원활하게 처리할 수 있도록 다음과 같이 개인정보처리방침을 수립·공개합니다.</p>
+    <p>본 방침은 <strong style="color:#EAE5D9">pessage-app.vercel.app</strong>에서 제공하는 서비스에 적용됩니다.</p>
+  </section>
+
+  <!-- 제2조 수집하는 개인정보 -->
+  <section>
+    <h2>제2조 &nbsp; 수집하는 개인정보 항목</h2>
+    <p>운영자는 서비스 제공에 필요한 최소한의 개인정보만을 수집합니다.</p>
+
+    <h3>소셜 로그인 정보</h3>
+    <div class="card">
+      <p class="card-title">소셜 로그인 시 OAuth 제공자로부터 수집</p>
+      <table>
+        <thead>
+          <tr>
+            <th>제공자</th>
+            <th>수집 항목</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Google</td>
+            <td>표시 이름, 이메일 주소, 프로필 사진 URL</td>
+          </tr>
+          <tr>
+            <td>카카오</td>
+            <td>닉네임, 이메일 주소(제공 동의 시), 프로필 사진 URL</td>
+          </tr>
+          <tr>
+            <td>네이버</td>
+            <td>이름, 이메일 주소, 프로필 사진 URL</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>운동·활동 데이터</h3>
+    <div class="card">
+      <p class="card-title">Strava 연동 시 수집 (이용자가 직접 연결한 경우에만)</p>
+      <table>
+        <thead>
+          <tr>
+            <th>분류</th>
+            <th>수집 항목</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>최근 활동</td>
+            <td>활동명, 날짜, 거리(km), 이동 시간, 페이스(분/km)</td>
+          </tr>
+          <tr>
+            <td>심박수</td>
+            <td>평균 심박수, 최대 심박수 (심박계 착용 시에만 수집)</td>
+          </tr>
+          <tr>
+            <td>칼로리</td>
+            <td>활동당 예상 소모 칼로리</td>
+          </tr>
+          <tr>
+            <td>연간 통계</td>
+            <td>연도별 누적 러닝 거리</td>
+          </tr>
+          <tr>
+            <td>프로필</td>
+            <td>Strava 계정의 이름, 프로필 사진</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <p class="card-title">디바이스 연동 (Garmin, COROS, Suunto)</p>
+      <p>앱 내에서 Garmin, COROS, Suunto 기기를 선택하면, 선택한 기기 브랜드 명칭만 브라우저 세션에 임시 저장됩니다. 해당 기기에서 실제 데이터를 가져오지 않습니다.</p>
+    </div>
+
+    <h3>자동 수집 정보</h3>
+    <ul>
+      <li>브라우저 세션 데이터 (sessionStorage — 탭 종료 시 자동 삭제)</li>
+      <li>웹 서버 접속 로그: IP 주소, 브라우저 종류, 접속 일시 (Vercel 인프라에 의해 자동 수집)</li>
+    </ul>
+  </section>
+
+  <!-- 제3조 이용 목적 -->
+  <section>
+    <h2>제3조 &nbsp; 개인정보의 이용 목적</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>목적</th>
+          <th>세부 내용</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>본인 인증</td>
+          <td>로그인 상태 유지 및 이용자 식별</td>
+        </tr>
+        <tr>
+          <td>서비스 개인화</td>
+          <td>이름·프로필 사진 표시, 저장한 아티클·기어 복원</td>
+        </tr>
+        <tr>
+          <td>리커버리 기능</td>
+          <td>Strava 데이터를 기반으로 Ritual Score 산출 및 Recovery Ritual 페이지의 실데이터 표시</td>
+        </tr>
+        <tr>
+          <td>AI 콘텐츠 생성</td>
+          <td>활동 통계를 컨텍스트로 활용하여 AI 리커버리 리추얼 추천 (Google Gemini API 경유)</td>
+        </tr>
+        <tr>
+          <td>서비스 개선</td>
+          <td>이용 현황 분석 및 기술적 문제 해결</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 제4조 제3자 제공 -->
+  <section>
+    <h2>제4조 &nbsp; 개인정보의 제3자 제공</h2>
+    <p>운영자는 이용자의 개인정보를 제3자에게 판매하거나 마케팅 목적으로 제공하지 않습니다.</p>
+
+    <div class="card">
+      <p class="card-title">서비스 운영에 관여하는 외부 서비스</p>
+      <table>
+        <thead>
+          <tr>
+            <th>서비스명</th>
+            <th>역할</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Google Firebase</td>
+            <td>Google 소셜 로그인 인증 및 세션 관리</td>
+          </tr>
+          <tr>
+            <td>카카오 (Kakao Developers)</td>
+            <td>카카오 소셜 로그인 OAuth 인증</td>
+          </tr>
+          <tr>
+            <td>네이버 (Naver Developers)</td>
+            <td>네이버 소셜 로그인 OAuth 인증</td>
+          </tr>
+          <tr>
+            <td>Strava</td>
+            <td>이용자가 명시적으로 연동한 경우 운동 데이터 조회</td>
+          </tr>
+          <tr>
+            <td>Google Gemini API</td>
+            <td>AI 리커버리 리추얼 텍스트 생성 (활동 통계를 프롬프트 컨텍스트로 전송)</td>
+          </tr>
+          <tr>
+            <td>Sanity.io</td>
+            <td>에디토리얼, 루트, 기어 콘텐츠 관리</td>
+          </tr>
+          <tr>
+            <td>Vercel</td>
+            <td>클라우드 호스팅 및 서버리스 함수 인프라</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="highlight">
+      <p>AI 리추얼 기능 사용 시 러닝 통계(거리, 페이스, 심박수 등)가 Google Gemini API에 프롬프트 형태로 전송됩니다. 이름, 이메일 등 직접 식별 정보는 포함되지 않습니다.</p>
+    </div>
+  </section>
+
+  <!-- 제5조 보유 기간 -->
+  <section>
+    <h2>제5조 &nbsp; 개인정보의 보유 및 이용 기간</h2>
+    <p>운영자는 별도의 개인정보 데이터베이스를 운영하지 않습니다. 개인정보는 브라우저 내 세션 저장소에 임시 보관되며, 아래 기준에 따라 삭제됩니다.</p>
+    <table>
+      <thead>
+        <tr>
+          <th>데이터 유형</th>
+          <th>보유 기간</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>소셜 로그인 세션</td>
+          <td>브라우저 탭 종료 시 자동 삭제 (sessionStorage)</td>
+        </tr>
+        <tr>
+          <td>Firebase 인증 (Google)</td>
+          <td>로그아웃 또는 Google 계정에서 앱 접근 권한 해제 시까지</td>
+        </tr>
+        <tr>
+          <td>Strava 활동 데이터</td>
+          <td>탭 종료 시 자동 삭제. Strava 연동 해제 시 즉시 삭제</td>
+        </tr>
+        <tr>
+          <td>저장 아티클·기어</td>
+          <td>세션 메모리에만 보관, 새로고침 또는 탭 종료 시 삭제</td>
+        </tr>
+        <tr>
+          <td>서버 접속 로그</td>
+          <td>Vercel 표준 로그 보존 정책에 따름</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 제6조 이용자 권리 -->
+  <section>
+    <h2>제6조 &nbsp; 이용자의 권리</h2>
+    <p>이용자는 다음의 권리를 행사할 수 있습니다.</p>
+    <ul>
+      <li><strong style="color:#EAE5D9">열람 요구</strong> — 본인의 개인정보 처리 현황 확인 및 열람을 요청할 수 있습니다.</li>
+      <li><strong style="color:#EAE5D9">정정·수정</strong> — 앱 프로필 설정에서 표시 이름을 직접 수정할 수 있습니다.</li>
+      <li><strong style="color:#EAE5D9">삭제 및 처리 정지</strong> — 로그아웃 시 세션 데이터가 삭제됩니다. Google·카카오·네이버·Strava 계정 설정에서 앱 연동을 직접 해제할 수 있습니다.</li>
+      <li><strong style="color:#EAE5D9">동의 철회</strong> — Recovery Ritual 페이지에서 Strava 연동을 언제든지 해제할 수 있습니다.</li>
+      <li><strong style="color:#EAE5D9">이동성</strong> — 운동 데이터는 Strava 계정에 귀속되며, Strava에서 직접 내보내기가 가능합니다.</li>
+    </ul>
+    <p style="margin-top:20px">권리 행사 또는 개인정보 관련 문의는 아래 연락처로 요청하시기 바랍니다. 운영자는 요청을 받은 날로부터 10일 이내에 처리 결과를 안내합니다.</p>
+  </section>
+
+  <!-- 제7조 쿠키 -->
+  <section>
+    <h2>제7조 &nbsp; 쿠키 및 로컬 스토리지</h2>
+    <p>PESSAGE는 로그인 상태와 활동 데이터를 유지하기 위해 브라우저 <strong style="color:#EAE5D9">sessionStorage</strong>를 사용합니다(쿠키 미사용). 탭을 닫으면 자동으로 삭제됩니다.</p>
+    <p>Google Firebase 인증은 자체 인증 흐름의 일부로 쿠키 또는 로컬 스토리지를 사용할 수 있습니다. 브라우저 설정에서 언제든지 삭제 가능합니다.</p>
+    <p>광고 쿠키 및 제3자 추적 스크립트는 사용하지 않습니다.</p>
+  </section>
+
+  <!-- 제8조 아동 -->
+  <section>
+    <h2>제8조 &nbsp; 만 14세 미만 아동</h2>
+    <p>서비스는 만 14세 미만 아동을 대상으로 하지 않습니다. 만 14세 미만 이용자의 개인정보가 수집된 사실을 인지하는 즉시 해당 정보를 삭제합니다. 관련 사항을 발견하신 경우 아래 연락처로 알려주시기 바랍니다.</p>
+  </section>
+
+  <!-- 제9조 방침 변경 -->
+  <section>
+    <h2>제9조 &nbsp; 개인정보처리방침의 변경</h2>
+    <p>본 방침은 법령 변경 또는 서비스 정책 변화에 따라 수정될 수 있습니다. 중요한 내용이 변경될 경우 이 페이지 상단의 "최종 수정일"을 업데이트하며, 변경 후 서비스 이용을 계속할 경우 변경된 방침에 동의한 것으로 간주합니다.</p>
+  </section>
+
+  <!-- 제10조 개인정보 보호 책임자 -->
+  <section>
+    <h2>제10조 &nbsp; 개인정보 보호 책임자 및 연락처</h2>
+    <div class="card">
+      <p class="card-title">개인정보 관련 문의</p>
+      <p><strong style="color:#EAE5D9">서비스명</strong> &nbsp; PESSAGE</p>
+      <p><strong style="color:#EAE5D9">운영자</strong> &nbsp; 이제민 (Jemin Lee)</p>
+      <p><strong style="color:#EAE5D9">문의 이메일</strong> &nbsp; <a href="mailto:privacy@pessage.com">privacy@pessage.com</a></p>
+      <p><strong style="color:#EAE5D9">서비스 주소</strong> &nbsp; <a href="https://pessage-app.vercel.app">pessage-app.vercel.app</a></p>
+    </div>
+    <p>이용자는 개인정보 열람·수정·삭제 요청 및 개인정보 침해 신고와 관련하여 아래 기관에 문의할 수 있습니다.</p>
+    <ul>
+      <li>개인정보 침해 신고 센터: <a href="https://privacy.kisa.or.kr" target="_blank">privacy.kisa.or.kr</a> (국번 없이 118)</li>
+      <li>개인정보 분쟁조정위원회: <a href="https://www.kopico.go.kr" target="_blank">www.kopico.go.kr</a> (1833-6972)</li>
+      <li>대검찰청 사이버범죄수사단: <a href="https://www.spo.go.kr" target="_blank">www.spo.go.kr</a> (02-3480-3573)</li>
+      <li>경찰청 사이버안전국: <a href="https://cyberbureau.police.go.kr" target="_blank">cyberbureau.police.go.kr</a> (국번 없이 182)</li>
+    </ul>
+  </section>
+</main>
+
+<footer>
+  <div class="footer-content">
+    <span class="footer-logo">PESSAGE</span>
+    <div class="footer-text">
+      <p>© 2026 PESSAGE. All rights reserved.</p>
+      <p style="margin-top:4px"><a href="/privacy" style="color:#3D3A37; border-color:#3D3A37; font-size:11px;">English Version</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

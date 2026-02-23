@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Privacy Policy — PESSAGE</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: #151413;
+      color: #EAE5D9;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-weight: 300;
+      line-height: 1.8;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+
+    a { color: #A8A29E; text-decoration: none; border-bottom: 1px solid #A8A29E44; transition: color 0.2s, border-color 0.2s; }
+    a:hover { color: #EAE5D9; border-color: #EAE5D9; }
+
+    header {
+      position: fixed;
+      top: 0;
+      width: 100%;
+      z-index: 100;
+      padding: 20px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(21, 20, 19, 0.9);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(234, 229, 217, 0.05);
+    }
+
+    .logo {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: 0.3em;
+      font-style: italic;
+      color: #EAE5D9;
+      text-decoration: none;
+      border: none;
+    }
+    .logo:hover { color: #fff; border: none; }
+
+    .lang-switch {
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #78716C;
+      border-bottom: 1px solid #78716C44;
+    }
+    .lang-switch:hover { color: #EAE5D9; border-color: #EAE5D9; }
+
+    main {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 140px 24px 100px;
+    }
+
+    .badge {
+      display: inline-block;
+      font-size: 10px;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: #78716C;
+      border: 1px solid rgba(234, 229, 217, 0.15);
+      padding: 6px 14px;
+      border-radius: 100px;
+      margin-bottom: 24px;
+    }
+
+    h1 {
+      font-size: clamp(36px, 6vw, 56px);
+      font-weight: 300;
+      font-style: italic;
+      line-height: 1.1;
+      letter-spacing: -0.01em;
+      color: #EAE5D9;
+      margin-bottom: 16px;
+    }
+
+    .meta {
+      font-size: 12px;
+      letter-spacing: 0.1em;
+      color: #5A5450;
+      margin-bottom: 60px;
+      padding-bottom: 60px;
+      border-bottom: 1px solid rgba(234, 229, 217, 0.08);
+    }
+
+    section {
+      margin-bottom: 56px;
+    }
+
+    h2 {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      color: #A8A29E;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    h2::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: rgba(234, 229, 217, 0.08);
+    }
+
+    h3 {
+      font-size: 15px;
+      font-weight: 400;
+      color: #EAE5D9;
+      margin: 24px 0 10px;
+    }
+
+    p {
+      font-size: 15px;
+      color: #A8A29E;
+      margin-bottom: 14px;
+    }
+
+    .card {
+      background: #1A1918;
+      border: 1px solid rgba(234, 229, 217, 0.06);
+      border-radius: 2px;
+      padding: 28px 32px;
+      margin-bottom: 16px;
+    }
+
+    .card-title {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: #78716C;
+      margin-bottom: 12px;
+    }
+
+    .card p {
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+    .card p:last-child { margin-bottom: 0; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+      margin-top: 8px;
+    }
+    th {
+      text-align: left;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #78716C;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(234, 229, 217, 0.08);
+    }
+    td {
+      color: #A8A29E;
+      padding: 14px 0;
+      border-bottom: 1px solid rgba(234, 229, 217, 0.04);
+      vertical-align: top;
+    }
+    td:first-child { color: #EAE5D9; width: 160px; padding-right: 20px; }
+    tr:last-child td { border-bottom: none; }
+
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+    ul li {
+      font-size: 15px;
+      color: #A8A29E;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(234, 229, 217, 0.04);
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    ul li:last-child { border-bottom: none; }
+    ul li::before {
+      content: '';
+      display: inline-block;
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: #5A5450;
+      margin-top: 10px;
+      flex-shrink: 0;
+    }
+
+    .highlight {
+      background: rgba(194, 65, 12, 0.08);
+      border: 1px solid rgba(194, 65, 12, 0.2);
+      border-radius: 2px;
+      padding: 20px 24px;
+      margin: 24px 0;
+    }
+    .highlight p {
+      color: #A8A29E;
+      font-size: 14px;
+      margin: 0;
+    }
+
+    footer {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 40px 24px 60px;
+      border-top: 1px solid rgba(234, 229, 217, 0.06);
+    }
+    .footer-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+    .footer-logo {
+      font-size: 18px;
+      font-weight: 700;
+      font-style: italic;
+      letter-spacing: 0.3em;
+      color: #3D3A37;
+    }
+    .footer-text {
+      font-size: 11px;
+      color: #3D3A37;
+      letter-spacing: 0.05em;
+      text-align: right;
+    }
+
+    @media (max-width: 600px) {
+      main { padding: 120px 20px 80px; }
+      .card { padding: 20px; }
+      td:first-child { width: 120px; }
+      table { display: block; overflow-x: auto; }
+      .footer-content { flex-direction: column; align-items: flex-start; }
+      .footer-text { text-align: left; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <a href="/" class="logo">PESSAGE</a>
+  <a href="/privacy-ko" class="lang-switch">한국어</a>
+</header>
+
+<main>
+  <span class="badge">Legal</span>
+  <h1>Privacy Policy</h1>
+  <p class="meta">Effective Date: February 23, 2026 &nbsp;·&nbsp; Last Updated: February 23, 2026</p>
+
+  <!-- 1. Overview -->
+  <section>
+    <h2>Overview</h2>
+    <p>PESSAGE ("we," "our," or "the Service") is a running lifestyle platform that curates editorial content, running routes, race calendars, gear, and recovery data for runners. We are committed to protecting your personal information and being transparent about how we collect and use it.</p>
+    <p>This Privacy Policy applies to all users of the PESSAGE web application accessible at <strong style="color:#EAE5D9">pessage-app.vercel.app</strong>. By using the Service, you agree to the practices described herein.</p>
+  </section>
+
+  <!-- 2. Data We Collect -->
+  <section>
+    <h2>Data We Collect</h2>
+    <p>We collect information only necessary to provide the Service. The categories of personal data we process are as follows:</p>
+
+    <h3>Social Login Information</h3>
+    <div class="card">
+      <p class="card-title">Collected from OAuth providers</p>
+      <table>
+        <thead>
+          <tr>
+            <th>Provider</th>
+            <th>Data Collected</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Google</td>
+            <td>Display name, email address, profile photo URL</td>
+          </tr>
+          <tr>
+            <td>Kakao</td>
+            <td>Nickname, email address (if provided), profile photo URL</td>
+          </tr>
+          <tr>
+            <td>Naver</td>
+            <td>Name, email address, profile photo URL</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Exercise & Activity Data</h3>
+    <div class="card">
+      <p class="card-title">Collected via Strava OAuth (user-initiated connection only)</p>
+      <table>
+        <thead>
+          <tr>
+            <th>Category</th>
+            <th>Data Collected</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Recent Activities</td>
+            <td>Activity name, date, distance (km), moving time, pace (min/km)</td>
+          </tr>
+          <tr>
+            <td>Heart Rate</td>
+            <td>Average heart rate, maximum heart rate (only when HR monitor is connected to device)</td>
+          </tr>
+          <tr>
+            <td>Calories</td>
+            <td>Estimated caloric expenditure per activity</td>
+          </tr>
+          <tr>
+            <td>Annual Stats</td>
+            <td>Year-to-date total running distance</td>
+          </tr>
+          <tr>
+            <td>Athlete Profile</td>
+            <td>First name, last name, profile photo (from Strava)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <p class="card-title">Device integrations (Garmin, COROS, Suunto)</p>
+      <p>When you select a device brand (Garmin, COROS, or Suunto) in the app, PESSAGE only records your device preference label locally within your browser session. No data is fetched from these devices directly.</p>
+    </div>
+
+    <h3>Automatically Collected Data</h3>
+    <ul>
+      <li>Browser session data (via browser sessionStorage — cleared when you close the tab)</li>
+      <li>Standard web server logs (IP address, user agent, page requests) maintained by Vercel infrastructure</li>
+    </ul>
+  </section>
+
+  <!-- 3. Purpose of Use -->
+  <section>
+    <h2>Purpose of Use</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Purpose</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Authentication</td>
+          <td>To identify you and maintain your logged-in session across the Service</td>
+        </tr>
+        <tr>
+          <td>Personalization</td>
+          <td>To display your name and profile photo; to restore your saved articles and gear</td>
+        </tr>
+        <tr>
+          <td>Recovery Features</td>
+          <td>To calculate your Ritual Score and display real running metrics on the Recovery Ritual page using Strava data</td>
+        </tr>
+        <tr>
+          <td>AI Content</td>
+          <td>To generate personalized recovery ritual recommendations using your activity data as context (processed via Google Gemini API)</td>
+        </tr>
+        <tr>
+          <td>Service Improvement</td>
+          <td>To understand how the Service is used and to fix technical issues</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 4. Third-Party Sharing -->
+  <section>
+    <h2>Third-Party Sharing</h2>
+    <p>We do not sell, rent, or trade your personal information to third parties for their marketing purposes.</p>
+
+    <div class="card">
+      <p class="card-title">Third-party services involved in the Service</p>
+      <table>
+        <thead>
+          <tr>
+            <th>Service</th>
+            <th>Role</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Google Firebase</td>
+            <td>Authentication (Google login), user session management</td>
+          </tr>
+          <tr>
+            <td>Kakao Developers</td>
+            <td>OAuth authentication for Kakao users</td>
+          </tr>
+          <tr>
+            <td>Naver Developers</td>
+            <td>OAuth authentication for Naver users</td>
+          </tr>
+          <tr>
+            <td>Strava</td>
+            <td>Exercise data retrieval (only when you explicitly connect your account)</td>
+          </tr>
+          <tr>
+            <td>Google Gemini API</td>
+            <td>AI-generated recovery ritual text (activity context sent as prompt input)</td>
+          </tr>
+          <tr>
+            <td>Sanity.io</td>
+            <td>Content management system for editorial articles, routes, and gear</td>
+          </tr>
+          <tr>
+            <td>Vercel</td>
+            <td>Cloud hosting and serverless function infrastructure</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="highlight">
+      <p>When you use the AI Ritual feature, a text prompt containing your running statistics (distance, pace, heart rate) is sent to Google Gemini API. No personally identifiable information (name, email) is included in these prompts.</p>
+    </div>
+  </section>
+
+  <!-- 5. Data Retention -->
+  <section>
+    <h2>Data Retention</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Data Type</th>
+          <th>Retention Period</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Login session (social)</td>
+          <td>Stored in browser sessionStorage; automatically deleted when the browser tab is closed</td>
+        </tr>
+        <tr>
+          <td>Firebase auth (Google)</td>
+          <td>Until you log out or revoke access in your Google account settings</td>
+        </tr>
+        <tr>
+          <td>Strava activity data</td>
+          <td>Stored in browser sessionStorage only; not persisted to any database; deleted when you disconnect Strava or close the tab</td>
+        </tr>
+        <tr>
+          <td>Saved articles & gear</td>
+          <td>Stored in browser memory for the session; not persisted across sessions</td>
+        </tr>
+        <tr>
+          <td>Server logs</td>
+          <td>Retained by Vercel infrastructure per their standard log retention policy</td>
+        </tr>
+      </tbody>
+    </table>
+    <p style="margin-top:20px">PESSAGE does not operate its own database. Your personal data is not persistently stored on our servers beyond standard web server logs.</p>
+  </section>
+
+  <!-- 6. User Rights -->
+  <section>
+    <h2>Your Rights</h2>
+    <p>You have the following rights regarding your personal information:</p>
+    <ul>
+      <li><strong style="color:#EAE5D9">Access</strong> — You may request a copy of the personal data we hold about you.</li>
+      <li><strong style="color:#EAE5D9">Correction</strong> — You may update your display name directly within the PESSAGE app profile settings.</li>
+      <li><strong style="color:#EAE5D9">Deletion</strong> — You may delete your data by logging out (which clears session data) and revoking OAuth access directly through Google, Kakao, Naver, or Strava account settings.</li>
+      <li><strong style="color:#EAE5D9">Withdrawal of Consent</strong> — You may disconnect Strava at any time via the Recovery Ritual page. You may revoke Google Firebase authentication via your Google account's connected apps page.</li>
+      <li><strong style="color:#EAE5D9">Portability</strong> — Exercise data remains in your Strava account and can be exported directly from Strava.</li>
+    </ul>
+    <p style="margin-top:20px">To exercise any of these rights or for privacy inquiries, please contact us at the address below.</p>
+  </section>
+
+  <!-- 7. Cookies -->
+  <section>
+    <h2>Cookies &amp; Local Storage</h2>
+    <p>PESSAGE uses browser <strong style="color:#EAE5D9">sessionStorage</strong> (not cookies) to maintain your login state and activity data during a browsing session. This data is automatically cleared when you close the browser tab.</p>
+    <p>Firebase Authentication may use cookies or local storage as part of its standard authentication flow. You can clear these at any time through your browser settings.</p>
+    <p>We do not use advertising cookies or third-party tracking scripts.</p>
+  </section>
+
+  <!-- 8. Children -->
+  <section>
+    <h2>Children's Privacy</h2>
+    <p>PESSAGE is not directed at children under the age of 14. We do not knowingly collect personal information from children. If you believe a child has provided us with personal information, please contact us and we will promptly delete it.</p>
+  </section>
+
+  <!-- 9. Changes -->
+  <section>
+    <h2>Changes to This Policy</h2>
+    <p>We may update this Privacy Policy from time to time to reflect changes in our practices or applicable law. When we make material changes, we will update the "Last Updated" date at the top of this page. Continued use of the Service after changes constitutes acceptance of the updated policy.</p>
+  </section>
+
+  <!-- 10. Contact -->
+  <section>
+    <h2>Contact</h2>
+    <div class="card">
+      <p class="card-title">Privacy Inquiries</p>
+      <p><strong style="color:#EAE5D9">Service</strong> &nbsp; PESSAGE</p>
+      <p><strong style="color:#EAE5D9">Operator</strong> &nbsp; Jemin Lee</p>
+      <p><strong style="color:#EAE5D9">Contact</strong> &nbsp; <a href="mailto:privacy@pessage.com">privacy@pessage.com</a></p>
+      <p><strong style="color:#EAE5D9">Website</strong> &nbsp; <a href="https://pessage-app.vercel.app">pessage-app.vercel.app</a></p>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="footer-content">
+    <span class="footer-logo">PESSAGE</span>
+    <div class="footer-text">
+      <p>© 2026 PESSAGE. All rights reserved.</p>
+      <p style="margin-top:4px"><a href="/privacy-ko" style="color:#3D3A37; border-color:#3D3A37; font-size:11px;">한국어 버전 보기</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

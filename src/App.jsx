@@ -714,13 +714,22 @@ export default function App() {
         {authMode ? (
           <section className="pt-32 px-6 max-w-sm mx-auto animate-in slide-in-from-bottom-8 text-center">
              <h2 className="text-4xl font-light italic mb-12 text-[#EAE5D9]">Join the Pack</h2>
-             <div className="space-y-4 mb-12">
+             <div className="space-y-4 mb-3">
                 {/* ✅ 실제 로그인 함수 연결 */}
                 <button onClick={handleGoogleLogin} className="w-full flex items-center justify-center py-5 bg-transparent text-[#EAE5D9] text-[11px] font-bold tracking-[0.2em] border border-[#EAE5D9]/20 hover:border-[#EAE5D9]/60 transition-colors rounded-sm">GOOGLE CONNECT</button>
                 <button onClick={handleKakaoLogin} className="w-full flex items-center justify-center py-5 bg-[#FEE500] text-black text-[11px] font-bold tracking-[0.2em] rounded-sm hover:bg-[#e6cf00] transition-colors">KAKAO CONNECT</button>
                 <button onClick={handleNaverLogin} className="w-full flex items-center justify-center py-5 bg-[#03C75A] text-white text-[11px] font-bold tracking-[0.2em] rounded-sm hover:bg-[#02b350] transition-colors">NAVER CONNECT</button>
              </div>
+             <p className="text-[9px] text-[#78716C] mb-10 leading-relaxed">
+               By signing in, you agree to our{' '}
+               <a href="/privacy" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-[#A8A29E] transition-colors">Privacy Policy</a>
+             </p>
              <button onClick={() => setAuthMode(null)} className="text-[10px] uppercase tracking-widest text-[#78716C] hover:text-[#EAE5D9] border-b border-[#78716C] pb-1 transition-colors">Return</button>
+             <div className="mt-10 flex items-center justify-center gap-3 text-[#78716C]">
+               <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-[9px] tracking-widest uppercase hover:text-[#EAE5D9] transition-colors">Privacy Policy</a>
+               <span className="text-[#78716C]/40">|</span>
+               <a href="/privacy-ko" target="_blank" rel="noopener noreferrer" className="text-[9px] tracking-widest uppercase hover:text-[#EAE5D9] transition-colors">개인정보처리방침</a>
+             </div>
           </section>
         ) : isProfileOpen && isLoggedIn ? (
           <section className="pt-32 px-6 max-w-4xl mx-auto animate-in slide-in-from-bottom-8">
