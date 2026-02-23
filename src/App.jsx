@@ -189,6 +189,7 @@ export default function App() {
   const [savedItems, setSavedItems] = useState({ articles: [], gear: [] });
   const [selectedArticle, setSelectedArticle] = useState(null);
   const [selectedRoute, setSelectedRoute] = useState(null);
+  const [selectedGear, setSelectedGear] = useState(null);
   
   const [routeViewMode, setRouteViewMode] = useState('LIST'); 
   const [routeTypeFilter, setRouteTypeFilter] = useState('ALL');
@@ -1164,13 +1165,39 @@ export default function App() {
                             {item.brand}
                           </p>
                           <h3 className="text-3xl font-light italic mb-6 text-[#EAE5D9] group-hover:text-white transition-colors">{item.name}</h3>
-                          <p className="text-[15px] leading-[1.8] text-[#78716C] italic font-light">"{item.note}"</p>
+                          <p className="text-[15px] leading-[1.8] text-[#78716C] italic font-light line-clamp-2">"{item.note}"</p>
+                          <button
+                            onClick={() => setSelectedGear(item)}
+                            className="mt-3 text-[10px] uppercase tracking-[0.2em] text-[#A8A29E] hover:text-[#EAE5D9] border-b border-[#A8A29E]/40 hover:border-[#EAE5D9] pb-0.5 transition-colors"
+                          >Read More</button>
                         </div>
                       </div>
                     );
                   })}
                 </div>
               </section>
+            )}
+
+            {/* Gear Detail Modal */}
+            {selectedGear && (
+              <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/70 backdrop-blur-sm" onClick={() => setSelectedGear(null)}>
+                <div className="bg-[#1A1918] border border-[#EAE5D9]/10 rounded-t-2xl md:rounded-sm w-full md:max-w-lg max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+                  {selectedGear.image && (
+                    <div className="aspect-[3/2] overflow-hidden">
+                      <img src={urlFor(selectedGear.image)} className="w-full h-full object-cover" alt={selectedGear.name} />
+                    </div>
+                  )}
+                  <div className="p-8">
+                    <p className="text-[10px] uppercase font-bold tracking-[0.3em] mb-3 text-[#A8A29E] flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 bg-[#C2410C] rounded-full inline-block"></span>
+                      {selectedGear.brand}
+                    </p>
+                    <h3 className="text-3xl font-light italic mb-6 text-[#EAE5D9]">{selectedGear.name}</h3>
+                    <p className="text-[15px] leading-[1.9] text-[#A8A29E] italic font-light">"{selectedGear.note}"</p>
+                    <button onClick={() => setSelectedGear(null)} className="mt-10 text-[10px] uppercase tracking-widest text-[#78716C] hover:text-[#EAE5D9] border-b border-[#78716C] pb-1 transition-colors">Close</button>
+                  </div>
+                </div>
+              </div>
             )}
 
             {activeTab === 'recovery' && (
