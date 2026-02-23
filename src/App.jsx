@@ -5,7 +5,7 @@ import {
   Map as MapIcon, List, Calendar, Smartphone as WatchIcon, Quote,
   Bookmark, BookmarkCheck, ExternalLink
 } from 'lucide-react';
-import { loginWithGoogle, loginWithKakao, loginWithNaver, logout, onAuthChange } from './firebase';
+import { loginWithGoogle, loginWithKakao, loginWithNaver, loginWithStrava, logout, onAuthChange } from './firebase';
 
 /**
  * ============================================================
@@ -176,6 +176,9 @@ export default function App() {
   
   const [isMapLoaded, setIsMapLoaded] = useState(false);
   const [mapPopup, setMapPopup] = useState(null);
+  const [stravaData, setStravaData] = useState(() => {
+    try { const s = sessionStorage.getItem('strava_data'); return s ? JSON.parse(s) : null; } catch { return null; }
+  });
 
   // Map Refs
   const mapRef = useRef(null);
@@ -286,8 +289,17 @@ export default function App() {
           setCurrentUser({ displayName: parsed.name, email: parsed.email, photoURL: parsed.photo });
           setIsLoggedIn(true);
         } else {
-          setIsLoggedIn(false);
-          setCurrentUser(null);
+          const stravaUser = sessionStorage.getItem('strava_user');
+          if (stravaUser) {
+            const parsed = JSON.parse(stravaUser);
+            setCurrentUser({ displayName: parsed.name, email: null, photoURL: parsed.photo });
+            const stravaDataSaved = sessionStorage.getItem('strava_data');
+            if (stravaDataSaved) setStravaData(JSON.parse(stravaDataSaved));
+            setIsLoggedIn(true);
+          } else {
+            setIsLoggedIn(false);
+            setCurrentUser(null);
+          }
         }
       }
     });
@@ -350,6 +362,39 @@ export default function App() {
         }
       } catch (e) {
         console.error('Naver callback error:', e);
+      } finally {
+        window.history.replaceState({}, '', '/');
+      }
+    };
+    exchangeCode();
+  }, []);
+
+  // --- Strava OAuth 콜백 처리 ---
+  useEffect(() => {
+    if (window.location.pathname !== '/auth/strava/callback') return;
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get('code');
+    if (!code) return;
+
+    const exchangeCode = async () => {
+      try {
+        const res = await fetch('/api/strava/callback', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code }),
+        });
+        const data = await res.json();
+        if (data.id) {
+          const userInfo = { id: data.id, name: data.name, photo: data.photo };
+          sessionStorage.setItem('strava_user', JSON.stringify(userInfo));
+          sessionStorage.setItem('strava_data', JSON.stringify(data));
+          setCurrentUser({ displayName: data.name, email: null, photoURL: data.photo });
+          setStravaData(data);
+          setIsLoggedIn(true);
+          setAuthMode(null);
+        }
+      } catch (e) {
+        console.error('Strava callback error:', e);
       } finally {
         window.history.replaceState({}, '', '/');
       }
@@ -517,6 +562,9 @@ export default function App() {
   // ✅ 네이버 로그인
   const handleNaverLogin = () => loginWithNaver();
 
+  // ✅ 스트라바 로그인
+  const handleStravaLogin = () => loginWithStrava();
+
   const handleDeviceConnectClick = () => {
     if (!isLoggedIn) {
       setAuthMode('login');
@@ -639,6 +687,7 @@ export default function App() {
                 <button onClick={handleGoogleLogin} className="w-full flex items-center justify-center py-5 bg-transparent text-[#EAE5D9] text-[11px] font-bold tracking-[0.2em] border border-[#EAE5D9]/20 hover:border-[#EAE5D9]/60 transition-colors rounded-sm">GOOGLE CONNECT</button>
                 <button onClick={handleKakaoLogin} className="w-full flex items-center justify-center py-5 bg-[#FEE500] text-black text-[11px] font-bold tracking-[0.2em] rounded-sm hover:bg-[#e6cf00] transition-colors">KAKAO CONNECT</button>
                 <button onClick={handleNaverLogin} className="w-full flex items-center justify-center py-5 bg-[#03C75A] text-white text-[11px] font-bold tracking-[0.2em] rounded-sm hover:bg-[#02b350] transition-colors">NAVER CONNECT</button>
+                <button onClick={handleStravaLogin} className="w-full flex items-center justify-center py-5 bg-[#FC4C02] text-white text-[11px] font-bold tracking-[0.2em] rounded-sm hover:bg-[#e84402] transition-colors">STRAVA CONNECT</button>
              </div>
              <button onClick={() => setAuthMode(null)} className="text-[10px] uppercase tracking-widest text-[#78716C] hover:text-[#EAE5D9] border-b border-[#78716C] pb-1 transition-colors">Return</button>
           </section>
@@ -708,7 +757,7 @@ export default function App() {
                 </div>
              </div>
              {/* ✅ 실제 로그아웃 함수 연결 */}
-             <button onClick={async () => { await logout(); sessionStorage.removeItem('kakao_user'); sessionStorage.removeItem('naver_user'); setCurrentUser(null); setIsLoggedIn(false); setIsProfileOpen(false); }} className="w-full py-5 bg-[#C2410C]/10 text-[#C2410C] text-[10px] uppercase font-bold tracking-[0.3em] rounded-sm hover:bg-[#C2410C]/20 transition-colors">LOG OUT</button>
+             <button onClick={async () => { await logout(); sessionStorage.removeItem('kakao_user'); sessionStorage.removeItem('naver_user'); sessionStorage.removeItem('strava_user'); sessionStorage.removeItem('strava_data'); setStravaData(null); setCurrentUser(null); setIsLoggedIn(false); setIsProfileOpen(false); }} className="w-full py-5 bg-[#C2410C]/10 text-[#C2410C] text-[10px] uppercase font-bold tracking-[0.3em] rounded-sm hover:bg-[#C2410C]/20 transition-colors">LOG OUT</button>
           </section>
         ) : (
           <>
@@ -1010,9 +1059,77 @@ export default function App() {
             {activeTab === 'recovery' && (
               <section className="px-6 pt-32 max-w-3xl mx-auto text-center animate-in slide-in-from-bottom-8">
                 <h2 className="text-4xl font-light italic mb-12 text-[#EAE5D9]">Recovery Ritual</h2>
-                
-                <div className="py-24 border border-dashed border-[#EAE5D9]/20 rounded-sm relative bg-[#1A1918]/50">
-                  {connectedDevice ? (
+
+                <div className="py-12 border border-dashed border-[#EAE5D9]/20 rounded-sm relative bg-[#1A1918]/50">
+                  {stravaData ? (
+                    <div className="animate-in fade-in px-8">
+                      {/* Last Run Header */}
+                      {stravaData.lastRun && (
+                        <div className="mb-10 text-left border-b border-[#EAE5D9]/10 pb-8">
+                          <p className="text-[10px] uppercase tracking-widest text-[#FC4C02] mb-2 font-bold">Latest Run · Strava</p>
+                          <h3 className="text-2xl font-light italic text-[#EAE5D9]">{stravaData.lastRun.name}</h3>
+                          <p className="text-[11px] text-[#5A5450] mt-1">{new Date(stravaData.lastRun.start_date).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                        </div>
+                      )}
+
+                      {/* Metrics */}
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                        <div className="bg-[#151413] p-8 border border-[#EAE5D9]/10 rounded-sm shadow-xl">
+                          <p className="text-[10px] uppercase tracking-widest text-[#78716C] mb-6 font-bold">Last Run</p>
+                          <div className="text-5xl font-light mb-2 text-[#EAE5D9]">
+                            {stravaData.lastRun ? (stravaData.lastRun.distance / 1000).toFixed(1) : '—'}
+                          </div>
+                          <p className="text-[11px] text-[#78716C] uppercase tracking-widest">km</p>
+                        </div>
+                        <div className="bg-[#151413] p-8 border border-[#EAE5D9]/10 rounded-sm shadow-xl">
+                          <p className="text-[10px] uppercase tracking-widest text-[#78716C] mb-6 font-bold">Avg Heart Rate</p>
+                          <div className="text-5xl font-light mb-2 text-[#EAE5D9]">
+                            {stravaData.lastRun?.average_heartrate ? Math.round(stravaData.lastRun.average_heartrate) : '—'}
+                          </div>
+                          <p className="text-[11px] text-[#78716C] uppercase tracking-widest">bpm</p>
+                        </div>
+                        <div className="bg-[#151413] p-8 border border-[#EAE5D9]/10 rounded-sm shadow-xl">
+                          <p className="text-[10px] uppercase tracking-widest text-[#78716C] mb-6 font-bold">Year-to-Date</p>
+                          <div className="text-5xl font-light mb-2 text-[#EAE5D9]">
+                            {(stravaData.ytdDistanceM / 1000).toFixed(0)}
+                          </div>
+                          <p className="text-[11px] text-[#78716C] uppercase tracking-widest">km in {new Date().getFullYear()}</p>
+                        </div>
+                      </div>
+
+                      {/* Recent Runs */}
+                      {stravaData.recentRuns?.length > 0 && (
+                        <div className="mb-12 text-left">
+                          <h4 className="text-[10px] uppercase tracking-widest text-[#78716C] mb-5 font-bold">Recent Runs</h4>
+                          <div className="space-y-0">
+                            {stravaData.recentRuns.map((run, i) => (
+                              <div key={i} className="flex justify-between items-center py-4 border-b border-[#EAE5D9]/5">
+                                <div>
+                                  <p className="text-[13px] text-[#EAE5D9] font-light">{run.name}</p>
+                                  <p className="text-[10px] text-[#5A5450] mt-0.5">{new Date(run.start_date).toLocaleDateString('ko-KR')}</p>
+                                </div>
+                                <div className="text-right shrink-0 ml-4">
+                                  <p className="text-[15px] text-[#A8A29E] font-light">{(run.distance / 1000).toFixed(1)} km</p>
+                                  {run.average_heartrate && <p className="text-[10px] text-[#5A5450]">{Math.round(run.average_heartrate)} bpm</p>}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* AI Ritual */}
+                      <button
+                        onClick={() => generateAiContent('recovery', `Strava 데이터 기반 러너 정보: 마지막 러닝 ${stravaData.lastRun ? (stravaData.lastRun.distance / 1000).toFixed(1) : '?'}km, 평균 심박수 ${stravaData.lastRun?.average_heartrate ? Math.round(stravaData.lastRun.average_heartrate) : '?'}bpm, 올해 누적 ${(stravaData.ytdDistanceM / 1000).toFixed(0)}km. 이 러너를 위한 오늘의 회복(Recovery) 리추얼을 프리미엄 라이프스타일 매거진 톤으로 짧고 감각적이게 추천해줘.`)}
+                        className="px-12 py-5 bg-[#EAE5D9] text-[#151413] font-bold text-[11px] uppercase tracking-[0.2em] rounded-sm shadow-2xl hover:bg-white active:scale-95 transition-all"
+                      >Curate My Ritual</button>
+                      {activeAiTarget === 'recovery' && aiResponse && (
+                        <div className="mt-12 p-8 border border-[#EAE5D9]/5 bg-[#151413] text-[15px] italic text-[#EAE5D9]/90 font-light leading-[1.8] max-w-lg mx-auto rounded-sm">
+                          "{aiResponse}"
+                        </div>
+                      )}
+                    </div>
+                  ) : connectedDevice ? (
                     <div className="animate-in fade-in px-8">
                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
                           <div className="bg-[#151413] p-8 border border-[#EAE5D9]/10 rounded-sm shadow-xl">
@@ -1038,12 +1155,16 @@ export default function App() {
                        <button onClick={handleDeviceConnectClick} className="mt-16 text-[10px] uppercase tracking-[0.3em] text-[#78716C] hover:text-[#EAE5D9] block mx-auto border-b border-[#78716C] pb-1 transition-colors">Switch Device</button>
                     </div>
                   ) : (
-                    <div className="animate-in fade-in">
+                    <div className="animate-in fade-in px-8 py-12">
                        <WatchIcon size={48} className="mx-auto mb-8 text-[#5A5450] animate-pulse"/>
                        <p className="text-[15px] text-[#A8A29E] mb-12 leading-[1.8] font-light italic max-w-sm mx-auto">
                          거친 트레일의 끝,<br/>당신의 심박수와 피로도를 동기화하여<br/>완벽한 회복의 서사를 완성하세요.
                        </p>
-                       <button onClick={handleDeviceConnectClick} className="px-12 py-5 bg-[#EAE5D9] text-[#151413] font-bold text-[11px] uppercase tracking-[0.2em] rounded-sm shadow-2xl hover:bg-white active:scale-95 transition-all">Connect Device</button>
+                       <div className="flex flex-col items-center gap-4 max-w-xs mx-auto">
+                         <button onClick={handleStravaLogin} className="w-full px-12 py-5 bg-[#FC4C02] text-white font-bold text-[11px] uppercase tracking-[0.2em] rounded-sm shadow-2xl hover:bg-[#e84402] active:scale-95 transition-all">Connect Strava</button>
+                         <p className="text-[10px] uppercase tracking-widest text-[#5A5450]">— or —</p>
+                         <button onClick={handleDeviceConnectClick} className="w-full px-12 py-5 border border-[#EAE5D9]/20 text-[#A8A29E] font-bold text-[11px] uppercase tracking-[0.2em] rounded-sm hover:border-[#EAE5D9]/50 hover:text-[#EAE5D9] transition-all">Connect Device</button>
+                       </div>
                     </div>
                   )}
                 </div>

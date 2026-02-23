@@ -31,6 +31,12 @@ export const loginWithKakao = async () => {
   window.location.href = `https://kauth.kakao.com/oauth/authorize?client_id=${kakaoJsKey}&redirect_uri=${redirectUri}&response_type=code&scope=profile,account_email`;
 };
 
+export const loginWithStrava = async () => {
+  const clientId = import.meta.env.VITE_STRAVA_CLIENT_ID;
+  const redirectUri = `${window.location.origin}/auth/strava/callback`;
+  window.location.href = `https://www.strava.com/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=read,activity:read_all&approval_prompt=auto`;
+};
+
 export const loginWithNaver = async () => {
   const naverClientId = import.meta.env.VITE_NAVER_CLIENT_ID;
   const redirectUri = `${window.location.origin}/auth/naver/callback`;
