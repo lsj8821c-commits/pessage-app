@@ -29,7 +29,7 @@ export const loginWithGoogle = async () => {
 export const loginWithKakao = async () => {
   const kakaoJsKey = import.meta.env.VITE_KAKAO_REST_API_KEY;
   const redirectUri = `${window.location.origin}/auth/kakao/callback`;
-  window.location.href = `https://kauth.kakao.com/oauth/authorize?client_id=${kakaoJsKey}&redirect_uri=${redirectUri}&response_type=code&scope=profile`;
+  window.location.href = `https://kauth.kakao.com/oauth/authorize?client_id=${kakaoJsKey}&redirect_uri=${redirectUri}&response_type=code&scope=profile_nickname,profile_image`;
 };
 
 export const loginWithStrava = async () => {
