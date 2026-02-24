@@ -5,6 +5,7 @@ import {
   Map as MapIcon, List, Calendar, Smartphone as WatchIcon, Quote,
   Bookmark, BookmarkCheck, ExternalLink, Pencil
 } from 'lucide-react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import { loginWithGoogle, loginWithKakao, loginWithNaver, loginWithStrava, logout, onAuthChange, updateUserProfile } from './firebase';
 
 const formatPace = (secsPerKm) => {
@@ -1415,6 +1416,7 @@ export default function App() {
         <NavItem id="gear" icon={ShoppingBag} label="Gear" />
         <NavItem id="recovery" icon={Activity} label="Ritual" />
       </nav>
+      <SpeedInsights />
     </div>
   );
 }
