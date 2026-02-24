@@ -284,7 +284,7 @@
     <h2>제1조 &nbsp; 총칙</h2>
     <p>PESSAGE(이하 "서비스")는 러너를 위한 에디토리얼 콘텐츠, 러닝 루트, 레이스 캘린더, 기어 큐레이션 및 리커버리 데이터를 제공하는 라이프스타일 플랫폼입니다.</p>
     <p>서비스 운영자(이하 "운영자")는 「개인정보 보호법」 및 관련 법령에 따라 이용자의 개인정보를 보호하고, 이와 관련한 고충을 신속하고 원활하게 처리할 수 있도록 다음과 같이 개인정보처리방침을 수립·공개합니다.</p>
-    <p>본 방침은 <strong style="color:#EAE5D9">pessage-app.vercel.app</strong>에서 제공하는 서비스에 적용됩니다.</p>
+    <p>본 방침은 <strong style="color:#EAE5D9">pessage.run</strong>에서 제공하는 서비스에 적용됩니다.</p>
   </section>
 
   <!-- 제2조 수집하는 개인정보 -->
@@ -355,8 +355,14 @@
     </div>
 
     <div class="card">
-      <p class="card-title">디바이스 연동 (Garmin, COROS, Suunto)</p>
-      <p>앱 내에서 Garmin, COROS, Suunto 기기를 선택하면, 선택한 기기 브랜드 명칭만 브라우저 세션에 임시 저장됩니다. 해당 기기에서 실제 데이터를 가져오지 않습니다.</p>
+      <p class="card-title">디바이스 연동 (Garmin, COROS, Suunto, Samsung Health)</p>
+      <p>지원 웨어러블 기기(Garmin, COROS, Suunto, Samsung Health)를 연결하면, PESSAGE는 해당 기기의 공식 API를 통해 다음 데이터를 수집할 수 있습니다:</p>
+      <ul style="margin-top: 10px; margin-bottom: 12px;">
+        <li>활동 데이터: 거리, 페이스, 시간, 심박수</li>
+        <li>회복 지표: 수면 점수, HRV, 훈련 부하</li>
+        <li>GPS 루트 데이터 (루트 시각화용)</li>
+      </ul>
+      <p>이 데이터는 서비스 내 개인화된 훈련 인사이트 및 회복 추천 제공에만 사용됩니다.</p>
     </div>
 
     <h3>자동 수집 정보</h3>
@@ -443,6 +449,22 @@
           <tr>
             <td>Vercel</td>
             <td>클라우드 호스팅 및 서버리스 함수 인프라</td>
+          </tr>
+          <tr>
+            <td>Garmin Connect API</td>
+            <td>이용자가 기기를 명시적으로 연동한 경우에만 활동 및 회복 데이터 수집</td>
+          </tr>
+          <tr>
+            <td>COROS API</td>
+            <td>이용자가 기기를 명시적으로 연동한 경우에만 활동 및 회복 데이터 수집</td>
+          </tr>
+          <tr>
+            <td>Suunto API</td>
+            <td>이용자가 기기를 명시적으로 연동한 경우에만 활동 및 회복 데이터 수집</td>
+          </tr>
+          <tr>
+            <td>Samsung Health API</td>
+            <td>이용자가 기기를 명시적으로 연동한 경우에만 활동 및 회복 데이터 수집</td>
           </tr>
         </tbody>
       </table>
@@ -531,7 +553,7 @@
       <p><strong style="color:#EAE5D9">서비스명</strong> &nbsp; PESSAGE</p>
       <p><strong style="color:#EAE5D9">운영자</strong> &nbsp; 이제민 (Jemin Lee)</p>
       <p><strong style="color:#EAE5D9">문의 이메일</strong> &nbsp; <a href="mailto:privacy@pessage.com">privacy@pessage.com</a></p>
-      <p><strong style="color:#EAE5D9">서비스 주소</strong> &nbsp; <a href="https://pessage-app.vercel.app">pessage-app.vercel.app</a></p>
+      <p><strong style="color:#EAE5D9">서비스 주소</strong> &nbsp; <a href="https://pessage.run">pessage.run</a></p>
     </div>
     <p>이용자는 개인정보 열람·수정·삭제 요청 및 개인정보 침해 신고와 관련하여 아래 기관에 문의할 수 있습니다.</p>
     <ul>

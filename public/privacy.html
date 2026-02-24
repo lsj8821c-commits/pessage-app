@@ -269,7 +269,7 @@
   <section>
     <h2>Overview</h2>
     <p>PESSAGE ("we," "our," or "the Service") is a running lifestyle platform that curates editorial content, running routes, race calendars, gear, and recovery data for runners. We are committed to protecting your personal information and being transparent about how we collect and use it.</p>
-    <p>This Privacy Policy applies to all users of the PESSAGE web application accessible at <strong style="color:#EAE5D9">pessage-app.vercel.app</strong>. By using the Service, you agree to the practices described herein.</p>
+    <p>This Privacy Policy applies to all users of the PESSAGE web application accessible at <strong style="color:#EAE5D9">pessage.run</strong>. By using the Service, you agree to the practices described herein.</p>
   </section>
 
   <!-- 2. Data We Collect -->
@@ -340,8 +340,14 @@
     </div>
 
     <div class="card">
-      <p class="card-title">Device integrations (Garmin, COROS, Suunto)</p>
-      <p>When you select a device brand (Garmin, COROS, or Suunto) in the app, PESSAGE only records your device preference label locally within your browser session. No data is fetched from these devices directly.</p>
+      <p class="card-title">Device integrations (Garmin, COROS, Suunto, Samsung Health)</p>
+      <p>When you connect a supported wearable device (Garmin, COROS, Suunto, or Samsung Health), PESSAGE may collect the following data via the device's official API:</p>
+      <ul style="margin-top: 10px; margin-bottom: 12px;">
+        <li>Activity data: distance, pace, duration, heart rate</li>
+        <li>Recovery metrics: sleep score, HRV, training load</li>
+        <li>GPS route data (for route visualization)</li>
+      </ul>
+      <p>This data is used solely to provide personalized training insights and recovery recommendations within the Service.</p>
     </div>
 
     <h3>Automatically Collected Data</h3>
@@ -428,6 +434,22 @@
           <tr>
             <td>Vercel</td>
             <td>Cloud hosting and serverless function infrastructure</td>
+          </tr>
+          <tr>
+            <td>Garmin Connect API</td>
+            <td>Activity &amp; recovery data (only when you explicitly connect your device)</td>
+          </tr>
+          <tr>
+            <td>COROS API</td>
+            <td>Activity &amp; recovery data (only when you explicitly connect your device)</td>
+          </tr>
+          <tr>
+            <td>Suunto API</td>
+            <td>Activity &amp; recovery data (only when you explicitly connect your device)</td>
+          </tr>
+          <tr>
+            <td>Samsung Health API</td>
+            <td>Activity &amp; recovery data (only when you explicitly connect your device)</td>
           </tr>
         </tbody>
       </table>
@@ -516,7 +538,7 @@
       <p><strong style="color:#EAE5D9">Service</strong> &nbsp; PESSAGE</p>
       <p><strong style="color:#EAE5D9">Operator</strong> &nbsp; Jemin Lee</p>
       <p><strong style="color:#EAE5D9">Contact</strong> &nbsp; <a href="mailto:privacy@pessage.com">privacy@pessage.com</a></p>
-      <p><strong style="color:#EAE5D9">Website</strong> &nbsp; <a href="https://pessage-app.vercel.app">pessage-app.vercel.app</a></p>
+      <p><strong style="color:#EAE5D9">Website</strong> &nbsp; <a href="https://pessage.run">pessage.run</a></p>
     </div>
   </section>
 </main>
