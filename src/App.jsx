@@ -1076,8 +1076,8 @@ export default function App() {
                             {spot.images?.length > 0 && (
                               <div className="grid grid-cols-2 gap-4 mt-8">
                                 {spot.images.map((imgUrl, j) => imgUrl && (
-                                  <div key={j} className="overflow-hidden rounded-sm bg-[#1A1918]">
-                                    <img src={imgUrl} alt={spot.name} className="w-full h-auto object-contain" />
+                                  <div key={j} className="mt-4 overflow-hidden rounded-sm bg-[#1A1918]">
+                                    <img src={imgUrl} alt={spot.name} className="w-full h-auto" style={{display: 'block'}} />
                                   </div>
                                 ))}
                               </div>
