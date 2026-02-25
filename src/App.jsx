@@ -1077,7 +1077,11 @@ export default function App() {
                               <div className="flex flex-col gap-6 mt-8">
                                 {spot.images.map((imgUrl, j) => imgUrl && (
                                   <div key={j} className="overflow-hidden rounded-sm bg-[#1A1918]">
-                                    <img src={imgUrl} alt={spot.name} className="w-full h-auto block" />
+                                    <img
+                                      src={`${imgUrl}?auto=format`}
+                                      alt={spot.name}
+                                      className="w-full h-auto block"
+                                    />
                                   </div>
                                 ))}
                               </div>
