@@ -1091,6 +1091,16 @@ export default function App() {
                       <Compass size={32} className="mx-auto text-[#78716C] mb-6" />
                       <h3 className="text-xl font-light italic mb-8 text-[#EAE5D9]">Sync Route to Device</h3>
                       <div className="space-y-3">
+                        {selectedRoute.playlistUrl && (
+                          <a
+                            href={selectedRoute.playlistUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="w-full py-4 rounded-sm font-bold uppercase text-[11px] tracking-[0.3em] transition-all flex items-center justify-center gap-3 border border-[#EAE5D9]/20 text-[#A8A29E] hover:border-[#EAE5D9] hover:text-[#EAE5D9]"
+                          >
+                            ▶ Play Route Soundtrack
+                          </a>
+                        )}
                         <button
                           onClick={() => handleSyncGPX(selectedRoute._id)}
                           className={`w-full py-5 rounded-sm font-bold uppercase text-[11px] tracking-[0.3em] transition-all flex items-center justify-center gap-3 ${activeAiTarget === selectedRoute._id && syncSuccess ? 'bg-[#166534] text-[#EAE5D9]' : 'bg-[#EAE5D9] text-[#151413] hover:bg-white'}`}
