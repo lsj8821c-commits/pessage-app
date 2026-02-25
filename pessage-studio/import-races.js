@@ -3,6 +3,7 @@
 // 실행 방법: node import-races.js
 // ------------------------------------------------------------------
 
+import 'dotenv/config';
 import { createClient } from '@sanity/client';
 import fs from 'fs';
 import csv from 'csv-parser';
@@ -13,7 +14,7 @@ const client = createClient({
   dataset: 'production',
   useCdn: false,
   apiVersion: '2024-02-20',
-  token: 'skNlhiqpUOLvyZydg4fI4IQBqHihu9rRYqQaxHRZiD76kjVdFdenXuWxRU2qhobkMHIeXj1ygt7DcalUbYJRCwAOHkp5qwlc74idJEFNpcByf49ZjDlRfmHNigXgKdtn1eqafUr52YOy4lZzJIL5vNLYQDf3ygyki4olMs3rWIVVDz9opATL' 
+  token: process.env.SANITY_TOKEN 
 });
 
 const results = [];
