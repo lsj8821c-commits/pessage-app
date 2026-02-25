@@ -1074,10 +1074,10 @@ export default function App() {
                             )}
                             {spot.body && <EditorialRenderer blocks={spot.body} />}
                             {spot.images?.length > 0 && (
-                              <div className="grid grid-cols-2 gap-4 mt-8">
+                              <div className="flex flex-col gap-6 mt-8">
                                 {spot.images.map((imgUrl, j) => imgUrl && (
-                                  <div key={j} className="mt-4 overflow-hidden rounded-sm bg-[#1A1918]">
-                                    <img src={imgUrl} alt={spot.name} className="w-full h-auto" style={{display: 'block'}} />
+                                  <div key={j} className="overflow-hidden rounded-sm bg-[#1A1918]">
+                                    <img src={imgUrl} alt={spot.name} className="w-full h-auto block" />
                                   </div>
                                 ))}
                               </div>
