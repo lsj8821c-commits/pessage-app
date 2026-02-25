@@ -151,8 +151,8 @@ const EditorialRenderer = ({ blocks }) => {
           if (!imageUrl) return null;
           return (
             <figure key={index} className="my-20 animate-in fade-in duration-1000">
-              <div className="aspect-[4/3] md:aspect-video w-full bg-[#1A1918] overflow-hidden rounded-sm border border-[#EAE5D9]/5">
-                <img src={imageUrl} alt={block.caption || ''} className="w-full h-full object-cover transition-transform duration-[20s] hover:scale-105" />
+              <div className="w-full bg-[#1A1918] overflow-hidden rounded-sm border border-[#EAE5D9]/5">
+                <img src={imageUrl} alt={block.caption || ''} className="w-full h-auto block" />
               </div>
               {block.caption && <figcaption className="mt-6 text-[10px] uppercase tracking-widest text-[#78716C] text-center italic">— {block.caption}</figcaption>}
             </figure>
@@ -227,7 +227,7 @@ export default function App() {
     const fetchCmsData = async () => {
       const query = encodeURIComponent(`{
         "articles": *[_type == "journal"] { ..., category, subtitle } | order(publishedAt desc),
-        "routes": *[_type == "route"] { ..., "gpxUrl": gpxFile.asset->url, "gallery": images[].asset->url, elevationGain, difficulty, body, "spots": spots[]{ name, type, address, body, "images": images[].asset->url } },
+        "routes": *[_type == "route"] { ..., "gpxUrl": gpxFile.asset->url, "gallery": images[].asset->url, elevationGain, difficulty, body, "spots": spots[]{ name, category, address, body } },
         "gearItems": *[_type == "gear"] { ..., slug, body } | order(publishedAt desc),
         "races": *[_type == "session"] { ..., location } | order(date asc)
       }`);
