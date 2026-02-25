@@ -897,8 +897,8 @@ export default function App() {
                   <div className="pt-24 max-w-3xl mx-auto">
                     <button onClick={() => setSelectedArticle(null)} className="flex items-center gap-2 text-[#78716C] text-[11px] uppercase tracking-widest mb-12 hover:text-[#EAE5D9] transition-colors"><ArrowLeft size={16} /> Back to Directory</button>
                     {selectedArticle.coverImage && (
-                      <div className="aspect-[16/9] md:aspect-[21/9] w-full overflow-hidden mb-16 rounded-sm border border-[#EAE5D9]/5 relative group">
-                        <img src={urlFor(selectedArticle.coverImage)} alt="" className="w-full h-full object-cover transition-transform duration-[30s] group-hover:scale-110" />
+                      <div className="w-full overflow-hidden mb-16 rounded-sm border border-[#EAE5D9]/5 relative group">
+                        <img src={urlFor(selectedArticle.coverImage)} alt="" className="w-full h-auto block" />
                         <div className="absolute inset-0 bg-gradient-to-t from-[#151413] via-transparent to-transparent opacity-80"></div>
                       </div>
                     )}
@@ -944,11 +944,11 @@ export default function App() {
                                 onClick={() => setSelectedArticle(heroArticle)}
                                 className="group cursor-pointer relative mb-24 md:mb-32 block overflow-hidden rounded-sm border border-[#EAE5D9]/10"
                               >
-                                <div className="w-full aspect-square md:aspect-[21/9] bg-[#1A1918] relative">
+                                <div className="w-full bg-[#1A1918] relative">
                                   {heroArticle.coverImage && (
                                     <img
                                       src={urlFor(heroArticle.coverImage)}
-                                      className="w-full h-full object-cover transition-transform duration-[30s] group-hover:scale-105"
+                                      className="w-full h-auto block"
                                       alt={heroArticle.title}
                                     />
                                   )}
