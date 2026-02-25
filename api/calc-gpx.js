@@ -1,4 +1,5 @@
 import {createClient} from '@sanity/client'
+import {DOMParser} from '@xmldom/xmldom'
 
 const client = createClient({
   projectId: '1pnkcp2x',
@@ -29,7 +30,7 @@ export default async function handler(req, res) {
 
     const response = await fetch(route.gpxUrl)
     const text = await response.text()
-    const parser = new (require('@xmldom/xmldom').DOMParser)()
+    const parser = new DOMParser()
     const gpx = parser.parseFromString(text, 'text/xml')
     const trkpts = gpx.getElementsByTagName('trkpt')
 
