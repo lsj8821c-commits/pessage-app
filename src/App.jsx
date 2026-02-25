@@ -1163,7 +1163,26 @@ export default function App() {
                                 <p className={`text-[10px] uppercase font-bold tracking-[0.3em] mb-3 ${route.type === 'TRAIL' ? 'text-[#C2410C]' : 'text-[#A8A29E]'}`}>{route.type} / {route.region}</p>
                                 <h4 className="text-2xl md:text-3xl font-light italic group-hover:text-[#EAE5D9] text-[#EAE5D9]/90 transition-colors">{route.name}</h4>
                               </div>
-                              <span className="text-2xl font-light text-[#78716C] group-hover:text-[#EAE5D9] transition-colors">{route.distance}</span>
+                              <div className="flex items-center gap-6 text-right shrink-0">
+                                {route.distance && (
+                                  <div>
+                                    <p className="text-[9px] uppercase tracking-widest text-[#5A5450] mb-1">Dist</p>
+                                    <p className="text-xl font-light text-[#78716C] group-hover:text-[#EAE5D9] transition-colors">{route.distance}</p>
+                                  </div>
+                                )}
+                                {route.elevationGain && (
+                                  <div>
+                                    <p className="text-[9px] uppercase tracking-widest text-[#5A5450] mb-1">Elev</p>
+                                    <p className="text-xl font-light text-[#78716C] group-hover:text-[#EAE5D9] transition-colors">{route.elevationGain}</p>
+                                  </div>
+                                )}
+                                {route.difficulty && (
+                                  <div>
+                                    <p className="text-[9px] uppercase tracking-widest text-[#5A5450] mb-1">Grade</p>
+                                    <p className="text-xl font-light text-[#78716C] group-hover:text-[#EAE5D9] transition-colors">{route.difficulty}</p>
+                                  </div>
+                                )}
+                              </div>
                           </div>
                         )) : (
                           <div className="py-32 text-center text-[#78716C] italic text-lg">해당 조건의 서사가 아직 기록되지 않았습니다.</div>
