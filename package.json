@@ -9,6 +9,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@sanity/client": "^7.16.0",
+    "@xmldom/xmldom": "^0.8.11",
     "firebase": "^12.9.0",
     "lucide-react": "^0.344.0",
     "react": "^18.2.0",
