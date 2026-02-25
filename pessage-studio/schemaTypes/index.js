@@ -3,8 +3,6 @@
  * 위치: pessage-studio/schemaTypes/index.js
  */
 
-import GpxFileInput from '../components/GpxFileInput'
-
 // 1. Journal (에세이/저널)
 const journal = {
   name: 'journal',
@@ -53,7 +51,7 @@ const route = {
     { name: 'region', title: '지역', type: 'string', options: { list: ['SEOUL', 'GYEONGGI', 'GANGWON', 'CHUNGCHEONG', 'GYEONGSANG', 'JEJU'] } },
     { name: 'type', title: '루트 유형', type: 'string', options: { list: ['ORIGINAL', 'TRAIL', 'ROAD'] } },
     { name: 'difficulty', title: '난이도', type: 'string', options: { list: ['EASY', 'MODERATE', 'HARD'] } },
-    { name: 'gpxFile', title: 'GPX 파일', type: 'file', components: { input: GpxFileInput } },
+    { name: 'gpxFile', title: 'GPX 파일', type: 'file' },
     { name: 'distance', title: '거리 (km)', type: 'string', readOnly: true },
     { name: 'elevationGain', title: '누적 상승 (m)', type: 'string', readOnly: true },
     { name: 'description', title: '코스 설명 (요약)', type: 'text' },
