@@ -1523,19 +1523,18 @@ export default function App() {
             )}
           </>
         )}
+        <div className="flex justify-center items-center gap-6 py-12 pb-40 border-t border-[#EAE5D9]/5 mt-8">
+          <a href="/privacy" target="_blank" rel="noopener noreferrer"
+             className="text-[10px] uppercase tracking-widest text-[#5A5450] hover:text-[#A8A29E] transition-colors">
+            Privacy Policy
+          </a>
+          <span className="text-[#5A5450]">·</span>
+          <a href="/privacy-ko" target="_blank" rel="noopener noreferrer"
+             className="text-[10px] uppercase tracking-widest text-[#5A5450] hover:text-[#A8A29E] transition-colors">
+            개인정보처리방침
+          </a>
+        </div>
       </main>
-
-      <footer className="px-6 py-8 border-t border-[#EAE5D9]/5 flex justify-center items-center gap-6">
-        <a href="/privacy" target="_blank" rel="noopener noreferrer"
-           className="text-[10px] uppercase tracking-widest text-[#5A5450] hover:text-[#A8A29E] transition-colors">
-          Privacy Policy
-        </a>
-        <span className="text-[#5A5450]">·</span>
-        <a href="/privacy-ko" target="_blank" rel="noopener noreferrer"
-           className="text-[10px] uppercase tracking-widest text-[#5A5450] hover:text-[#A8A29E] transition-colors">
-          개인정보처리방침
-        </a>
-      </footer>
 
       <nav className="fixed bottom-0 w-full z-[1001] px-6 md:px-16 py-6 bg-[#151413]/95 backdrop-blur-2xl border-t border-[#EAE5D9]/5 flex justify-between items-center shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
         <NavItem id="journal" icon={Wind} label="Journal" />
