@@ -229,7 +229,7 @@ export default function App() {
         "articles": *[_type == "journal"] { ..., category, subtitle } | order(publishedAt desc),
         "routes": *[_type == "route"] { ..., "gpxUrl": gpxFile.asset->url, "gallery": images[].asset->url, elevationGain, difficulty, body, "spots": spots[]{ name, type, address, body, "images": images[].asset->url } },
         "gearItems": *[_type == "gear"] { ..., slug, body } | order(publishedAt desc),
-        "races": *[_type == "race"] { ..., location } | order(date asc)
+        "races": *[_type == "session"] { ..., location } | order(date asc)
       }`);
       
       const endpoint = `https://${SANITY_CONFIG.projectId}.api.sanity.io/v${SANITY_CONFIG.apiVersion}/data/query/${SANITY_CONFIG.dataset}?query=${query}`;
