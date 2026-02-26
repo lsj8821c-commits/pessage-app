@@ -1537,7 +1537,8 @@ export default function App() {
         </a>
       </div>
 
-      <nav className="fixed bottom-0 w-full z-[1001] px-6 md:px-16 py-6 bg-[#151413]/95 backdrop-blur-2xl border-t border-[#EAE5D9]/5 flex justify-between items-center shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
+      <nav className="fixed bottom-0 w-full z-[1001] px-6 md:px-16 pt-4 pb-6 bg-[#151413]/95 backdrop-blur-2xl border-t border-[#EAE5D9]/5 flex justify-between items-center shadow-[0_-10px_40px_rgba(0,0,0,0.5)]" style={{paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom))'}}>
+
         <NavItem id="journal" icon={Wind} label="Journal" />
         <NavItem id="routes" icon={Compass} label="Routes" />
         <NavItem id="sessions" icon={Flag} label="Sessions" />
