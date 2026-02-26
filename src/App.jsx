@@ -1162,12 +1162,10 @@ export default function App() {
                     ) : (
                       <div className="space-y-4">
                         {siteContent.routes.length > 0 ? siteContent.routes.filter(r => (routeTypeFilter === 'ALL' || r.type === routeTypeFilter) && (routeRegionFilter === 'ALL' || r.region === routeRegionFilter)).map(route => (
-                          <div key={route._id} onClick={() => setSelectedRoute(route)} className="p-8 md:p-10 bg-[#1A1918] border border-[#EAE5D9]/5 flex justify-between items-center cursor-pointer hover:border-[#EAE5D9]/20 transition-all duration-300 group rounded-sm shadow-lg">
-                              <div className="min-w-0 flex-1 pr-4">
-                                <p className={`text-[10px] uppercase font-bold tracking-[0.3em] mb-3 ${route.type === 'TRAIL' ? 'text-[#C2410C]' : 'text-[#A8A29E]'}`}>{route.type} / {route.region}</p>
-                                <h4 className="text-2xl md:text-3xl font-light italic group-hover:text-[#EAE5D9] text-[#EAE5D9]/90 transition-colors leading-tight">{route.name}</h4>
-                              </div>
-                              <div className="flex items-center gap-6 text-right shrink-0">
+                          <div key={route._id} onClick={() => setSelectedRoute(route)} className="p-8 md:p-10 bg-[#1A1918] border border-[#EAE5D9]/5 cursor-pointer hover:border-[#EAE5D9]/20 transition-all duration-300 group rounded-sm shadow-lg">
+                              <p className={`text-[10px] uppercase font-bold tracking-[0.3em] mb-3 ${route.type === 'TRAIL' ? 'text-[#C2410C]' : 'text-[#A8A29E]'}`}>{route.type} / {route.region}</p>
+                              <h4 className="text-2xl md:text-3xl font-light italic group-hover:text-[#EAE5D9] text-[#EAE5D9]/90 transition-colors leading-tight mb-6">{route.name}</h4>
+                              <div className="flex items-center gap-6">
                                 {route.distance && (
                                   <div>
                                     <p className="text-[9px] uppercase tracking-widest text-[#5A5450] mb-1">Dist</p>
