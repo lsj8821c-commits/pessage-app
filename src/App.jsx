@@ -196,6 +196,10 @@ export default function App() {
   const [routeRegionFilter, setRouteRegionFilter] = useState('ALL');
   const [raceTypeFilter, setRaceTypeFilter] = useState('ALL');
   const [raceTimeTab, setRaceTimeTab] = useState('upcoming');
+  const [raceViewMode, setRaceViewMode] = useState('list'); // 'list' | 'calendar'
+  const [calendarYear, setCalendarYear] = useState(new Date().getFullYear());
+  const [calendarMonth, setCalendarMonth] = useState(new Date().getMonth()); // 0-11
+  const [expandedRaceId, setExpandedRaceId] = useState(null);
   const [gearFilter, setGearFilter] = useState('ALL');
   const [journalCategoryFilter, setJournalCategoryFilter] = useState('ALL');
 
@@ -690,6 +694,134 @@ export default function App() {
       acc[dateStr].push(race);
       return acc;
     }, {});
+  };
+
+  const renderCalendarView = () => {
+    const year = calendarYear;
+    const month = calendarMonth;
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const today = new Date();
+
+    const monthRaces = siteContent.races.filter(race => {
+      if (!race.date) return false;
+      const matchType = raceTypeFilter === 'ALL' || race.type === raceTypeFilter;
+      const d = new Date(race.date);
+      return matchType && d.getFullYear() === year && d.getMonth() === month;
+    });
+
+    const racesByDay = monthRaces.reduce((acc, race) => {
+      const day = new Date(race.date).getDate();
+      if (!acc[day]) acc[day] = [];
+      acc[day].push(race);
+      return acc;
+    }, {});
+
+    const weeks = [];
+    let cells = Array(firstDay).fill(null);
+    for (let d = 1; d <= daysInMonth; d++) {
+      cells.push(d);
+      if (cells.length === 7) { weeks.push(cells); cells = []; }
+    }
+    if (cells.length > 0) {
+      while (cells.length < 7) cells.push(null);
+      weeks.push(cells);
+    }
+
+    const monthName = new Date(year, month).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long' });
+
+    return (
+      <div>
+        {/* 월 네비게이션 */}
+        <div className="flex items-center justify-between mb-8">
+          <button
+            onClick={() => {
+              if (calendarMonth === 0) { setCalendarMonth(11); setCalendarYear(y => y - 1); }
+              else setCalendarMonth(m => m - 1);
+            }}
+            className="text-[#5A5450] hover:text-[#EAE5D9] transition-colors px-4 py-2 text-xl"
+          >←</button>
+          <h3 className="text-[13px] uppercase tracking-[0.3em] font-bold text-[#A8A29E]">{monthName}</h3>
+          <button
+            onClick={() => {
+              if (calendarMonth === 11) { setCalendarMonth(0); setCalendarYear(y => y + 1); }
+              else setCalendarMonth(m => m + 1);
+            }}
+            className="text-[#5A5450] hover:text-[#EAE5D9] transition-colors px-4 py-2 text-xl"
+          >→</button>
+        </div>
+
+        {/* 요일 헤더 */}
+        <div className="grid grid-cols-7 mb-2">
+          {['SUN','MON','TUE','WED','THU','FRI','SAT'].map(d => (
+            <div key={d} className="text-center text-[9px] uppercase tracking-widest text-[#5A5450] py-2">{d}</div>
+          ))}
+        </div>
+
+        {/* 날짜 그리드 */}
+        <div className="border-t border-l border-[#EAE5D9]/5">
+          {weeks.map((week, wi) => (
+            <div key={wi} className="grid grid-cols-7">
+              {week.map((day, di) => {
+                const isToday = day && today.getFullYear() === year && today.getMonth() === month && today.getDate() === day;
+                const races = day ? (racesByDay[day] || []) : [];
+                return (
+                  <div key={di} className={`border-b border-r border-[#EAE5D9]/5 min-h-[80px] p-1.5 ${!day ? 'bg-[#151413]/50' : 'bg-transparent'}`}>
+                    {day && (
+                      <>
+                        <span className={`text-[11px] font-bold block mb-1 w-6 h-6 flex items-center justify-center rounded-full ${isToday ? 'bg-[#EAE5D9] text-[#151413]' : 'text-[#5A5450]'}`}>{day}</span>
+                        {races.map(race => (
+                          <div key={race._id}>
+                            <button
+                              onClick={() => setExpandedRaceId(expandedRaceId === race._id ? null : race._id)}
+                              className={`w-full text-left text-[9px] uppercase tracking-wide font-bold px-1.5 py-1 rounded-sm mb-1 truncate transition-all ${race.type === 'TRAIL' ? 'bg-[#C2410C]/20 text-[#C2410C] hover:bg-[#C2410C]/30' : 'bg-[#EAE5D9]/5 text-[#A8A29E] hover:bg-[#EAE5D9]/10'}`}
+                            >{race.name}</button>
+                            {/* 상세 정보 펼치기 */}
+                            {expandedRaceId === race._id && (
+                              <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setExpandedRaceId(null)}>
+                                <div className="bg-[#1A1918] border border-[#EAE5D9]/10 rounded-sm p-8 max-w-md w-full shadow-2xl" onClick={e => e.stopPropagation()}>
+                                  <div className="flex justify-between items-start mb-6">
+                                    <p className={`text-[10px] uppercase tracking-[0.3em] font-bold ${race.type === 'TRAIL' ? 'text-[#C2410C]' : 'text-[#A8A29E]'}`}>{race.type}</p>
+                                    <button onClick={() => setExpandedRaceId(null)} className="text-[#5A5450] hover:text-[#EAE5D9] transition-colors text-lg leading-none">✕</button>
+                                  </div>
+                                  <h3 className="text-2xl font-light italic text-[#EAE5D9] mb-4">{race.name}</h3>
+                                  {race.location && (
+                                    <p className="text-[11px] text-[#78716C] mb-3 flex items-center gap-1.5">📍 {race.location}</p>
+                                  )}
+                                  {race.date && (
+                                    <p className="text-[11px] text-[#78716C] mb-3">📅 {new Date(race.date).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                                  )}
+                                  {race.registrationDate && (
+                                    <p className="text-[11px] text-[#C2410C] font-bold uppercase tracking-widest mb-4">Registration: {race.registrationDate}</p>
+                                  )}
+                                  {race.description && (
+                                    <p className="text-[14px] text-[#A8A29E] font-light leading-relaxed mb-6">{race.description}</p>
+                                  )}
+                                  {race.registrationUrl && (
+                                    <a href={race.registrationUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 bg-[#EAE5D9] text-[#151413] px-6 py-3 text-[10px] uppercase tracking-[0.2em] font-bold rounded-sm hover:bg-white transition-all">
+                                      Official Link →
+                                    </a>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          ))}
+        </div>
+
+        {/* 해당 월에 대회 없을 때 */}
+        {monthRaces.length === 0 && (
+          <div className="py-16 text-center text-[#5A5450] italic text-sm">이 달에 등록된 대회가 없습니다.</div>
+        )}
+      </div>
+    );
   };
 
   const ritualScore = calcRitualScore(stravaData);
@@ -1246,7 +1378,20 @@ export default function App() {
             {activeTab === 'sessions' && (
               <section className="pt-28 px-6 max-w-4xl mx-auto animate-in slide-in-from-bottom-8">
                 <div className="mb-16">
-                  <h2 className="text-4xl font-light italic mb-8 text-[#EAE5D9]">Race Calendar</h2>
+                  <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
+                    <h2 className="text-4xl font-light italic text-[#EAE5D9]">Race Calendar</h2>
+                    {/* List / Calendar 토글 */}
+                    <div className="flex gap-1 bg-[#1A1918] p-1 rounded-sm border border-[#EAE5D9]/5">
+                      <button
+                        onClick={() => setRaceViewMode('list')}
+                        className={`text-[10px] uppercase tracking-[0.25em] font-bold px-5 py-2 rounded-sm transition-all ${raceViewMode === 'list' ? 'bg-[#EAE5D9] text-[#151413]' : 'text-[#5A5450] hover:text-[#A8A29E]'}`}
+                      >List</button>
+                      <button
+                        onClick={() => setRaceViewMode('calendar')}
+                        className={`text-[10px] uppercase tracking-[0.25em] font-bold px-5 py-2 rounded-sm transition-all ${raceViewMode === 'calendar' ? 'bg-[#EAE5D9] text-[#151413]' : 'text-[#5A5450] hover:text-[#A8A29E]'}`}
+                      >Calendar</button>
+                    </div>
+                  </div>
                   {/* 예정 / 지난 대회 탭 */}
                   <div className="flex gap-1 mb-8 bg-[#1A1918] p-1 rounded-sm border border-[#EAE5D9]/5 w-fit">
                     <button
@@ -1263,6 +1408,9 @@ export default function App() {
                   </div>
                 </div>
 
+                {raceViewMode === 'calendar' ? (
+                  renderCalendarView()
+                ) : (
                 <div className="space-y-24">
                   {Object.entries(groupedRaces()).map(([month, monthRaces]) => (
                     <div key={month} className="animate-in fade-in">
@@ -1312,6 +1460,7 @@ export default function App() {
                     </div>
                   ))}
                 </div>
+                )}
               </section>
             )}
 
