@@ -692,10 +692,19 @@ export default function App() {
           <div className="max-w-sm w-full bg-[#1A1918] border border-[#EAE5D9]/10 p-10 rounded-sm shadow-2xl">
             <h3 className="text-2xl font-light italic mb-10 text-center text-[#EAE5D9]">Sync Your Gear</h3>
             <div className="space-y-4">
-              {['Garmin', 'COROS', 'Apple Watch'].map(brand => (
-                <button key={brand} onClick={() => {setConnectedDevice(brand); setIsWatchModalOpen(false);}} className="w-full flex justify-between items-center p-6 bg-[#EAE5D9]/5 border border-[#EAE5D9]/5 hover:border-[#EAE5D9]/30 transition-all group rounded-sm">
-                  <span className="text-[11px] uppercase tracking-[0.2em] font-bold text-[#EAE5D9]">{brand}</span>
-                  <ChevronRight size={16} className="text-[#78716C] group-hover:text-[#EAE5D9] transition-colors" />
+              {[
+                {name: 'Garmin', status: 'available'},
+                {name: 'COROS', status: 'available'},
+                {name: 'Suunto', status: 'coming'},
+                {name: 'Samsung Health', status: 'coming'},
+                {name: 'Apple Health', status: 'coming'},
+              ].map(({name, status}) => (
+                <button key={name} onClick={() => { if(status === 'available') { setConnectedDevice(name); setIsWatchModalOpen(false); }}} className={`w-full flex justify-between items-center p-6 border transition-all group rounded-sm ${status === 'coming' ? 'bg-[#EAE5D9]/2 border-[#EAE5D9]/5 opacity-40 cursor-not-allowed' : 'bg-[#EAE5D9]/5 border-[#EAE5D9]/5 hover:border-[#EAE5D9]/30 cursor-pointer'}`}>
+                  <div className="flex items-center gap-3">
+                    <span className="text-[11px] uppercase tracking-[0.2em] font-bold text-[#EAE5D9]">{name}</span>
+                    {status === 'coming' && <span className="text-[9px] uppercase tracking-widest text-[#5A5450] border border-[#5A5450]/40 px-2 py-0.5 rounded-full">Coming Soon</span>}
+                  </div>
+                  <ChevronRight size={16} className={`transition-colors ${status === 'coming' ? 'text-[#3A3836]' : 'text-[#78716C] group-hover:text-[#EAE5D9]'}`} />
                 </button>
               ))}
             </div>
