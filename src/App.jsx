@@ -195,6 +195,7 @@ export default function App() {
   const [routeTypeFilter, setRouteTypeFilter] = useState('ALL');
   const [routeRegionFilter, setRouteRegionFilter] = useState('ALL');
   const [raceTypeFilter, setRaceTypeFilter] = useState('ALL');
+  const [raceTimeTab, setRaceTimeTab] = useState('upcoming');
   const [gearFilter, setGearFilter] = useState('ALL');
   const [journalCategoryFilter, setJournalCategoryFilter] = useState('ALL');
 
@@ -663,15 +664,32 @@ export default function App() {
   );
 
   const groupedRaces = () => {
-    const filtered = siteContent.races.filter(r => raceTypeFilter === 'ALL' || r.type === raceTypeFilter);
-    const groups = {};
-    filtered.forEach(race => {
-      const dateObj = new Date(race.date);
-      const month = isNaN(dateObj.getTime()) ? "UPCOMING" : dateObj.toLocaleString('en-US', { month: 'long', year: 'numeric' }).toUpperCase();
-      if (!groups[month]) groups[month] = [];
-      groups[month].push(race);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const filtered = siteContent.races.filter(race => {
+      const matchType = raceTypeFilter === 'ALL' || race.type === raceTypeFilter;
+      if (!matchType) return false;
+      if (!race.date) return raceTimeTab === 'upcoming';
+      const raceDate = new Date(race.date);
+      return raceTimeTab === 'upcoming' ? raceDate >= today : raceDate < today;
     });
-    return groups;
+
+    const sorted = [...filtered].sort((a, b) => {
+      if (!a.date) return 1;
+      if (!b.date) return -1;
+      const diff = new Date(a.date) - new Date(b.date);
+      return raceTimeTab === 'upcoming' ? diff : -diff;
+    });
+
+    return sorted.reduce((acc, race) => {
+      const dateStr = race.date
+        ? new Date(race.date).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long' })
+        : '날짜 미정';
+      if (!acc[dateStr]) acc[dateStr] = [];
+      acc[dateStr].push(race);
+      return acc;
+    }, {});
   };
 
   const ritualScore = calcRitualScore(stravaData);
@@ -1229,6 +1247,17 @@ export default function App() {
               <section className="pt-28 px-6 max-w-4xl mx-auto animate-in slide-in-from-bottom-8">
                 <div className="mb-16">
                   <h2 className="text-4xl font-light italic mb-8 text-[#EAE5D9]">Race Calendar</h2>
+                  {/* 예정 / 지난 대회 탭 */}
+                  <div className="flex gap-1 mb-8 bg-[#1A1918] p-1 rounded-sm border border-[#EAE5D9]/5 w-fit">
+                    <button
+                      onClick={() => setRaceTimeTab('upcoming')}
+                      className={`text-[10px] uppercase tracking-[0.25em] font-bold px-6 py-2.5 rounded-sm transition-all ${raceTimeTab === 'upcoming' ? 'bg-[#EAE5D9] text-[#151413]' : 'text-[#5A5450] hover:text-[#A8A29E]'}`}
+                    >Upcoming</button>
+                    <button
+                      onClick={() => setRaceTimeTab('past')}
+                      className={`text-[10px] uppercase tracking-[0.25em] font-bold px-6 py-2.5 rounded-sm transition-all ${raceTimeTab === 'past' ? 'bg-[#EAE5D9] text-[#151413]' : 'text-[#5A5450] hover:text-[#A8A29E]'}`}
+                    >Past</button>
+                  </div>
                   <div className="flex gap-8 border-b border-[#EAE5D9]/10 pb-5 mb-12 overflow-x-auto whitespace-nowrap hide-scrollbar">
                     {['ALL', 'TRAIL', 'ROAD', 'GROUP_RUN'].map(type => (<button key={type} onClick={() => setRaceTypeFilter(type)} className={`text-[11px] uppercase tracking-[0.3em] font-bold transition-all ${raceTypeFilter === type ? 'text-[#EAE5D9] border-b border-[#EAE5D9] pb-5 -mb-5' : 'text-[#5A5450] hover:text-[#A8A29E]'}`}>{type}</button>))}
                   </div>
