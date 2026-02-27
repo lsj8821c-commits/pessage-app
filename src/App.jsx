@@ -211,6 +211,10 @@ export default function App() {
   });
   const [isEditingName, setIsEditingName] = useState(false);
   const [editNameValue, setEditNameValue] = useState('');
+  const [consentTerms, setConsentTerms] = useState(false);
+  const [consentPrivacy, setConsentPrivacy] = useState(false);
+  const [consentAge, setConsentAge] = useState(false);
+  const consentAllChecked = consentTerms && consentPrivacy && consentAge;
 
   // Map Refs
   const mapRef = useRef(null);
@@ -727,19 +731,35 @@ export default function App() {
         {authMode ? (
           <section className="pt-32 px-6 max-w-sm mx-auto animate-in slide-in-from-bottom-8 text-center">
              <h2 className="text-4xl font-light italic mb-12 text-[#EAE5D9]">Join the Pack</h2>
-             <div className="space-y-4 mb-3">
-                {/* ✅ 실제 로그인 함수 연결 */}
-                <button onClick={handleGoogleLogin} className="w-full flex items-center justify-center py-5 bg-transparent text-[#EAE5D9] text-[11px] font-bold tracking-[0.2em] border border-[#EAE5D9]/20 hover:border-[#EAE5D9]/60 transition-colors rounded-sm">GOOGLE CONNECT</button>
-                <button onClick={handleKakaoLogin} className="w-full flex items-center justify-center py-5 bg-[#FEE500] text-black text-[11px] font-bold tracking-[0.2em] rounded-sm hover:bg-[#e6cf00] transition-colors">KAKAO CONNECT</button>
-                <button onClick={handleNaverLogin} className="w-full flex items-center justify-center py-5 bg-[#03C75A] text-white text-[11px] font-bold tracking-[0.2em] rounded-sm hover:bg-[#02b350] transition-colors">NAVER CONNECT</button>
+             {/* 동의 체크박스 */}
+             <div className="text-left space-y-3 mb-5 p-4 border border-[#EAE5D9]/10 rounded-sm">
+               <label className="flex items-start gap-3 cursor-pointer group">
+                 <input type="checkbox" checked={consentTerms} onChange={e => setConsentTerms(e.target.checked)} className="mt-0.5 accent-[#EAE5D9] w-4 h-4 shrink-0" />
+                 <span className="text-[10px] text-[#A8A29E] leading-relaxed group-hover:text-[#EAE5D9] transition-colors">
+                   <span className="text-[#C2410C] font-bold">[필수]</span> <a href="/terms-ko" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">이용약관</a>에 동의합니다.
+                 </span>
+               </label>
+               <label className="flex items-start gap-3 cursor-pointer group">
+                 <input type="checkbox" checked={consentPrivacy} onChange={e => setConsentPrivacy(e.target.checked)} className="mt-0.5 accent-[#EAE5D9] w-4 h-4 shrink-0" />
+                 <span className="text-[10px] text-[#A8A29E] leading-relaxed group-hover:text-[#EAE5D9] transition-colors">
+                   <span className="text-[#C2410C] font-bold">[필수]</span> <a href="/privacy-ko" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">개인정보 수집 및 이용</a>에 동의합니다.
+                 </span>
+               </label>
+               <label className="flex items-start gap-3 cursor-pointer group">
+                 <input type="checkbox" checked={consentAge} onChange={e => setConsentAge(e.target.checked)} className="mt-0.5 accent-[#EAE5D9] w-4 h-4 shrink-0" />
+                 <span className="text-[10px] text-[#A8A29E] leading-relaxed group-hover:text-[#EAE5D9] transition-colors">
+                   <span className="text-[#C2410C] font-bold">[필수]</span> 만 14세 이상임을 확인합니다.
+                 </span>
+               </label>
              </div>
-             <p className="text-[9px] text-[#78716C] mb-10 leading-relaxed">
-               By signing in, you agree to our{' '}
-               <a href="/privacy" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-[#A8A29E] transition-colors">Privacy Policy</a>
-               <span className="mx-1.5 opacity-40">·</span>
-               <a href="/privacy-ko" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-[#A8A29E] transition-colors">개인정보처리방침</a>
-             </p>
-             <button onClick={() => setAuthMode(null)} className="text-[10px] uppercase tracking-widest text-[#78716C] hover:text-[#EAE5D9] border-b border-[#78716C] pb-1 transition-colors">Return</button>
+
+             {/* 로그인 버튼 */}
+             <div className="space-y-4 mb-8">
+               <button onClick={handleGoogleLogin} disabled={!consentAllChecked} className="w-full flex items-center justify-center py-5 bg-transparent text-[#EAE5D9] text-[11px] font-bold tracking-[0.2em] border border-[#EAE5D9]/20 hover:border-[#EAE5D9]/60 transition-colors rounded-sm disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:border-[#EAE5D9]/20">GOOGLE CONNECT</button>
+               <button onClick={handleKakaoLogin} disabled={!consentAllChecked} className="w-full flex items-center justify-center py-5 bg-[#FEE500] text-black text-[11px] font-bold tracking-[0.2em] rounded-sm hover:bg-[#e6cf00] transition-colors disabled:opacity-30 disabled:cursor-not-allowed">KAKAO CONNECT</button>
+               <button onClick={handleNaverLogin} disabled={!consentAllChecked} className="w-full flex items-center justify-center py-5 bg-[#03C75A] text-white text-[11px] font-bold tracking-[0.2em] rounded-sm hover:bg-[#02b350] transition-colors disabled:opacity-30 disabled:cursor-not-allowed">NAVER CONNECT</button>
+             </div>
+             <button onClick={() => { setAuthMode(null); setConsentTerms(false); setConsentPrivacy(false); setConsentAge(false); }} className="text-[10px] uppercase tracking-widest text-[#78716C] hover:text-[#EAE5D9] border-b border-[#78716C] pb-1 transition-colors">Return</button>
           </section>
         ) : isProfileOpen && isLoggedIn ? (
           <section className="pt-32 px-6 max-w-4xl mx-auto animate-in slide-in-from-bottom-8">
