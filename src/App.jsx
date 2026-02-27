@@ -716,9 +716,9 @@ export default function App() {
         <div className="flex gap-5 items-center">
           {isLoggedIn ? (
             <>
-              <div className={`text-[10px] tracking-widest uppercase px-4 py-1.5 rounded-full border transition-all ${stravaData ? 'border-[#FC4C02]/50 text-[#FC4C02] bg-[#FC4C02]/10 font-bold' : connectedDevice ? 'border-[#C2410C]/40 text-[#C2410C] bg-[#C2410C]/10 font-bold' : 'border-[#EAE5D9]/20 text-[#78716C]'}`}>
+              <button onClick={handleDeviceConnectClick} className={`text-[10px] tracking-widest uppercase px-4 py-1.5 rounded-full border transition-all ${stravaData ? 'border-[#FC4C02]/50 text-[#FC4C02] bg-[#FC4C02]/10 font-bold' : connectedDevice ? 'border-[#C2410C]/40 text-[#C2410C] bg-[#C2410C]/10 font-bold' : 'border-[#EAE5D9]/20 text-[#78716C] hover:border-[#EAE5D9]/50 hover:text-[#A8A29E] cursor-pointer'}`}>
                 {stravaData ? 'STRAVA' : connectedDevice ? connectedDevice.toUpperCase() : 'NO DEVICE'}
-              </div>
+              </button>
               <button onClick={() => {setIsProfileOpen(!isProfileOpen); setAuthMode(null);}} className={`p-1.5 transition-all ${isProfileOpen ? 'text-[#EAE5D9] bg-[#EAE5D9]/10 rounded-full' : 'text-[#78716C] hover:text-[#EAE5D9]'}`}><User size={20} /></button>
             </>
           ) : (
