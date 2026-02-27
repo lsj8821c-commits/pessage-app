@@ -2,6 +2,8 @@
   "rewrites": [
     { "source": "/privacy", "destination": "/privacy.html" },
     { "source": "/privacy-ko", "destination": "/privacy-ko.html" },
+    { "source": "/terms", "destination": "/terms.html" },
+    { "source": "/terms-ko", "destination": "/terms-ko.html" },
     { "source": "/((?!api/.*).*)", "destination": "/index.html" }
   ]
 }
