@@ -1425,6 +1425,13 @@ export default function App() {
                                <div className={`absolute left-[-5px] top-1.5 w-2 h-2 rounded-full ${race.type === 'TRAIL' ? 'bg-[#C2410C]' : 'bg-[#A8A29E]'}`}></div>
                                <h3 className="text-3xl md:text-4xl font-light italic mb-5 text-[#EAE5D9]">{race.name}</h3>
 
+                               {race.date && (
+                                 <p className="text-[11px] uppercase tracking-widest text-[#A8A29E] mb-3 flex items-center gap-1.5">
+                                   <Calendar size={11} className="shrink-0" />
+                                   {new Date(race.date).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })}
+                                 </p>
+                               )}
+
                                {race.location && (
                                  <p className="text-[11px] text-[#78716C] mb-4 flex items-center gap-1.5">
                                    <MapPin size={11} className="shrink-0" />{race.location}
