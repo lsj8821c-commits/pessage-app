@@ -894,7 +894,7 @@ export default function App() {
         }}
       >
         <h1 className="text-2xl font-bold tracking-[0.3em] italic cursor-pointer" onClick={() => {setActiveTab('journal'); setSelectedArticle(null); setAuthMode(null); setIsProfileOpen(false);}}>PESSAGE</h1>
-        <div className="flex items-center" style={{gap: '16px', paddingRight: '20px'}}>
+        <div className="flex items-center" style={{gap: '16px', paddingRight: '20px', flexShrink: 0}}>
           {/* 테마 슬라이더 토글 */}
           <button
             onClick={() => setTheme(t => t === 'light' ? 'dark' : 'light')}
@@ -969,7 +969,27 @@ export default function App() {
                 }} />
                 {stravaData ? 'STRAVA' : connectedDevice ? connectedDevice.toUpperCase() : 'NO DEVICE'}
               </button>
-              <button onClick={() => {setIsProfileOpen(!isProfileOpen); setAuthMode(null);}} className={`flex items-center justify-center transition-all ${isProfileOpen ? 'text-[#EAE5D9] bg-[#EAE5D9]/10 rounded-full' : 'text-[#3D3530] hover:text-[#EAE5D9]'}`} style={{width: '44px', height: '44px', flexShrink: 0}}><User size={20} /></button>
+              <div className="flex items-center justify-center" style={{width: '44px', height: '44px', flexShrink: 0}}>
+                <button
+                  onClick={() => {setIsProfileOpen(!isProfileOpen); setAuthMode(null);}}
+                  style={{
+                    width: '32px',
+                    height: '32px',
+                    borderRadius: '50%',
+                    background: isProfileOpen ? '#D4CFC9' : '#E8E4DF',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#3D3530',
+                    flexShrink: 0,
+                    border: 'none',
+                    cursor: 'pointer',
+                    transition: 'background 0.2s',
+                  }}
+                >
+                  <User size={16} />
+                </button>
+              </div>
             </>
           ) : (
             <button onClick={() => setAuthMode('login')} className="text-[10px] uppercase tracking-widest bg-[#EAE5D9] text-[#151413] px-6 py-2.5 rounded-full font-bold shadow-lg hover:bg-white active:scale-95 transition-all">SIGN IN</button>
