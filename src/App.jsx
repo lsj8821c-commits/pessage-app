@@ -892,21 +892,11 @@ export default function App() {
         }
       >
         <h1 className="text-2xl font-bold tracking-[0.3em] italic cursor-pointer" onClick={() => {setActiveTab('journal'); setSelectedArticle(null); setAuthMode(null); setIsProfileOpen(false);}}>PESSAGE</h1>
-        <div className="flex gap-5 items-center">
+        <div className="flex items-center gap-4 pr-5">
           <button
             onClick={() => setTheme(t => t === 'light' ? 'dark' : 'light')}
-            style={{
-              fontSize: '10px',
-              letterSpacing: '0.15em',
-              textTransform: 'uppercase',
-              padding: '6px 14px',
-              border: '1px solid',
-              borderRadius: '999px',
-              background: 'var(--text-primary)',
-              color: 'var(--bg-base)',
-              borderColor: 'var(--text-primary)',
-              cursor: 'pointer',
-            }}
+            className="flex items-center justify-center transition-all text-[#3D3530]"
+            style={{width: '44px', height: '44px', fontSize: '18px', cursor: 'pointer'}}
           >
             {theme === 'light' ? '🌙' : '☀️'}
           </button>
@@ -915,7 +905,7 @@ export default function App() {
               <button onClick={handleDeviceConnectClick} className={`text-[10px] tracking-widest uppercase px-4 py-1.5 rounded-full border transition-all ${stravaData ? 'border-[#FC4C02]/50 text-[#FC4C02] bg-[#FC4C02]/10 font-bold' : connectedDevice ? 'border-[#C2410C]/40 text-[#C2410C] bg-[#C2410C]/10 font-bold' : 'border-[#EAE5D9]/20 text-[#78716C] hover:border-[#EAE5D9]/50 hover:text-[#A8A29E] cursor-pointer'}`}>
                 {stravaData ? 'STRAVA' : connectedDevice ? connectedDevice.toUpperCase() : 'NO DEVICE'}
               </button>
-              <button onClick={() => {setIsProfileOpen(!isProfileOpen); setAuthMode(null);}} className={`p-1.5 transition-all ${isProfileOpen ? 'text-[#EAE5D9] bg-[#EAE5D9]/10 rounded-full' : 'text-[#78716C] hover:text-[#EAE5D9]'}`}><User size={20} /></button>
+              <button onClick={() => {setIsProfileOpen(!isProfileOpen); setAuthMode(null);}} className={`flex items-center justify-center transition-all ${isProfileOpen ? 'text-[#EAE5D9] bg-[#EAE5D9]/10 rounded-full' : 'text-[#3D3530] hover:text-[#EAE5D9]'}`} style={{width: '44px', height: '44px'}}><User size={20} /></button>
             </>
           ) : (
             <button onClick={() => setAuthMode('login')} className="text-[10px] uppercase tracking-widest bg-[#EAE5D9] text-[#151413] px-6 py-2.5 rounded-full font-bold shadow-lg hover:bg-white active:scale-95 transition-all">SIGN IN</button>
