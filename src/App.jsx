@@ -1174,8 +1174,8 @@ export default function App() {
                                 <div className="absolute bottom-10 left-8 md:bottom-16 md:left-16 z-10 w-[80%] md:w-2/3">
                                   {heroArticle.category && <p className="text-[9px] tracking-[0.4em] uppercase mb-2 text-[#C2410C] font-bold">{heroArticle.category}</p>}
                                   <p className="text-[10px] tracking-[0.4em] uppercase mb-4 font-bold text-white/70">{heroArticle.subtitle || 'Latest Feature'}</p>
-                                  <h2 className="text-4xl md:text-7xl font-light italic leading-[1.1] text-white group-hover:text-white transition-colors duration-500 mb-8">{heroArticle.title}</h2>
-                                  <button className="text-[11px] uppercase tracking-[0.3em] font-bold border-b border-white/30 pb-1.5 text-white transition-colors">Read the Story</button>
+                                  <h2 className="text-4xl md:text-7xl font-light italic leading-[1.1] text-[#EAE5D9] drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)] transition-colors duration-500 mb-8">{heroArticle.title}</h2>
+                                  <button className="text-[11px] uppercase tracking-[0.3em] font-bold border-b border-[#EAE5D9]/50 pb-1.5 text-[#EAE5D9] drop-shadow-[0_1px_4px_rgba(0,0,0,0.8)] transition-colors">Read the Story</button>
                                 </div>
                                 <button
                                   onClick={(e) => toggleSave(e, 'articles', heroArticle)}
