@@ -1,0 +1,42 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;500&display=swap');
+
+:root,
+[data-theme='light'] {
+  --bg-base:        #EEE8DC;
+  --bg-surface:     #E4DDD0;
+  --bg-elevated:    #F4EFE6;
+  --text-primary:   #24201A;
+  --text-secondary: #7A6A58;
+  --text-muted:     #B09880;
+  --text-dim:       #C8B8A4;
+  --accent:         #2A4A3A;
+  --accent-warm:    #B84A1A;
+  --border:         rgba(36,32,26,0.08);
+  --border-mid:     rgba(36,32,26,0.14);
+  --shadow:         rgba(36,32,26,0.08);
+}
+
+[data-theme='dark'] {
+  --bg-base:        #1E1812;
+  --bg-surface:     #2A2018;
+  --bg-elevated:    #322818;
+  --text-primary:   #E8D8C0;
+  --text-secondary: #C4A882;
+  --text-muted:     #7A6348;
+  --text-dim:       #4A3828;
+  --accent:         #D4692A;
+  --accent-warm:    #D4692A;
+  --border:         rgba(232,216,192,0.07);
+  --border-mid:     rgba(232,216,192,0.13);
+  --shadow:         rgba(0,0,0,0.3);
+}
+
+*, *::before, *::after {
+  transition: background-color 0.5s ease, color 0.5s ease, border-color 0.5s ease;
+}
+
+body {
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: 'Georgia', 'Noto Serif KR', serif;
+}

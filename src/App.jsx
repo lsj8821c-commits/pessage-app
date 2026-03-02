@@ -141,9 +141,9 @@ const EditorialRenderer = ({ blocks }) => {
         if (block._type === 'block') {
           const text = block.children?.map(child => child.text).join('') || '';
           if (!text) return <div key={index} className="h-4" />;
-          if (block.style === 'h2') return <h2 key={index} className="text-3xl font-light italic text-[#EAE5D9] mt-16 mb-6 tracking-wide">{text}</h2>;
-          if (block.style === 'h3') return <h3 key={index} className="text-xl font-bold text-[#EAE5D9] mt-8 mb-4">{text}</h3>;
-          return <p key={index} className="text-[17px] leading-[1.8] text-[#A8A29E] font-light">{text}</p>;
+          if (block.style === 'h2') return <h2 key={index} className="text-3xl font-light italic mt-16 mb-6 tracking-wide" style={{color:'var(--text-primary)'}}>{text}</h2>;
+          if (block.style === 'h3') return <h3 key={index} className="text-xl font-bold mt-8 mb-4" style={{color:'var(--text-primary)'}}>{text}</h3>;
+          return <p key={index} className="text-[17px] leading-[1.8] font-light" style={{color:'var(--text-secondary)'}}>{text}</p>;
         }
         
         if (block._type === 'image') {
@@ -151,20 +151,20 @@ const EditorialRenderer = ({ blocks }) => {
           if (!imageUrl) return null;
           return (
             <figure key={index} className="my-20 animate-in fade-in duration-1000">
-              <div className="w-full bg-[#1A1918] overflow-hidden rounded-sm border border-[#EAE5D9]/5">
+              <div className="w-full overflow-hidden rounded-sm border" style={{background:'var(--bg-surface)', borderColor:'var(--border)'}}>
                 <img src={imageUrl} alt={block.caption || ''} className="w-full h-auto block" />
               </div>
-              {block.caption && <figcaption className="mt-6 text-[10px] uppercase tracking-widest text-[#78716C] text-center italic">— {block.caption}</figcaption>}
+              {block.caption && <figcaption className="mt-6 text-[10px] uppercase tracking-widest text-center italic" style={{color:'var(--text-muted)'}}>— {block.caption}</figcaption>}
             </figure>
           );
         }
 
         if (block._type === 'quote') {
           return (
-            <div key={index} className="py-16 border-y border-[#EAE5D9]/10 my-20 text-center animate-in slide-in-from-bottom-2 bg-gradient-to-b from-transparent via-[#EAE5D9]/5 to-transparent">
-              <Quote size={24} className="mx-auto mb-8 text-[#EAE5D9]/30" />
-              <p className="text-2xl md:text-3xl font-light italic leading-relaxed text-[#EAE5D9] mb-6 px-4">"{block.text}"</p>
-              {block.author && <cite className="text-[10px] uppercase tracking-[0.3em] text-[#78716C] font-bold">— {block.author}</cite>}
+            <div key={index} className="py-16 border-y my-20 text-center animate-in slide-in-from-bottom-2" style={{borderColor:'var(--border-mid)'}}>
+              <Quote size={24} className="mx-auto mb-8" style={{color:'var(--text-dim)'}} />
+              <p className="text-2xl md:text-3xl font-light italic leading-relaxed mb-6 px-4" style={{color:'var(--text-primary)'}}>"{block.text}"</p>
+              {block.author && <cite className="text-[10px] uppercase tracking-[0.3em] font-bold" style={{color:'var(--text-muted)'}}>— {block.author}</cite>}
             </div>
           );
         }
@@ -220,6 +220,18 @@ export default function App() {
   const [consentPrivacy, setConsentPrivacy] = useState(false);
   const [consentAge, setConsentAge] = useState(false);
   const consentAllChecked = consentTerms && consentPrivacy && consentAge;
+
+  const [theme, setTheme] = useState(() => {
+    const saved = localStorage.getItem('pessage-theme');
+    if (saved) return saved;
+    const h = new Date().getHours();
+    return (h >= 21 || h < 5) ? 'dark' : 'light';
+  });
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('pessage-theme', theme);
+  }, [theme]);
 
   // Map Refs
   const mapRef = useRef(null);
@@ -660,7 +672,8 @@ export default function App() {
   const NavItem = ({ id, icon: Icon, label }) => (
     <button 
       onClick={() => { setActiveTab(id); setSelectedArticle(null); setSelectedRoute(null); setAiResponse(null); setActiveAiTarget(null); setAuthMode(null); setIsProfileOpen(false); }} 
-      className={`flex flex-col items-center gap-1.5 transition-all duration-300 ${activeTab === id && !authMode && !isProfileOpen ? 'text-[#EAE5D9]' : 'text-[#78716C] hover:text-[#EAE5D9]'}`}
+      style={activeTab === id && !authMode && !isProfileOpen ? {color:'var(--text-primary)'} : {color:'var(--text-muted)'}}
+      className="flex flex-col items-center gap-1.5 transition-all duration-300"
     >
       <Icon size={20} strokeWidth={activeTab === id && !authMode && !isProfileOpen ? 2 : 1.5} />
       <span className="text-[9px] uppercase tracking-widest font-medium">{label}</span>
@@ -739,66 +752,67 @@ export default function App() {
               if (calendarMonth === 0) { setCalendarMonth(11); setCalendarYear(y => y - 1); }
               else setCalendarMonth(m => m - 1);
             }}
-            className="text-[#5A5450] hover:text-[#EAE5D9] transition-colors px-4 py-2 text-xl"
+            className="transition-colors px-4 py-2 text-xl" style={{color:'var(--text-dim)'}}
           >←</button>
-          <h3 className="text-[13px] uppercase tracking-[0.3em] font-bold text-[#A8A29E]">{monthName}</h3>
+          <h3 className="text-[13px] uppercase tracking-[0.3em] font-bold" style={{color:'var(--text-secondary)'}}>{monthName}</h3>
           <button
             onClick={() => {
               if (calendarMonth === 11) { setCalendarMonth(0); setCalendarYear(y => y + 1); }
               else setCalendarMonth(m => m + 1);
             }}
-            className="text-[#5A5450] hover:text-[#EAE5D9] transition-colors px-4 py-2 text-xl"
+            className="transition-colors px-4 py-2 text-xl" style={{color:'var(--text-dim)'}}
           >→</button>
         </div>
 
         {/* 요일 헤더 */}
         <div className="grid grid-cols-7 mb-2">
           {['SUN','MON','TUE','WED','THU','FRI','SAT'].map(d => (
-            <div key={d} className="text-center text-[9px] uppercase tracking-widest text-[#5A5450] py-2">{d}</div>
+            <div key={d} className="text-center text-[9px] uppercase tracking-widest py-2" style={{color:'var(--text-dim)'}}>{d}</div>
           ))}
         </div>
 
         {/* 날짜 그리드 */}
-        <div className="border-t border-l border-[#EAE5D9]/5">
+        <div className="border-t border-l" style={{borderColor:'var(--border)'}}>
           {weeks.map((week, wi) => (
             <div key={wi} className="grid grid-cols-7">
               {week.map((day, di) => {
                 const isToday = day && today.getFullYear() === year && today.getMonth() === month && today.getDate() === day;
                 const races = day ? (racesByDay[day] || []) : [];
                 return (
-                  <div key={di} className={`border-b border-r border-[#EAE5D9]/5 min-h-[80px] p-1.5 ${!day ? 'bg-[#151413]/50' : 'bg-transparent'}`}>
+                  <div key={di} className={`border-b border-r min-h-[80px] p-1.5`} style={{borderColor:'var(--border)', background: !day ? 'var(--bg-elevated)' : 'transparent'}}>
                     {day && (
                       <>
-                        <span className={`text-[11px] font-bold block mb-1 w-6 h-6 flex items-center justify-center rounded-full ${isToday ? 'bg-[#EAE5D9] text-[#151413]' : 'text-[#5A5450]'}`}>{day}</span>
+                        <span className={`text-[11px] font-bold block mb-1 w-6 h-6 flex items-center justify-center rounded-full`} style={isToday ? {background:'var(--text-primary)', color:'var(--bg-base)'} : {color:'var(--text-dim)'}}>{day}</span>
                         {races.map(race => (
                           <div key={race._id}>
                             <button
                               onClick={() => setExpandedRaceId(expandedRaceId === race._id ? null : race._id)}
-                              className={`w-full text-left text-[9px] uppercase tracking-wide font-bold px-1.5 py-1 rounded-sm mb-1 truncate transition-all ${race.type === 'TRAIL' ? 'bg-[#C2410C]/20 text-[#C2410C] hover:bg-[#C2410C]/30' : 'bg-[#EAE5D9]/5 text-[#A8A29E] hover:bg-[#EAE5D9]/10'}`}
+                              className={`w-full text-left text-[9px] uppercase tracking-wide font-bold px-1.5 py-1 rounded-sm mb-1 truncate transition-all ${race.type === 'TRAIL' ? 'bg-[#C2410C]/20 text-[#C2410C] hover:bg-[#C2410C]/30' : ''}`}
+                              style={race.type !== 'TRAIL' ? {background:'var(--bg-elevated)', color:'var(--text-secondary)'} : {}}
                             >{race.name}</button>
                             {/* 상세 정보 펼치기 */}
                             {expandedRaceId === race._id && (
                               <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setExpandedRaceId(null)}>
-                                <div className="bg-[#1A1918] border border-[#EAE5D9]/10 rounded-sm p-8 max-w-md w-full shadow-2xl" onClick={e => e.stopPropagation()}>
+                                <div className="border rounded-sm p-8 max-w-md w-full shadow-2xl" style={{background:'var(--bg-surface)', borderColor:'var(--border-mid)'}} onClick={e => e.stopPropagation()}>
                                   <div className="flex justify-between items-start mb-6">
-                                    <p className={`text-[10px] uppercase tracking-[0.3em] font-bold ${race.type === 'TRAIL' ? 'text-[#C2410C]' : 'text-[#A8A29E]'}`}>{race.type}</p>
-                                    <button onClick={() => setExpandedRaceId(null)} className="text-[#5A5450] hover:text-[#EAE5D9] transition-colors text-lg leading-none">✕</button>
+                                    <p className={`text-[10px] uppercase tracking-[0.3em] font-bold ${race.type === 'TRAIL' ? 'text-[#C2410C]' : ''}`} style={race.type !== 'TRAIL' ? {color:'var(--text-secondary)'} : {}}>{race.type}</p>
+                                    <button onClick={() => setExpandedRaceId(null)} className="transition-colors text-lg leading-none" style={{color:'var(--text-dim)'}}>✕</button>
                                   </div>
-                                  <h3 className="text-2xl font-light italic text-[#EAE5D9] mb-4">{race.name}</h3>
+                                  <h3 className="text-2xl font-light italic mb-4" style={{color:'var(--text-primary)'}}>{race.name}</h3>
                                   {race.location && (
-                                    <p className="text-[11px] text-[#78716C] mb-3 flex items-center gap-1.5">📍 {race.location}</p>
+                                    <p className="text-[11px] mb-3 flex items-center gap-1.5" style={{color:'var(--text-muted)'}}>📍 {race.location}</p>
                                   )}
                                   {race.date && (
-                                    <p className="text-[11px] text-[#78716C] mb-3">📅 {new Date(race.date).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                                    <p className="text-[11px] mb-3" style={{color:'var(--text-muted)'}}>📅 {new Date(race.date).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
                                   )}
                                   {race.registrationDate && (
                                     <p className="text-[11px] text-[#C2410C] font-bold uppercase tracking-widest mb-4">Registration: {race.registrationDate}</p>
                                   )}
                                   {race.description && (
-                                    <p className="text-[14px] text-[#A8A29E] font-light leading-relaxed mb-6">{race.description}</p>
+                                    <p className="text-[14px] font-light leading-relaxed mb-6" style={{color:'var(--text-secondary)'}}>{race.description}</p>
                                   )}
                                   {race.registrationUrl && (
-                                    <a href={race.registrationUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 bg-[#EAE5D9] text-[#151413] px-6 py-3 text-[10px] uppercase tracking-[0.2em] font-bold rounded-sm hover:bg-white transition-all">
+                                    <a href={race.registrationUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-6 py-3 text-[10px] uppercase tracking-[0.2em] font-bold rounded-sm transition-all" style={{background:'var(--text-primary)', color:'var(--bg-base)'}}>
                                       Official Link →
                                     </a>
                                   )}
@@ -818,7 +832,7 @@ export default function App() {
 
         {/* 해당 월에 대회 없을 때 */}
         {monthRaces.length === 0 && (
-          <div className="py-16 text-center text-[#5A5450] italic text-sm">이 달에 등록된 대회가 없습니다.</div>
+          <div className="py-16 text-center italic text-sm" style={{color:'var(--text-dim)'}}>이 달에 등록된 대회가 없습니다.</div>
         )}
       </div>
     );
@@ -827,7 +841,7 @@ export default function App() {
   const ritualScore = calcRitualScore(stravaData);
 
   return (
-    <div className="min-h-screen bg-[#151413] text-[#EAE5D9] font-sans selection:bg-[#EAE5D9] selection:text-[#151413]">
+    <div className="min-h-screen font-sans" style={{background:'var(--bg-base)', color:'var(--text-primary)'}}>
       <style>{`
         .leaflet-container { background: #151413 !important; border: none; } 
         .custom-pin { display: flex; align-items: center; justify-content: center; transition: transform 0.3s; cursor: pointer; }
@@ -839,8 +853,8 @@ export default function App() {
       
       {isWatchModalOpen && (
         <div className="fixed inset-0 z-[2000] bg-black/95 backdrop-blur-xl flex items-center justify-center p-6 animate-in fade-in">
-          <div className="max-w-sm w-full bg-[#1A1918] border border-[#EAE5D9]/10 p-10 rounded-sm shadow-2xl">
-            <h3 className="text-2xl font-light italic mb-10 text-center text-[#EAE5D9]">Sync Your Gear</h3>
+          <div className="max-w-sm w-full border p-10 rounded-sm shadow-2xl" style={{background:'var(--bg-surface)', borderColor:'var(--border-mid)'}}>
+            <h3 className="text-2xl font-light italic mb-10 text-center" style={{color:'var(--text-primary)'}}>Sync Your Gear</h3>
             <div className="space-y-4">
               {[
                 {name: 'Garmin', status: 'available'},
@@ -851,14 +865,14 @@ export default function App() {
               ].map(({name, status}) => (
                 <button key={name} onClick={() => { if(status === 'available') { setConnectedDevice(name); setIsWatchModalOpen(false); }}} className={`w-full flex justify-between items-center p-6 border transition-all group rounded-sm ${status === 'coming' ? 'bg-[#EAE5D9]/2 border-[#EAE5D9]/5 opacity-40 cursor-not-allowed' : 'bg-[#EAE5D9]/5 border-[#EAE5D9]/5 hover:border-[#EAE5D9]/30 cursor-pointer'}`}>
                   <div className="flex items-center gap-3">
-                    <span className="text-[11px] uppercase tracking-[0.2em] font-bold text-[#EAE5D9]">{name}</span>
-                    {status === 'coming' && <span className="text-[9px] uppercase tracking-widest text-[#5A5450] border border-[#5A5450]/40 px-2 py-0.5 rounded-full">Coming Soon</span>}
+                    <span className="text-[11px] uppercase tracking-[0.2em] font-bold" style={{color:'var(--text-primary)'}}>{name}</span>
+                    {status === 'coming' && <span className="text-[9px] uppercase tracking-widest border px-2 py-0.5 rounded-full" style={{color:'var(--text-dim)', borderColor:'var(--border-mid)'}}>Coming Soon</span>}
                   </div>
                   <ChevronRight size={16} className={`transition-colors ${status === 'coming' ? 'text-[#3A3836]' : 'text-[#78716C] group-hover:text-[#EAE5D9]'}`} />
                 </button>
               ))}
             </div>
-            <button onClick={() => setIsWatchModalOpen(false)} className="w-full mt-12 text-[10px] uppercase tracking-[0.3em] text-[#78716C] hover:text-[#EAE5D9] transition-colors">Close</button>
+            <button onClick={() => setIsWatchModalOpen(false)} className="w-full mt-12 text-[10px] uppercase tracking-[0.3em] transition-colors" style={{color:'var(--text-muted)'}}>Close</button>
           </div>
         </div>
       )}
@@ -870,9 +884,32 @@ export default function App() {
         </div>
       )}
 
-      <header className={`fixed top-0 w-full z-[1000] transition-all duration-700 px-6 py-5 flex justify-between items-center ${scrolled ? 'bg-[#151413]/90 backdrop-blur-lg border-b border-[#EAE5D9]/5' : 'bg-gradient-to-b from-[#151413]/80 to-transparent'}`}>
+      <header
+        className={`fixed top-0 w-full z-[1000] transition-all duration-700 px-6 py-5 flex justify-between items-center ${scrolled ? 'backdrop-blur-lg' : ''}`}
+        style={scrolled
+          ? { background: 'var(--bg-surface)', borderBottom: '1px solid', borderColor: 'var(--border)' }
+          : { background: 'transparent' }
+        }
+      >
         <h1 className="text-2xl font-bold tracking-[0.3em] italic cursor-pointer" onClick={() => {setActiveTab('journal'); setSelectedArticle(null); setAuthMode(null); setIsProfileOpen(false);}}>PESSAGE</h1>
         <div className="flex gap-5 items-center">
+          <button
+            onClick={() => setTheme(t => t === 'light' ? 'dark' : 'light')}
+            style={{
+              fontSize: '10px',
+              letterSpacing: '0.15em',
+              textTransform: 'uppercase',
+              padding: '6px 14px',
+              border: '1px solid',
+              borderRadius: '999px',
+              background: 'var(--text-primary)',
+              color: 'var(--bg-base)',
+              borderColor: 'var(--text-primary)',
+              cursor: 'pointer',
+            }}
+          >
+            {theme === 'light' ? '🌙' : '☀️'}
+          </button>
           {isLoggedIn ? (
             <>
               <button onClick={handleDeviceConnectClick} className={`text-[10px] tracking-widest uppercase px-4 py-1.5 rounded-full border transition-all ${stravaData ? 'border-[#FC4C02]/50 text-[#FC4C02] bg-[#FC4C02]/10 font-bold' : connectedDevice ? 'border-[#C2410C]/40 text-[#C2410C] bg-[#C2410C]/10 font-bold' : 'border-[#EAE5D9]/20 text-[#78716C] hover:border-[#EAE5D9]/50 hover:text-[#A8A29E] cursor-pointer'}`}>
@@ -889,24 +926,24 @@ export default function App() {
       <main className="pb-40 pt-10">
         {authMode ? (
           <section className="pt-32 px-6 max-w-sm mx-auto animate-in slide-in-from-bottom-8 text-center">
-             <h2 className="text-4xl font-light italic mb-12 text-[#EAE5D9]">Join the Pack</h2>
+             <h2 className="text-4xl font-light italic mb-12" style={{color:'var(--text-primary)'}}>Join the Pack</h2>
              {/* 동의 체크박스 */}
-             <div className="text-left space-y-3 mb-5 p-4 border border-[#EAE5D9]/10 rounded-sm">
+             <div className="text-left space-y-3 mb-5 p-4 border rounded-sm" style={{borderColor:'var(--border-mid)'}}>
                <label className="flex items-start gap-3 cursor-pointer group">
                  <input type="checkbox" checked={consentTerms} onChange={e => setConsentTerms(e.target.checked)} className="mt-0.5 accent-[#EAE5D9] w-4 h-4 shrink-0" />
-                 <span className="text-[10px] text-[#A8A29E] leading-relaxed group-hover:text-[#EAE5D9] transition-colors">
+                 <span className="text-[10px] leading-relaxed transition-colors" style={{color:'var(--text-secondary)'}}>
                    <span className="text-[#C2410C] font-bold">[필수]</span> <a href="/terms-ko" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">이용약관</a>에 동의합니다.
                  </span>
                </label>
                <label className="flex items-start gap-3 cursor-pointer group">
                  <input type="checkbox" checked={consentPrivacy} onChange={e => setConsentPrivacy(e.target.checked)} className="mt-0.5 accent-[#EAE5D9] w-4 h-4 shrink-0" />
-                 <span className="text-[10px] text-[#A8A29E] leading-relaxed group-hover:text-[#EAE5D9] transition-colors">
+                 <span className="text-[10px] leading-relaxed transition-colors" style={{color:'var(--text-secondary)'}}>
                    <span className="text-[#C2410C] font-bold">[필수]</span> <a href="/privacy-ko" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">개인정보 수집 및 이용</a>에 동의합니다.
                  </span>
                </label>
                <label className="flex items-start gap-3 cursor-pointer group">
                  <input type="checkbox" checked={consentAge} onChange={e => setConsentAge(e.target.checked)} className="mt-0.5 accent-[#EAE5D9] w-4 h-4 shrink-0" />
-                 <span className="text-[10px] text-[#A8A29E] leading-relaxed group-hover:text-[#EAE5D9] transition-colors">
+                 <span className="text-[10px] leading-relaxed transition-colors" style={{color:'var(--text-secondary)'}}>
                    <span className="text-[#C2410C] font-bold">[필수]</span> 만 14세 이상임을 확인합니다.
                  </span>
                </label>
@@ -914,21 +951,21 @@ export default function App() {
 
              {/* 로그인 버튼 */}
              <div className="space-y-4 mb-8">
-               <button onClick={handleGoogleLogin} disabled={!consentAllChecked} className="w-full flex items-center justify-center py-5 bg-transparent text-[#EAE5D9] text-[11px] font-bold tracking-[0.2em] border border-[#EAE5D9]/20 hover:border-[#EAE5D9]/60 transition-colors rounded-sm disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:border-[#EAE5D9]/20">GOOGLE CONNECT</button>
+               <button onClick={handleGoogleLogin} disabled={!consentAllChecked} className="w-full flex items-center justify-center py-5 bg-transparent text-[11px] font-bold tracking-[0.2em] border transition-colors rounded-sm disabled:opacity-30 disabled:cursor-not-allowed" style={{color:'var(--text-primary)', borderColor:'var(--border-mid)'}}>GOOGLE CONNECT</button>
                <button onClick={handleKakaoLogin} disabled={!consentAllChecked} className="w-full flex items-center justify-center py-5 bg-[#FEE500] text-black text-[11px] font-bold tracking-[0.2em] rounded-sm hover:bg-[#e6cf00] transition-colors disabled:opacity-30 disabled:cursor-not-allowed">KAKAO CONNECT</button>
                <button onClick={handleNaverLogin} disabled={!consentAllChecked} className="w-full flex items-center justify-center py-5 bg-[#03C75A] text-white text-[11px] font-bold tracking-[0.2em] rounded-sm hover:bg-[#02b350] transition-colors disabled:opacity-30 disabled:cursor-not-allowed">NAVER CONNECT</button>
              </div>
-             <button onClick={() => { setAuthMode(null); setConsentTerms(false); setConsentPrivacy(false); setConsentAge(false); }} className="text-[10px] uppercase tracking-widest text-[#78716C] hover:text-[#EAE5D9] border-b border-[#78716C] pb-1 transition-colors">Return</button>
+             <button onClick={() => { setAuthMode(null); setConsentTerms(false); setConsentPrivacy(false); setConsentAge(false); }} className="text-[10px] uppercase tracking-widest border-b pb-1 transition-colors" style={{color:'var(--text-muted)', borderColor:'var(--text-muted)'}}>Return</button>
           </section>
         ) : isProfileOpen && isLoggedIn ? (
           <section className="pt-32 px-6 max-w-4xl mx-auto animate-in slide-in-from-bottom-8">
              {/* 이름 + 아바타 */}
              <div className="flex items-center gap-6 mb-10">
-                <div className="w-20 h-20 rounded-full bg-[#292524] flex items-center justify-center border border-[#EAE5D9]/10 shadow-lg overflow-hidden shrink-0">
+                <div className="w-20 h-20 rounded-full flex items-center justify-center border shadow-lg overflow-hidden shrink-0" style={{background:'var(--bg-surface)', borderColor:'var(--border-mid)'}}>
                   {currentUser?.photoURL ? (
                     <img src={currentUser.photoURL} alt="profile" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                   ) : (
-                    <User size={32} className="text-[#A8A29E]" />
+                    <User size={32} style={{color:'var(--text-secondary)'}} />
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
@@ -938,48 +975,48 @@ export default function App() {
                         value={editNameValue}
                         onChange={e => setEditNameValue(e.target.value)}
                         onKeyDown={e => { if (e.key === 'Enter') handleSaveName(); if (e.key === 'Escape') setIsEditingName(false); }}
-                        className="text-2xl font-light italic bg-transparent border-b border-[#EAE5D9]/40 text-[#EAE5D9] focus:outline-none focus:border-[#EAE5D9] w-48 mb-1"
+                        className="text-2xl font-light italic bg-transparent border-b focus:outline-none w-48 mb-1" style={{color:'var(--text-primary)', borderColor:'var(--border-mid)'}}
                         autoFocus
                       />
-                      <button onClick={handleSaveName} className="text-[10px] uppercase tracking-widest text-[#151413] bg-[#EAE5D9] px-3 py-1.5 rounded-sm hover:bg-white transition-colors">Save</button>
-                      <button onClick={() => setIsEditingName(false)} className="text-[10px] uppercase tracking-widest text-[#78716C] hover:text-[#EAE5D9] transition-colors">Cancel</button>
+                      <button onClick={handleSaveName} className="text-[10px] uppercase tracking-widest px-3 py-1.5 rounded-sm hover:bg-white transition-colors" style={{color:'var(--bg-base)', background:'var(--text-primary)'}}>Save</button>
+                      <button onClick={() => setIsEditingName(false)} className="text-[10px] uppercase tracking-widest transition-colors" style={{color:'var(--text-muted)'}}>Cancel</button>
                     </div>
                   ) : (
                     <div className="flex items-center gap-2 mb-1">
-                      <h2 className="text-3xl font-light italic text-[#EAE5D9] truncate">{currentUser?.displayName || 'Runner'}</h2>
-                      <button onClick={() => { setEditNameValue(currentUser?.displayName || ''); setIsEditingName(true); }} className="text-[#5A5450] hover:text-[#A8A29E] transition-colors shrink-0"><Pencil size={14} /></button>
+                      <h2 className="text-3xl font-light italic truncate" style={{color:'var(--text-primary)'}}>{currentUser?.displayName || 'Runner'}</h2>
+                      <button onClick={() => { setEditNameValue(currentUser?.displayName || ''); setIsEditingName(true); }} className="transition-colors shrink-0" style={{color:'var(--text-dim)'}}><Pencil size={14} /></button>
                     </div>
                   )}
-                  <p className="text-[11px] uppercase tracking-[0.3em] text-[#78716C]">{currentUser?.email || ''}</p>
+                  <p className="text-[11px] uppercase tracking-[0.3em]" style={{color:'var(--text-muted)'}}>{currentUser?.email || ''}</p>
                 </div>
              </div>
 
              {/* Ritual Score + Total Mileage */}
              <div className="grid grid-cols-2 gap-4 mb-6">
-                <div className="bg-[#1A1918] p-8 border border-[#EAE5D9]/5 rounded-sm">
-                  <p className="text-[10px] text-[#78716C] uppercase tracking-widest mb-3">Ritual Score</p>
+                <div className="p-8 border rounded-sm" style={{background:'var(--bg-surface)', borderColor:'var(--border)'}}>
+                  <p className="text-[10px] uppercase tracking-widest mb-3" style={{color:'var(--text-muted)'}}>Ritual Score</p>
                   <div className="flex items-baseline gap-1 mb-4">
                     <span className="text-4xl font-light">{ritualScore !== null ? ritualScore : '—'}</span>
-                    {ritualScore !== null && <span className="text-lg text-[#78716C]">/100</span>}
+                    {ritualScore !== null && <span className="text-lg ml-0.5" style={{color:'var(--text-muted)'}}>/100</span>}
                   </div>
                   <div className="space-y-1">
-                    <p className="text-[9px] text-[#5A5450]">이번 주 활동 ×10점 <span className="text-[#78716C]">(최대 40)</span></p>
-                    <p className="text-[9px] text-[#5A5450]">연속 활동 주 ×10점 <span className="text-[#78716C]">(최대 30)</span></p>
-                    <p className="text-[9px] text-[#5A5450]">적정 심박수 140–165bpm <span className="text-[#78716C]">(30점)</span></p>
+                    <p className="text-[9px]" style={{color:'var(--text-dim)'}}>이번 주 활동 ×10점 <span style={{color:'var(--text-muted)'}}>(최대 40)</span></p>
+                    <p className="text-[9px]" style={{color:'var(--text-dim)'}}>연속 활동 주 ×10점 <span style={{color:'var(--text-muted)'}}>(최대 30)</span></p>
+                    <p className="text-[9px]" style={{color:'var(--text-dim)'}}>적정 심박수 140–165bpm <span style={{color:'var(--text-muted)'}}>(30점)</span></p>
                     {!stravaData && <p className="text-[9px] text-[#FC4C02] pt-1">Strava 연동 시 활성화</p>}
                   </div>
                 </div>
-                <div className="bg-[#1A1918] p-8 border border-[#EAE5D9]/5 rounded-sm">
-                  <p className="text-[10px] text-[#78716C] uppercase tracking-widest mb-3">Total Mileage</p>
+                <div className="p-8 border rounded-sm" style={{background:'var(--bg-surface)', borderColor:'var(--border)'}}>
+                  <p className="text-[10px] uppercase tracking-widest mb-3" style={{color:'var(--text-muted)'}}>Total Mileage</p>
                   {stravaData?.ytdDistanceM > 0 ? (
                     <>
                       <span className="text-4xl font-light">{(stravaData.ytdDistanceM / 1000).toFixed(1)}</span>
-                      <span className="text-lg text-[#78716C] ml-1">km</span>
-                      <p className="text-[9px] text-[#5A5450] mt-4">{new Date().getFullYear()}년 연간 누적</p>
+                      <span className="text-lg ml-1" style={{color:'var(--text-muted)'}}>km</span>
+                      <p className="text-[9px] mt-4" style={{color:'var(--text-dim)'}}>{new Date().getFullYear()}년 연간 누적</p>
                     </>
                   ) : (
                     <>
-                      <span className="text-4xl font-light text-[#5A5450]">—</span>
+                      <span className="text-4xl font-light" style={{color:'var(--text-dim)'}}>—</span>
                       {!stravaData && <p className="text-[9px] text-[#FC4C02] mt-4">Strava 연동 시 활성화</p>}
                     </>
                   )}
@@ -987,80 +1024,80 @@ export default function App() {
              </div>
 
              {/* 연결된 디바이스 */}
-             <div className="mb-10 bg-[#1A1918] border border-[#EAE5D9]/5 rounded-sm p-8">
-               <h4 className="text-[10px] uppercase tracking-widest text-[#78716C] mb-6 font-bold">Connected Device</h4>
+             <div className="mb-10 border rounded-sm p-8" style={{background:'var(--bg-surface)', borderColor:'var(--border)'}}>
+               <h4 className="text-[10px] uppercase tracking-widest mb-6 font-bold" style={{color:'var(--text-muted)'}}>Connected Device</h4>
                {stravaData ? (
                  <div className="flex items-center justify-between">
                    <div className="flex items-center gap-3">
                      <span className="w-2 h-2 rounded-full bg-[#FC4C02] inline-block"></span>
-                     <span className="text-[13px] text-[#EAE5D9] font-light">Strava</span>
-                     <span className="text-[11px] text-[#78716C]">{stravaData.name}</span>
+                     <span className="text-[13px] font-light" style={{color:'var(--text-primary)'}}>Strava</span>
+                     <span className="text-[11px]" style={{color:'var(--text-muted)'}}>{stravaData.name}</span>
                    </div>
-                   <button onClick={() => { sessionStorage.removeItem('strava_data'); setStravaData(null); }} className="text-[10px] uppercase tracking-widest text-[#5A5450] hover:text-[#C2410C] transition-colors">Disconnect</button>
+                   <button onClick={() => { sessionStorage.removeItem('strava_data'); setStravaData(null); }} className="text-[10px] uppercase tracking-widest transition-colors" style={{color:'var(--text-dim)'}}>Disconnect</button>
                  </div>
                ) : connectedDevice ? (
                  <div className="flex items-center justify-between">
                    <div className="flex items-center gap-3">
                      <span className="w-2 h-2 rounded-full bg-[#C2410C] inline-block"></span>
-                     <span className="text-[13px] text-[#EAE5D9] font-light">{connectedDevice}</span>
+                     <span className="text-[13px] font-light" style={{color:'var(--text-primary)'}}>{connectedDevice}</span>
                    </div>
-                   <button onClick={() => { setIsProfileOpen(false); setIsWatchModalOpen(true); }} className="text-[10px] uppercase tracking-widest text-[#78716C] hover:text-[#EAE5D9] transition-colors">Change</button>
+                   <button onClick={() => { setIsProfileOpen(false); setIsWatchModalOpen(true); }} className="text-[10px] uppercase tracking-widest transition-colors" style={{color:'var(--text-muted)'}}>Change</button>
                  </div>
                ) : (
                  <div className="flex flex-col gap-3">
-                   <button onClick={() => { setIsProfileOpen(false); setActiveTab('recovery'); }} className="flex items-center justify-between p-4 border border-[#EAE5D9]/10 rounded-sm hover:border-[#FC4C02]/40 transition-all group">
-                     <span className="text-[11px] uppercase tracking-[0.2em] font-bold text-[#A8A29E] group-hover:text-[#FC4C02] transition-colors">Connect Strava</span>
-                     <ChevronRight size={14} className="text-[#5A5450]" />
+                   <button onClick={() => { setIsProfileOpen(false); setActiveTab('recovery'); }} className="flex items-center justify-between p-4 border rounded-sm hover:border-[#FC4C02]/40 transition-all group" style={{borderColor:'var(--border-mid)'}}>
+                     <span className="text-[11px] uppercase tracking-[0.2em] font-bold transition-colors" style={{color:'var(--text-secondary)'}}>Connect Strava</span>
+                     <ChevronRight size={14} style={{color:'var(--text-dim)'}} />
                    </button>
-                   <button onClick={() => { setIsProfileOpen(false); setIsWatchModalOpen(true); }} className="flex items-center justify-between p-4 border border-[#EAE5D9]/10 rounded-sm hover:border-[#EAE5D9]/30 transition-all group">
-                     <span className="text-[11px] uppercase tracking-[0.2em] font-bold text-[#A8A29E] group-hover:text-[#EAE5D9] transition-colors">Connect Device</span>
-                     <ChevronRight size={14} className="text-[#5A5450]" />
+                   <button onClick={() => { setIsProfileOpen(false); setIsWatchModalOpen(true); }} className="flex items-center justify-between p-4 border rounded-sm transition-all group" style={{borderColor:'var(--border-mid)'}}>
+                     <span className="text-[11px] uppercase tracking-[0.2em] font-bold transition-colors" style={{color:'var(--text-secondary)'}}>Connect Device</span>
+                     <ChevronRight size={14} style={{color:'var(--text-dim)'}} />
                    </button>
                  </div>
                )}
              </div>
 
              <div className="mb-20">
-                <h3 className="text-2xl font-light italic mb-8 text-[#EAE5D9] border-b border-[#EAE5D9]/10 pb-4">My Archive</h3>
+                <h3 className="text-2xl font-light italic mb-8 border-b pb-4" style={{color:'var(--text-primary)', borderColor:'var(--border)'}}>My Archive</h3>
                 <div className="space-y-16">
                   <div>
-                    <h4 className="text-[11px] uppercase tracking-[0.3em] font-bold text-[#78716C] mb-6">Saved Journals ({savedItems.articles.length})</h4>
+                    <h4 className="text-[11px] uppercase tracking-[0.3em] font-bold mb-6" style={{color:'var(--text-muted)'}}>Saved Journals ({savedItems.articles.length})</h4>
                     {savedItems.articles.length > 0 ? (
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {savedItems.articles.map(article => (
-                          <div key={article._id} onClick={() => {setSelectedArticle(article); setIsProfileOpen(false); setActiveTab('journal');}} className="flex gap-4 p-4 bg-[#1A1918] border border-[#EAE5D9]/5 rounded-sm cursor-pointer hover:border-[#EAE5D9]/20 transition-all">
+                          <div key={article._id} onClick={() => {setSelectedArticle(article); setIsProfileOpen(false); setActiveTab('journal');}} className="flex gap-4 p-4 border rounded-sm cursor-pointer transition-all" style={{background:'var(--bg-surface)', borderColor:'var(--border)'}}>
                             <div className="w-24 h-24 shrink-0 rounded-sm overflow-hidden">
                               {article.coverImage && <img src={urlFor(article.coverImage)} className="w-full h-full object-cover grayscale hover:grayscale-0" alt=""/>}
                             </div>
                             <div className="flex flex-col justify-center">
-                              <p className="text-[9px] uppercase tracking-widest text-[#78716C] mb-2">{article.subtitle}</p>
-                              <h5 className="text-lg font-light italic text-[#EAE5D9] line-clamp-2">{article.title}</h5>
+                              <p className="text-[9px] uppercase tracking-widest mb-2" style={{color:'var(--text-muted)'}}>{article.subtitle}</p>
+                              <h5 className="text-lg font-light italic line-clamp-2" style={{color:'var(--text-primary)'}}>{article.title}</h5>
                             </div>
                           </div>
                         ))}
                       </div>
                     ) : (
-                      <p className="text-sm italic text-[#5A5450]">아직 수집된 에디토리얼이 없습니다.</p>
+                      <p className="text-sm italic" style={{color:'var(--text-dim)'}}>아직 수집된 에디토리얼이 없습니다.</p>
                     )}
                   </div>
                   <div>
-                    <h4 className="text-[11px] uppercase tracking-[0.3em] font-bold text-[#78716C] mb-6">Saved Gear ({savedItems.gear.length})</h4>
+                    <h4 className="text-[11px] uppercase tracking-[0.3em] font-bold mb-6" style={{color:'var(--text-muted)'}}>Saved Gear ({savedItems.gear.length})</h4>
                     {savedItems.gear.length > 0 ? (
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {savedItems.gear.map(gear => (
-                          <div key={gear._id} onClick={() => {setIsProfileOpen(false); setActiveTab('gear');}} className="flex gap-4 p-4 bg-[#1A1918] border border-[#EAE5D9]/5 rounded-sm cursor-pointer hover:border-[#EAE5D9]/20 transition-all">
-                            <div className="w-24 h-24 shrink-0 rounded-sm overflow-hidden bg-[#151413]">
+                          <div key={gear._id} onClick={() => {setIsProfileOpen(false); setActiveTab('gear');}} className="flex gap-4 p-4 border rounded-sm cursor-pointer transition-all" style={{background:'var(--bg-surface)', borderColor:'var(--border)'}}>
+                            <div className="w-24 h-24 shrink-0 rounded-sm overflow-hidden" style={{background:'var(--bg-base)'}}>
                               {gear.image && <img src={urlFor(gear.image)} className="w-full h-full object-cover" alt=""/>}
                             </div>
                             <div className="flex flex-col justify-center">
                               <p className="text-[9px] uppercase tracking-widest text-[#C2410C] mb-2">{gear.brand}</p>
-                              <h5 className="text-lg font-light italic text-[#EAE5D9] line-clamp-2">{gear.name}</h5>
+                              <h5 className="text-lg font-light italic line-clamp-2" style={{color:'var(--text-primary)'}}>{gear.name}</h5>
                             </div>
                           </div>
                         ))}
                       </div>
                     ) : (
-                      <p className="text-sm italic text-[#5A5450]">아직 수집된 장비가 없습니다.</p>
+                      <p className="text-sm italic" style={{color:'var(--text-dim)'}}>아직 수집된 장비가 없습니다.</p>
                     )}
                   </div>
                 </div>
@@ -1074,11 +1111,11 @@ export default function App() {
               <section className="px-4 md:px-6 animate-in fade-in duration-700">
                 {selectedArticle ? (
                   <div className="pt-24 max-w-3xl mx-auto">
-                    <button onClick={() => setSelectedArticle(null)} className="flex items-center gap-2 text-[#78716C] text-[11px] uppercase tracking-widest mb-12 hover:text-[#EAE5D9] transition-colors"><ArrowLeft size={16} /> Back to Directory</button>
+                    <button onClick={() => setSelectedArticle(null)} className="flex items-center gap-2 text-[11px] uppercase tracking-widest mb-12 transition-colors" style={{color:'var(--text-muted)'}}><ArrowLeft size={16} /> Back to Directory</button>
                     {selectedArticle.coverImage && (
-                      <div className="w-full overflow-hidden mb-16 rounded-sm border border-[#EAE5D9]/5 relative group">
+                      <div className="w-full overflow-hidden mb-16 rounded-sm border relative group" style={{borderColor:'var(--border)'}}>
                         <img src={urlFor(selectedArticle.coverImage)} alt="" className="w-full h-auto block" />
-                        <div className="absolute inset-0 bg-gradient-to-t from-[#151413] via-transparent to-transparent opacity-80"></div>
+                        <div className="absolute inset-0 opacity-80" style={{background:'linear-gradient(to top, var(--bg-base), transparent)'}}></div>
                       </div>
                     )}
                     <div className="flex justify-between items-start mb-16">
@@ -1087,9 +1124,9 @@ export default function App() {
                           <p className="text-[9px] tracking-[0.4em] uppercase mb-3 text-[#C2410C] font-bold">{selectedArticle.category}</p>
                         )}
                         {selectedArticle.subtitle && (
-                          <p className="text-[11px] tracking-[0.3em] uppercase mb-4 text-[#A8A29E] font-bold">{selectedArticle.subtitle}</p>
+                          <p className="text-[11px] tracking-[0.3em] uppercase mb-4 font-bold" style={{color:'var(--text-secondary)'}}>{selectedArticle.subtitle}</p>
                         )}
-                        <h2 className="text-5xl md:text-6xl font-light italic leading-[1.1] text-[#EAE5D9]">{selectedArticle.title}</h2>
+                        <h2 className="text-5xl md:text-6xl font-light italic leading-[1.1]" style={{color:'var(--text-primary)'}}>{selectedArticle.title}</h2>
                       </div>
                       <button
                         onClick={(e) => toggleSave(e, 'articles', selectedArticle)}
@@ -1105,15 +1142,15 @@ export default function App() {
                   <div className="pt-24 max-w-6xl mx-auto">
                     {siteContent.articles.length > 0 ? (
                       <>
-                        <div className="flex gap-8 border-b border-[#EAE5D9]/10 pb-5 mb-16 overflow-x-auto whitespace-nowrap hide-scrollbar">
+                        <div className="flex gap-8 border-b pb-5 mb-16 overflow-x-auto whitespace-nowrap hide-scrollbar" style={{borderColor:'var(--border)'}}>
                           {['ALL', 'ESSAY', 'INTERVIEW', 'GUIDE'].map(cat => (
-                            <button key={cat} onClick={() => setJournalCategoryFilter(cat)} className={`text-[11px] uppercase tracking-[0.3em] font-bold transition-all ${journalCategoryFilter === cat ? 'text-[#EAE5D9] border-b border-[#EAE5D9] pb-5 -mb-5' : 'text-[#5A5450] hover:text-[#A8A29E]'}`}>{cat}</button>
+                            <button key={cat} onClick={() => setJournalCategoryFilter(cat)} className={`text-[11px] uppercase tracking-[0.3em] font-bold transition-all ${journalCategoryFilter === cat ? 'border-b pb-5 -mb-5' : ''}`} style={journalCategoryFilter === cat ? {color:'var(--text-primary)', borderColor:'var(--text-primary)'} : {color:'var(--text-dim)'}}>{cat}</button>
                           ))}
                         </div>
                         {(() => {
                           const filteredArticles = siteContent.articles.filter(a => journalCategoryFilter === 'ALL' || a.category === journalCategoryFilter);
                           if (filteredArticles.length === 0) {
-                            return <div className="py-32 text-center text-[#78716C] italic text-lg">해당 카테고리의 에디토리얼이 아직 없습니다.</div>;
+                            return <div className="py-32 text-center italic text-lg" style={{color:'var(--text-muted)'}}>해당 카테고리의 에디토리얼이 아직 없습니다.</div>;
                           }
                           const heroArticle = filteredArticles[0];
                           const heroSaved = isItemSaved('articles', heroArticle._id);
@@ -1121,9 +1158,10 @@ export default function App() {
                             <>
                               <div
                                 onClick={() => setSelectedArticle(heroArticle)}
-                                className="group cursor-pointer relative mb-24 md:mb-32 block overflow-hidden rounded-sm border border-[#EAE5D9]/10"
+                                className="group cursor-pointer relative mb-24 md:mb-32 block overflow-hidden rounded-sm border"
+                                style={{borderColor:'var(--border-mid)'}}
                               >
-                                <div className="w-full bg-[#1A1918] relative">
+                                <div className="w-full relative" style={{background:'var(--bg-surface)'}}>
                                   {heroArticle.coverImage && (
                                     <img
                                       src={urlFor(heroArticle.coverImage)}
@@ -1131,13 +1169,13 @@ export default function App() {
                                       alt={heroArticle.title}
                                     />
                                   )}
-                                  <div className="absolute inset-0 bg-gradient-to-t from-[#151413] via-[#151413]/40 to-transparent"></div>
+                                  <div className="absolute inset-0" style={{background: 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.5) 40%, rgba(0,0,0,0.1) 70%, transparent 100%)'}}></div>
                                 </div>
                                 <div className="absolute bottom-10 left-8 md:bottom-16 md:left-16 z-10 w-[80%] md:w-2/3">
                                   {heroArticle.category && <p className="text-[9px] tracking-[0.4em] uppercase mb-2 text-[#C2410C] font-bold">{heroArticle.category}</p>}
-                                  <p className="text-[10px] tracking-[0.4em] uppercase mb-4 text-[#A8A29E] font-bold">{heroArticle.subtitle || 'Latest Feature'}</p>
-                                  <h2 className="text-4xl md:text-7xl font-light italic leading-[1.1] text-[#EAE5D9] group-hover:text-white transition-colors duration-500 mb-8">{heroArticle.title}</h2>
-                                  <button className="text-[11px] uppercase tracking-[0.3em] font-bold border-b border-[#EAE5D9]/30 pb-1.5 group-hover:border-[#EAE5D9] transition-colors">Read the Story</button>
+                                  <p className="text-[10px] tracking-[0.4em] uppercase mb-4 font-bold text-white/70">{heroArticle.subtitle || 'Latest Feature'}</p>
+                                  <h2 className="text-4xl md:text-7xl font-light italic leading-[1.1] text-white group-hover:text-white transition-colors duration-500 mb-8">{heroArticle.title}</h2>
+                                  <button className="text-[11px] uppercase tracking-[0.3em] font-bold border-b border-white/30 pb-1.5 text-white transition-colors">Read the Story</button>
                                 </div>
                                 <button
                                   onClick={(e) => toggleSave(e, 'articles', heroArticle)}
@@ -1152,7 +1190,7 @@ export default function App() {
                                     const saved = isItemSaved('articles', article._id);
                                     return (
                                       <div key={article._id} onClick={() => setSelectedArticle(article)} className="group cursor-pointer flex flex-col relative">
-                                        <div className="w-full aspect-[4/3] bg-[#1A1918] overflow-hidden rounded-sm mb-6 border border-[#EAE5D9]/5 relative">
+                                        <div className="w-full aspect-[4/3] overflow-hidden rounded-sm mb-6 border relative" style={{background:'var(--bg-surface)', borderColor:'var(--border)'}}>
                                           {article.coverImage && (
                                             <img
                                               src={urlFor(article.coverImage)}
@@ -1160,13 +1198,13 @@ export default function App() {
                                               alt={article.title}
                                             />
                                           )}
-                                          <div className="absolute inset-0 bg-[#151413]/10 group-hover:bg-transparent transition-colors duration-700"></div>
+                                          <div className="absolute inset-0 group-hover:bg-transparent transition-colors duration-700"></div>
                                         </div>
                                         <div className="flex justify-between items-start">
                                           <div>
                                             {article.category && <p className="text-[9px] tracking-[0.4em] uppercase mb-1 text-[#C2410C] font-bold">{article.category}</p>}
-                                            <p className="text-[9px] tracking-[0.4em] uppercase mb-3 text-[#78716C] font-bold">{article.subtitle || 'Volume'}</p>
-                                            <h3 className="text-3xl md:text-4xl font-light italic leading-tight text-[#EAE5D9]/90 group-hover:text-[#EAE5D9] transition-colors duration-300 pr-4">{article.title}</h3>
+                                            <p className="text-[9px] tracking-[0.4em] uppercase mb-3 font-bold" style={{color:'var(--text-muted)'}}>{article.subtitle || 'Volume'}</p>
+                                            <h3 className="text-3xl md:text-4xl font-light italic leading-tight transition-colors duration-300 pr-4" style={{color:'var(--text-primary)'}}>{article.title}</h3>
                                           </div>
                                           <button
                                             onClick={(e) => toggleSave(e, 'articles', article)}
@@ -1185,8 +1223,8 @@ export default function App() {
                         })()}
                       </>
                     ) : (
-                      <div className="h-[60vh] flex flex-col items-center justify-center text-[#78716C] italic gap-6">
-                        <Loader2 size={40} className="animate-spin text-[#EAE5D9]/30" />
+                      <div className="h-[60vh] flex flex-col items-center justify-center italic gap-6" style={{color:'var(--text-muted)'}}>
+                        <Loader2 size={40} className="animate-spin" style={{color:'var(--text-dim)'}} />
                         <p className="tracking-widest uppercase text-[10px] font-bold">Curating Editorial...</p>
                       </div>
                     )}
@@ -1199,37 +1237,37 @@ export default function App() {
               <section className="pt-28 px-4 md:px-6 max-w-5xl mx-auto animate-in slide-in-from-bottom-8">
                 {selectedRoute ? (
                   <div className="max-w-4xl mx-auto">
-                    <button onClick={() => setSelectedRoute(null)} className="flex items-center gap-2 text-[#78716C] text-[11px] uppercase tracking-widest mb-10 hover:text-[#EAE5D9] transition-colors"><ArrowLeft size={16} /> Directory</button>
-                    
-                    <div className="flex justify-between items-end mb-12 border-b border-[#EAE5D9]/10 pb-8 px-2">
+                    <button onClick={() => setSelectedRoute(null)} className="flex items-center gap-2 text-[11px] uppercase tracking-widest mb-10 transition-colors" style={{color:'var(--text-muted)'}}><ArrowLeft size={16} /> Directory</button>
+
+                    <div className="flex justify-between items-end mb-12 border-b pb-8 px-2" style={{borderColor:'var(--border)'}}>
                       <div>
-                        <span className={`text-[10px] px-4 py-1.5 rounded-full border mb-6 inline-block font-bold tracking-[0.2em] ${selectedRoute.type === 'TRAIL' ? 'text-[#C2410C] border-[#C2410C]/30 bg-[#C2410C]/5' : 'text-[#EAE5D9] border-[#EAE5D9]/30 bg-[#EAE5D9]/5'}`}>{selectedRoute.type}</span>
-                        <h2 className="text-4xl md:text-5xl font-light italic text-[#EAE5D9] leading-tight">{selectedRoute.name}</h2>
+                        <span className={`text-[10px] px-4 py-1.5 rounded-full border mb-6 inline-block font-bold tracking-[0.2em] ${selectedRoute.type === 'TRAIL' ? 'text-[#C2410C] border-[#C2410C]/30 bg-[#C2410C]/5' : ''}`} style={selectedRoute.type !== 'TRAIL' ? {color:'var(--text-primary)', borderColor:'var(--border-mid)'} : {}}>{selectedRoute.type}</span>
+                        <h2 className="text-4xl md:text-5xl font-light italic leading-tight" style={{color:'var(--text-primary)'}}>{selectedRoute.name}</h2>
                       </div>
                       <div className="flex gap-8 text-right">
                         {selectedRoute.distance && (
                           <div>
-                            <p className="text-[9px] uppercase tracking-widest text-[#78716C] mb-1">Distance</p>
-                            <p className="text-2xl font-light text-[#EAE5D9]">{selectedRoute.distance}</p>
+                            <p className="text-[9px] uppercase tracking-widest mb-1" style={{color:'var(--text-muted)'}}>Distance</p>
+                            <p className="text-2xl font-light" style={{color:'var(--text-primary)'}}>{selectedRoute.distance}</p>
                           </div>
                         )}
                         {selectedRoute.elevationGain && (
                           <div>
-                            <p className="text-[9px] uppercase tracking-widest text-[#78716C] mb-1">Elevation</p>
-                            <p className="text-2xl font-light text-[#EAE5D9]">{selectedRoute.elevationGain}</p>
+                            <p className="text-[9px] uppercase tracking-widest mb-1" style={{color:'var(--text-muted)'}}>Elevation</p>
+                            <p className="text-2xl font-light" style={{color:'var(--text-primary)'}}>{selectedRoute.elevationGain}</p>
                           </div>
                         )}
                         {selectedRoute.difficulty && (
                           <div>
-                            <p className="text-[9px] uppercase tracking-widest text-[#78716C] mb-1">Difficulty</p>
-                            <p className="text-2xl font-light text-[#EAE5D9]">{selectedRoute.difficulty}</p>
+                            <p className="text-[9px] uppercase tracking-widest mb-1" style={{color:'var(--text-muted)'}}>Difficulty</p>
+                            <p className="text-2xl font-light" style={{color:'var(--text-primary)'}}>{selectedRoute.difficulty}</p>
                           </div>
                         )}
                       </div>
                     </div>
 
-                    <div ref={detailMapRef} className="w-full aspect-[4/3] md:aspect-[21/9] bg-[#1A1918] mb-16 rounded-sm border border-[#EAE5D9]/5 relative z-0 overflow-hidden shadow-2xl">
-                        <div className="absolute inset-0 bg-gradient-to-t from-[#151413] via-transparent to-transparent z-[400] pointer-events-none"></div>
+                    <div ref={detailMapRef} className="w-full aspect-[4/3] md:aspect-[21/9] mb-16 rounded-sm border relative z-0 overflow-hidden shadow-2xl" style={{background:'var(--bg-surface)', borderColor:'var(--border)'}}>
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent z-[400] pointer-events-none"></div>
                     </div>
 
                     <div className="mb-24 max-w-2xl mx-auto px-2">
@@ -1239,15 +1277,15 @@ export default function App() {
 
                     {selectedRoute.spots?.length > 0 && (
                       <div className="max-w-2xl mx-auto mb-24 px-2 space-y-16">
-                        <h3 className="text-2xl font-light italic text-[#EAE5D9] border-b border-[#EAE5D9]/10 pb-6">Key Spots</h3>
+                        <h3 className="text-2xl font-light italic border-b pb-6" style={{color:'var(--text-primary)', borderColor:'var(--border)'}}>Key Spots</h3>
                         {selectedRoute.spots.map((spot, i) => (
-                          <div key={i} className="border-l-2 border-[#EAE5D9]/10 pl-8">
+                          <div key={i} className="border-l-2 pl-8" style={{borderColor:'var(--border-mid)'}}>
                             <div className="flex items-center gap-3 mb-2">
                               {spot.type && <span className="text-[9px] uppercase tracking-widest text-[#C2410C] font-bold border border-[#C2410C]/30 px-2 py-0.5 rounded-full">{spot.type}</span>}
-                              <h4 className="text-xl font-light italic text-[#EAE5D9]">{spot.name}</h4>
+                              <h4 className="text-xl font-light italic" style={{color:'var(--text-primary)'}}>{spot.name}</h4>
                             </div>
                             {spot.address && (
-                              <p className="text-[11px] text-[#78716C] mb-6 flex items-center gap-1.5">
+                              <p className="text-[11px] mb-6 flex items-center gap-1.5" style={{color:'var(--text-muted)'}}>
                                 <MapPin size={10} className="shrink-0" />{spot.address}
                               </p>
                             )}
@@ -1255,7 +1293,7 @@ export default function App() {
                             {spot.images?.length > 0 && (
                               <div className="flex flex-col gap-6 mt-8">
                                 {spot.images.map((imgUrl, j) => imgUrl && (
-                                  <div key={j} className="overflow-hidden rounded-sm bg-[#1A1918]">
+                                  <div key={j} className="overflow-hidden rounded-sm" style={{background:'var(--bg-surface)'}}>
                                     <img
                                       src={`${imgUrl}?auto=format`}
                                       alt={spot.name}
@@ -1270,23 +1308,25 @@ export default function App() {
                       </div>
                     )}
 
-                    <div className="bg-[#1A1918] max-w-2xl mx-auto p-8 border border-[#EAE5D9]/5 rounded-sm text-center mb-20">
-                      <Compass size={32} className="mx-auto text-[#78716C] mb-6" />
-                      <h3 className="text-xl font-light italic mb-8 text-[#EAE5D9]">Sync Route to Device</h3>
+                    <div className="max-w-2xl mx-auto p-8 border rounded-sm text-center mb-20" style={{background:'var(--bg-surface)', borderColor:'var(--border)'}}>
+                      <Compass size={32} className="mx-auto mb-6" style={{color:'var(--text-muted)'}} />
+                      <h3 className="text-xl font-light italic mb-8" style={{color:'var(--text-primary)'}}>Sync Route to Device</h3>
                       <div className="space-y-3">
                         {selectedRoute.playlistUrl && (
                           <a
                             href={selectedRoute.playlistUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="w-full py-4 rounded-sm font-bold uppercase text-[11px] tracking-[0.3em] transition-all flex items-center justify-center gap-3 border border-[#EAE5D9]/20 text-[#A8A29E] hover:border-[#EAE5D9] hover:text-[#EAE5D9]"
+                            className="w-full py-4 rounded-sm font-bold uppercase text-[11px] tracking-[0.3em] transition-all flex items-center justify-center gap-3 border"
+                            style={{borderColor:'var(--border-mid)', color:'var(--text-secondary)'}}
                           >
                             ▶ Play Route Soundtrack
                           </a>
                         )}
                         <button
                           onClick={() => handleSyncGPX(selectedRoute._id)}
-                          className={`w-full py-5 rounded-sm font-bold uppercase text-[11px] tracking-[0.3em] transition-all flex items-center justify-center gap-3 ${activeAiTarget === selectedRoute._id && syncSuccess ? 'bg-[#166534] text-[#EAE5D9]' : 'bg-[#EAE5D9] text-[#151413] hover:bg-white'}`}
+                          className={`w-full py-5 rounded-sm font-bold uppercase text-[11px] tracking-[0.3em] transition-all flex items-center justify-center gap-3 ${activeAiTarget === selectedRoute._id && syncSuccess ? 'bg-[#166534]' : ''}`}
+                          style={activeAiTarget === selectedRoute._id && syncSuccess ? {color:'var(--text-primary)'} : {background:'var(--text-primary)', color:'var(--bg-base)'}}
                         >
                           {activeAiTarget === selectedRoute._id && syncSuccess ? <CheckCircle2 size={18} /> : <Watch size={18} />}
                           {activeAiTarget === selectedRoute._id && syncSuccess ? 'GPX Synced' : 'Send to Watch'}
@@ -1295,7 +1335,8 @@ export default function App() {
                           <a
                             href={selectedRoute.gpxUrl}
                             download
-                            className="w-full py-4 rounded-sm font-bold uppercase text-[11px] tracking-[0.3em] transition-all flex items-center justify-center gap-3 border border-[#EAE5D9]/20 text-[#A8A29E] hover:border-[#EAE5D9] hover:text-[#EAE5D9]"
+                            className="w-full py-4 rounded-sm font-bold uppercase text-[11px] tracking-[0.3em] transition-all flex items-center justify-center gap-3 border"
+                            style={{borderColor:'var(--border-mid)', color:'var(--text-secondary)'}}
                           >
                             <Download size={16} /> Download GPX
                           </a>
@@ -1308,65 +1349,65 @@ export default function App() {
                   <div className="space-y-8">
                     <div className="mb-12 flex flex-col md:flex-row justify-between items-start gap-8">
                         <div>
-                          <h2 className="text-4xl font-light italic mb-3 text-[#EAE5D9]">Narrative Explorer</h2>
-                          <p className="text-[#78716C] text-sm italic">지도로 탐색하는 러너들의 서사. 마커를 클릭하여 숨겨진 궤적을 확인하세요.</p>
+                          <h2 className="text-4xl font-light italic mb-3" style={{color:'var(--text-primary)'}}>Narrative Explorer</h2>
+                          <p className="text-sm italic" style={{color:'var(--text-muted)'}}>지도로 탐색하는 러너들의 서사. 마커를 클릭하여 숨겨진 궤적을 확인하세요.</p>
                         </div>
-                        <div className="flex bg-[#1A1918] p-1.5 rounded-sm border border-[#EAE5D9]/5">
-                            <button onClick={() => {setRouteViewMode('LIST'); setMapPopup(null);}} className={`px-6 py-2 rounded-sm text-[11px] font-bold tracking-widest transition-all ${routeViewMode === 'LIST' ? 'bg-[#EAE5D9] text-[#151413]' : 'text-[#78716C] hover:text-[#EAE5D9]'}`}><List size={14} className="inline mr-2 -mt-0.5"/> LIST</button>
-                            <button onClick={() => setRouteViewMode('MAP')} className={`px-6 py-2 rounded-sm text-[11px] font-bold tracking-widest transition-all ${routeViewMode === 'MAP' ? 'bg-[#EAE5D9] text-[#151413]' : 'text-[#78716C] hover:text-[#EAE5D9]'}`}><MapIcon size={14} className="inline mr-2 -mt-0.5"/> MAP</button>
+                        <div className="flex p-1.5 rounded-sm border" style={{background:'var(--bg-surface)', borderColor:'var(--border)'}}>
+                            <button onClick={() => {setRouteViewMode('LIST'); setMapPopup(null);}} className={`px-6 py-2 rounded-sm text-[11px] font-bold tracking-widest transition-all`} style={routeViewMode === 'LIST' ? {background:'var(--text-primary)', color:'var(--bg-base)'} : {color:'var(--text-muted)'}}><List size={14} className="inline mr-2 -mt-0.5"/> LIST</button>
+                            <button onClick={() => setRouteViewMode('MAP')} className={`px-6 py-2 rounded-sm text-[11px] font-bold tracking-widest transition-all`} style={routeViewMode === 'MAP' ? {background:'var(--text-primary)', color:'var(--bg-base)'} : {color:'var(--text-muted)'}}><MapIcon size={14} className="inline mr-2 -mt-0.5"/> MAP</button>
                         </div>
                     </div>
                     
                     <div className="mb-12">
-                        <div className="flex gap-8 border-b border-[#EAE5D9]/10 pb-5 mb-8 overflow-x-auto whitespace-nowrap hide-scrollbar">
-                            {['ALL', 'ORIGINAL', 'TRAIL', 'ROAD'].map(t => (<button key={t} onClick={() => setRouteTypeFilter(t)} className={`text-[11px] uppercase tracking-[0.3em] font-bold transition-all ${routeTypeFilter === t ? 'text-[#EAE5D9] border-b border-[#EAE5D9] pb-5 -mb-5' : 'text-[#5A5450] hover:text-[#A8A29E]'}`}>{t}</button>))}
+                        <div className="flex gap-8 border-b pb-5 mb-8 overflow-x-auto whitespace-nowrap hide-scrollbar" style={{borderColor:'var(--border)'}}>
+                            {['ALL', 'ORIGINAL', 'TRAIL', 'ROAD'].map(t => (<button key={t} onClick={() => setRouteTypeFilter(t)} className={`text-[11px] uppercase tracking-[0.3em] font-bold transition-all ${routeTypeFilter === t ? 'border-b pb-5 -mb-5' : ''}`} style={routeTypeFilter === t ? {color:'var(--text-primary)', borderColor:'var(--text-primary)'} : {color:'var(--text-dim)'}}>{t}</button>))}
                         </div>
-                        <div className="flex gap-8 border-b border-[#EAE5D9]/10 pb-5 overflow-x-auto whitespace-nowrap hide-scrollbar">
-                            {['ALL', 'SEOUL', 'GYEONGGI', 'GANGWON', 'CHUNGCHEONG', 'GYEONGSANG', 'JEJU'].map(r => (<button key={r} onClick={() => setRouteRegionFilter(r)} className={`text-[11px] uppercase tracking-[0.3em] font-bold transition-all ${routeRegionFilter === r ? 'text-[#EAE5D9] border-b border-[#EAE5D9] pb-5 -mb-5' : 'text-[#5A5450] hover:text-[#A8A29E]'}`}>{r}</button>))}
+                        <div className="flex gap-8 border-b pb-5 overflow-x-auto whitespace-nowrap hide-scrollbar" style={{borderColor:'var(--border)'}}>
+                            {['ALL', 'SEOUL', 'GYEONGGI', 'GANGWON', 'CHUNGCHEONG', 'GYEONGSANG', 'JEJU'].map(r => (<button key={r} onClick={() => setRouteRegionFilter(r)} className={`text-[11px] uppercase tracking-[0.3em] font-bold transition-all ${routeRegionFilter === r ? 'border-b pb-5 -mb-5' : ''}`} style={routeRegionFilter === r ? {color:'var(--text-primary)', borderColor:'var(--text-primary)'} : {color:'var(--text-dim)'}}>{r}</button>))}
                         </div>
                     </div>
 
                     {routeViewMode === 'MAP' ? (
                       <div className="relative animate-in fade-in duration-700 min-h-[500px]">
-                        <div ref={mapRef} className="w-full aspect-square md:aspect-[21/9] bg-[#1A1918] rounded-sm overflow-hidden border border-[#EAE5D9]/5 shadow-2xl z-0" />
+                        <div ref={mapRef} className="w-full aspect-square md:aspect-[21/9] rounded-sm overflow-hidden border shadow-2xl z-0" style={{background:'var(--bg-surface)', borderColor:'var(--border)'}} />
                         {mapPopup && (
-                           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 bg-[#151413]/95 backdrop-blur-md border border-[#EAE5D9]/10 p-8 rounded-sm shadow-2xl z-[2000] animate-in zoom-in-95 text-center">
-                              <p className={`text-[9px] uppercase tracking-[0.3em] mb-3 font-bold ${mapPopup.type === 'TRAIL' ? 'text-[#C2410C]' : 'text-[#A8A29E]'}`}>{mapPopup.type} • {mapPopup.region}</p>
-                              <h4 className="text-2xl font-light italic mb-8 leading-tight text-[#EAE5D9]">{mapPopup.name}</h4>
-                              <button onClick={() => setSelectedRoute(mapPopup)} className="w-full py-4 bg-[#EAE5D9] text-[#151413] text-[10px] uppercase font-bold tracking-[0.2em] rounded-sm">Explore Course</button>
-                              <button onClick={() => setMapPopup(null)} className="mt-5 text-[10px] text-[#78716C] uppercase tracking-widest hover:text-[#EAE5D9] transition-colors">Close</button>
+                           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 backdrop-blur-md border p-8 rounded-sm shadow-2xl z-[2000] animate-in zoom-in-95 text-center" style={{background:'var(--bg-surface)', borderColor:'var(--border-mid)'}}>
+                              <p className={`text-[9px] uppercase tracking-[0.3em] mb-3 font-bold ${mapPopup.type === 'TRAIL' ? 'text-[#C2410C]' : ''}`} style={mapPopup.type !== 'TRAIL' ? {color:'var(--text-secondary)'} : {}}>{mapPopup.type} • {mapPopup.region}</p>
+                              <h4 className="text-2xl font-light italic mb-8 leading-tight" style={{color:'var(--text-primary)'}}>{mapPopup.name}</h4>
+                              <button onClick={() => setSelectedRoute(mapPopup)} className="w-full py-4 text-[10px] uppercase font-bold tracking-[0.2em] rounded-sm" style={{background:'var(--text-primary)', color:'var(--bg-base)'}}>Explore Course</button>
+                              <button onClick={() => setMapPopup(null)} className="mt-5 text-[10px] uppercase tracking-widest transition-colors" style={{color:'var(--text-muted)'}}>Close</button>
                            </div>
                         )}
                       </div>
                     ) : (
                       <div className="space-y-4">
                         {siteContent.routes.length > 0 ? siteContent.routes.filter(r => (routeTypeFilter === 'ALL' || r.type === routeTypeFilter) && (routeRegionFilter === 'ALL' || r.region === routeRegionFilter)).map(route => (
-                          <div key={route._id} onClick={() => setSelectedRoute(route)} className="p-8 md:p-10 bg-[#1A1918] border border-[#EAE5D9]/5 cursor-pointer hover:border-[#EAE5D9]/20 transition-all duration-300 group rounded-sm shadow-lg">
-                              <p className={`text-[10px] uppercase font-bold tracking-[0.3em] mb-3 ${route.type === 'TRAIL' ? 'text-[#C2410C]' : 'text-[#A8A29E]'}`}>{route.type} / {route.region}</p>
-                              <h4 className="text-2xl md:text-3xl font-light italic group-hover:text-[#EAE5D9] text-[#EAE5D9]/90 transition-colors leading-tight mb-6">{route.name}</h4>
+                          <div key={route._id} onClick={() => setSelectedRoute(route)} className="p-8 md:p-10 border cursor-pointer transition-all duration-300 group rounded-sm shadow-lg" style={{background:'var(--bg-surface)', borderColor:'var(--border)'}}>
+                              <p className={`text-[10px] uppercase font-bold tracking-[0.3em] mb-3 ${route.type === 'TRAIL' ? 'text-[#C2410C]' : ''}`} style={route.type !== 'TRAIL' ? {color:'var(--text-secondary)'} : {}}>{route.type} / {route.region}</p>
+                              <h4 className="text-2xl md:text-3xl font-light not-italic transition-colors leading-tight mb-6" style={{color:'var(--text-primary)'}}>{route.name}</h4>
                               <div className="flex items-center gap-6">
                                 {route.distance && (
                                   <div>
-                                    <p className="text-[9px] uppercase tracking-widest text-[#5A5450] mb-1">Dist</p>
-                                    <p className="text-xl font-light text-[#78716C] group-hover:text-[#EAE5D9] transition-colors">{route.distance}</p>
+                                    <p className="text-[9px] uppercase tracking-widest mb-1" style={{color:'var(--text-dim)'}}>Dist</p>
+                                    <p className="text-xl font-light transition-colors" style={{color:'var(--text-muted)'}}>{route.distance}</p>
                                   </div>
                                 )}
                                 {route.elevationGain && (
                                   <div>
-                                    <p className="text-[9px] uppercase tracking-widest text-[#5A5450] mb-1">Elev</p>
-                                    <p className="text-xl font-light text-[#78716C] group-hover:text-[#EAE5D9] transition-colors">{route.elevationGain}</p>
+                                    <p className="text-[9px] uppercase tracking-widest mb-1" style={{color:'var(--text-dim)'}}>Elev</p>
+                                    <p className="text-xl font-light transition-colors" style={{color:'var(--text-muted)'}}>{route.elevationGain}</p>
                                   </div>
                                 )}
                                 {route.difficulty && (
                                   <div>
-                                    <p className="text-[9px] uppercase tracking-widest text-[#5A5450] mb-1">Grade</p>
-                                    <p className="text-xl font-light text-[#78716C] group-hover:text-[#EAE5D9] transition-colors">{route.difficulty}</p>
+                                    <p className="text-[9px] uppercase tracking-widest mb-1" style={{color:'var(--text-dim)'}}>Grade</p>
+                                    <p className="text-xl font-light transition-colors" style={{color:'var(--text-muted)'}}>{route.difficulty}</p>
                                   </div>
                                 )}
                               </div>
                           </div>
                         )) : (
-                          <div className="py-32 text-center text-[#78716C] italic text-lg">해당 조건의 서사가 아직 기록되지 않았습니다.</div>
+                          <div className="py-32 text-center italic text-lg" style={{color:'var(--text-muted)'}}>해당 조건의 서사가 아직 기록되지 않았습니다.</div>
                         )}
                       </div>
                     )}
@@ -1379,32 +1420,36 @@ export default function App() {
               <section className="pt-28 px-6 max-w-4xl mx-auto animate-in slide-in-from-bottom-8">
                 <div className="mb-16">
                   <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
-                    <h2 className="text-4xl font-light italic text-[#EAE5D9]">Race Calendar</h2>
+                    <h2 className="text-4xl font-light italic" style={{color:'var(--text-primary)'}}>Race Calendar</h2>
                     {/* List / Calendar 토글 */}
-                    <div className="flex gap-1 bg-[#1A1918] p-1 rounded-sm border border-[#EAE5D9]/5">
+                    <div className="flex gap-1 p-1 rounded-sm border" style={{background:'var(--bg-surface)', borderColor:'var(--border)'}}>
                       <button
                         onClick={() => setRaceViewMode('list')}
-                        className={`text-[10px] uppercase tracking-[0.25em] font-bold px-5 py-2 rounded-sm transition-all ${raceViewMode === 'list' ? 'bg-[#EAE5D9] text-[#151413]' : 'text-[#5A5450] hover:text-[#A8A29E]'}`}
+                        className={`text-[10px] uppercase tracking-[0.25em] font-bold px-5 py-2 rounded-sm transition-all`}
+                        style={raceViewMode === 'list' ? {background:'var(--text-primary)', color:'var(--bg-base)'} : {color:'var(--text-dim)'}}
                       >List</button>
                       <button
                         onClick={() => setRaceViewMode('calendar')}
-                        className={`text-[10px] uppercase tracking-[0.25em] font-bold px-5 py-2 rounded-sm transition-all ${raceViewMode === 'calendar' ? 'bg-[#EAE5D9] text-[#151413]' : 'text-[#5A5450] hover:text-[#A8A29E]'}`}
+                        className={`text-[10px] uppercase tracking-[0.25em] font-bold px-5 py-2 rounded-sm transition-all`}
+                        style={raceViewMode === 'calendar' ? {background:'var(--text-primary)', color:'var(--bg-base)'} : {color:'var(--text-dim)'}}
                       >Calendar</button>
                     </div>
                   </div>
                   {/* 예정 / 지난 대회 탭 */}
-                  <div className="flex gap-1 mb-8 bg-[#1A1918] p-1 rounded-sm border border-[#EAE5D9]/5 w-fit">
+                  <div className="flex gap-1 mb-8 p-1 rounded-sm border w-fit" style={{background:'var(--bg-surface)', borderColor:'var(--border)'}}>
                     <button
                       onClick={() => setRaceTimeTab('upcoming')}
-                      className={`text-[10px] uppercase tracking-[0.25em] font-bold px-6 py-2.5 rounded-sm transition-all ${raceTimeTab === 'upcoming' ? 'bg-[#EAE5D9] text-[#151413]' : 'text-[#5A5450] hover:text-[#A8A29E]'}`}
+                      className={`text-[10px] uppercase tracking-[0.25em] font-bold px-6 py-2.5 rounded-sm transition-all`}
+                      style={raceTimeTab === 'upcoming' ? {background:'var(--text-primary)', color:'var(--bg-base)'} : {color:'var(--text-dim)'}}
                     >Upcoming</button>
                     <button
                       onClick={() => setRaceTimeTab('past')}
-                      className={`text-[10px] uppercase tracking-[0.25em] font-bold px-6 py-2.5 rounded-sm transition-all ${raceTimeTab === 'past' ? 'bg-[#EAE5D9] text-[#151413]' : 'text-[#5A5450] hover:text-[#A8A29E]'}`}
+                      className={`text-[10px] uppercase tracking-[0.25em] font-bold px-6 py-2.5 rounded-sm transition-all`}
+                      style={raceTimeTab === 'past' ? {background:'var(--text-primary)', color:'var(--bg-base)'} : {color:'var(--text-dim)'}}
                     >Past</button>
                   </div>
-                  <div className="flex gap-8 border-b border-[#EAE5D9]/10 pb-5 mb-12 overflow-x-auto whitespace-nowrap hide-scrollbar">
-                    {['ALL', 'TRAIL', 'ROAD', 'GROUP_RUN'].map(type => (<button key={type} onClick={() => setRaceTypeFilter(type)} className={`text-[11px] uppercase tracking-[0.3em] font-bold transition-all ${raceTypeFilter === type ? 'text-[#EAE5D9] border-b border-[#EAE5D9] pb-5 -mb-5' : 'text-[#5A5450] hover:text-[#A8A29E]'}`}>{type}</button>))}
+                  <div className="flex gap-8 border-b pb-5 mb-12 overflow-x-auto whitespace-nowrap hide-scrollbar" style={{borderColor:'var(--border)'}}>
+                    {['ALL', 'TRAIL', 'ROAD', 'GROUP_RUN'].map(type => (<button key={type} onClick={() => setRaceTypeFilter(type)} className={`text-[11px] uppercase tracking-[0.3em] font-bold transition-all ${raceTypeFilter === type ? 'border-b pb-5 -mb-5' : ''}`} style={raceTypeFilter === type ? {color:'var(--text-primary)', borderColor:'var(--text-primary)'} : {color:'var(--text-dim)'}}>{type}</button>))}
                   </div>
                 </div>
 
@@ -1415,25 +1460,25 @@ export default function App() {
                   {Object.entries(groupedRaces()).map(([month, monthRaces]) => (
                     <div key={month} className="animate-in fade-in">
                        <div className="flex items-center gap-4 mb-10">
-                          <Calendar size={16} className="text-[#A8A29E]" />
-                          <h3 className="text-[12px] uppercase tracking-[0.4em] font-bold text-[#A8A29E]">{month}</h3>
-                          <div className="h-[1px] bg-[#EAE5D9]/10 flex-1"></div>
+                          <Calendar size={16} style={{color:'var(--text-secondary)'}} />
+                          <h3 className="text-[12px] uppercase tracking-[0.4em] font-bold" style={{color:'var(--text-secondary)'}}>{month}</h3>
+                          <div className="h-[1px] flex-1" style={{background:'var(--border)'}}></div>
                        </div>
                        <div className="space-y-16">
                           {monthRaces.map(race => (
-                            <div key={race._id || race.id} className="group border-l-2 border-[#EAE5D9]/10 pl-8 md:pl-12 relative hover:border-[#EAE5D9]/50 transition-colors duration-500">
-                               <div className={`absolute left-[-5px] top-1.5 w-2 h-2 rounded-full ${race.type === 'TRAIL' ? 'bg-[#C2410C]' : 'bg-[#A8A29E]'}`}></div>
-                               <h3 className="text-3xl md:text-4xl font-light italic mb-5 text-[#EAE5D9]">{race.name}</h3>
+                            <div key={race._id || race.id} className="group border-l-2 pl-8 md:pl-12 relative transition-colors duration-500" style={{borderColor:'var(--border-mid)'}}>
+                               <div className={`absolute left-[-5px] top-1.5 w-2 h-2 rounded-full ${race.type === 'TRAIL' ? 'bg-[#C2410C]' : ''}`} style={race.type !== 'TRAIL' ? {background:'var(--text-secondary)'} : {}}></div>
+                               <h3 className="text-3xl md:text-4xl font-light italic mb-5" style={{color:'var(--text-primary)'}}>{race.name}</h3>
 
                                {race.date && (
-                                 <p className="text-[11px] uppercase tracking-widest text-[#A8A29E] mb-3 flex items-center gap-1.5">
+                                 <p className="text-[11px] uppercase tracking-widest mb-3 flex items-center gap-1.5" style={{color:'var(--text-secondary)'}}>
                                    <Calendar size={11} className="shrink-0" />
                                    {new Date(race.date).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })}
                                  </p>
                                )}
 
                                {race.location && (
-                                 <p className="text-[11px] text-[#78716C] mb-4 flex items-center gap-1.5">
+                                 <p className="text-[11px] mb-4 flex items-center gap-1.5" style={{color:'var(--text-muted)'}}>
                                    <MapPin size={11} className="shrink-0" />{race.location}
                                  </p>
                                )}
@@ -1444,20 +1489,20 @@ export default function App() {
                                  </div>
                                )}
 
-                               <p className="text-[15px] text-[#A8A29E] font-light leading-relaxed max-w-2xl mb-10">{race.description}</p>
+                               <p className="text-[15px] font-light leading-relaxed max-w-2xl mb-10" style={{color:'var(--text-secondary)'}}>{race.description}</p>
                                <div className="flex flex-wrap gap-4">
-                                  <button onClick={() => generateAiContent(race.name, `${race.name} 대회의 트레일/로드 전략을 어시(Earthy)하고 철학적인 톤앤매너 매거진 스타일로 3문장 이내로 작성해줘.`)} className="flex items-center gap-3 bg-[#EAE5D9]/5 px-8 py-4 text-[10px] uppercase font-bold tracking-[0.2em] rounded-sm hover:bg-[#EAE5D9]/10 transition-all text-[#EAE5D9]"><Sparkles size={14} /> AI Strategy</button>
-                                  
+                                  <button onClick={() => generateAiContent(race.name, `${race.name} 대회의 트레일/로드 전략을 어시(Earthy)하고 철학적인 톤앤매너 매거진 스타일로 3문장 이내로 작성해줘.`)} className="flex items-center gap-3 px-8 py-4 text-[10px] uppercase font-bold tracking-[0.2em] rounded-sm transition-all" style={{background:'var(--bg-surface)', color:'var(--text-primary)'}}><Sparkles size={14} /> AI Strategy</button>
+
                                   {race.registrationUrl && (
-                                    <a href={race.registrationUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 bg-[#EAE5D9] px-8 py-4 text-[10px] uppercase font-bold tracking-[0.2em] rounded-sm text-[#151413] hover:bg-white transition-all shadow-lg">
+                                    <a href={race.registrationUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 px-8 py-4 text-[10px] uppercase font-bold tracking-[0.2em] rounded-sm transition-all shadow-lg" style={{background:'var(--text-primary)', color:'var(--bg-base)'}}>
                                       Official Link <ExternalLink size={14} />
                                     </a>
                                   )}
 
-                                  <button onClick={() => handleSyncGPX(race._id)} className={`flex items-center gap-3 py-4 px-8 text-[10px] uppercase font-bold tracking-[0.2em] border transition-all rounded-sm ${activeAiTarget === race._id && syncSuccess ? 'bg-[#166534] border-[#166534] text-[#EAE5D9]' : 'border-[#EAE5D9]/20 text-[#A8A29E] hover:border-[#EAE5D9] hover:text-[#EAE5D9]'}`}>{activeAiTarget === race._id && syncSuccess ? <CheckCircle2 size={14} /> : <Watch size={14} />} {activeAiTarget === race._id && syncSuccess ? 'Synced' : 'Sync Event'}</button>
+                                  <button onClick={() => handleSyncGPX(race._id)} className={`flex items-center gap-3 py-4 px-8 text-[10px] uppercase font-bold tracking-[0.2em] border transition-all rounded-sm ${activeAiTarget === race._id && syncSuccess ? 'bg-[#166534] border-[#166534]' : ''}`} style={!(activeAiTarget === race._id && syncSuccess) ? {borderColor:'var(--border-mid)', color:'var(--text-secondary)'} : {color:'var(--text-primary)'}}>{activeAiTarget === race._id && syncSuccess ? <CheckCircle2 size={14} /> : <Watch size={14} />} {activeAiTarget === race._id && syncSuccess ? 'Synced' : 'Sync Event'}</button>
                                </div>
                                {activeAiTarget === race.name && aiResponse && (
-                                 <div className="mt-8 p-8 bg-[#1A1918] border border-[#EAE5D9]/5 rounded-sm italic text-[15px] text-[#EAE5D9]/80 font-light leading-[1.8] animate-in slide-in-from-top-4">
+                                 <div className="mt-8 p-8 border rounded-sm italic text-[15px] font-light leading-[1.8] animate-in slide-in-from-top-4" style={{background:'var(--bg-surface)', borderColor:'var(--border)', color:'var(--text-secondary)'}}>
                                    "{aiResponse}"
                                  </div>
                                )}
@@ -1491,49 +1536,50 @@ export default function App() {
                     };
                     return (
                       <div className="pt-24 max-w-3xl mx-auto">
-                        <button onClick={goBack} className="flex items-center gap-2 text-[#78716C] text-[11px] uppercase tracking-widest mb-12 hover:text-[#EAE5D9] transition-colors">
+                        <button onClick={goBack} className="flex items-center gap-2 text-[11px] uppercase tracking-widest mb-12 transition-colors" style={{color:'var(--text-muted)'}}>
                           <ArrowLeft size={16} /> Back to Gear
                         </button>
                         {selectedGear.image && (
-                          <div className="aspect-[4/3] md:aspect-[16/9] overflow-hidden mb-16" style={{backgroundColor: '#151413', width: '100vw', marginLeft: 'calc(50% - 50vw)'}}>
+                          <div className="aspect-[4/3] md:aspect-[16/9] overflow-hidden mb-16" style={{background:'var(--bg-base)', width: '100vw', marginLeft: 'calc(50% - 50vw)'}}>
                             <img src={urlFor(selectedGear.image)} alt={selectedGear.name} className="w-full h-full object-contain" />
                           </div>
                         )}
-                        <p className="text-[10px] uppercase font-bold tracking-[0.3em] mb-4 text-[#A8A29E] flex items-center gap-2">
+                        <p className="text-[10px] uppercase font-bold tracking-[0.3em] mb-4 flex items-center gap-2" style={{color:'var(--text-secondary)'}}>
                           <span className="w-1.5 h-1.5 bg-[#C2410C] rounded-full inline-block"></span>
                           {selectedGear.brand} · {selectedGear.category}
                         </p>
                         <div className="flex justify-between items-start mb-10">
-                          <h2 className="text-[24px] md:text-4xl font-light italic leading-[1.2] text-[#EAE5D9] max-w-[85%]">{selectedGear.name}</h2>
+                          <h2 className="text-[24px] md:text-4xl font-light italic leading-[1.2] max-w-[85%]" style={{color:'var(--text-primary)'}}>{selectedGear.name}</h2>
                           <button
                             onClick={(e) => toggleSave(e, 'gear', selectedGear)}
-                            className={`p-3 rounded-full border transition-all shrink-0 ${isItemSaved('gear', selectedGear._id) ? 'bg-[#EAE5D9] text-[#151413] border-[#EAE5D9]' : 'border-[#EAE5D9]/20 text-[#EAE5D9] hover:bg-[#EAE5D9]/10'}`}
+                            className={`p-3 rounded-full border transition-all shrink-0 ${isItemSaved('gear', selectedGear._id) ? 'bg-[#EAE5D9] text-[#151413] border-[#EAE5D9]' : ''}`}
+                            style={!isItemSaved('gear', selectedGear._id) ? {borderColor:'var(--border-mid)', color:'var(--text-primary)'} : {}}
                           >
                             {isItemSaved('gear', selectedGear._id) ? <BookmarkCheck size={20} /> : <Bookmark size={20} />}
                           </button>
                         </div>
                         {selectedGear.note && (
-                          <p className="text-[17px] leading-[1.9] text-[#78716C] italic font-light mb-12 border-l-2 border-[#C2410C]/40 pl-6">"{selectedGear.note}"</p>
+                          <p className="text-[17px] leading-[1.9] italic font-light mb-12 border-l-2 border-[#C2410C]/40 pl-6" style={{color:'var(--text-muted)'}}>"{selectedGear.note}"</p>
                         )}
                         {selectedGear.body && <EditorialRenderer blocks={selectedGear.body} />}
                         {/* 이전/다음 네비게이션 */}
-                        <div className="flex justify-between items-center mt-20 pt-10 border-t border-[#EAE5D9]/10">
+                        <div className="flex justify-between items-center mt-20 pt-10 border-t" style={{borderColor:'var(--border)'}}>
                           {prevGear ? (
                             <button onClick={() => goToGear(prevGear)} className="flex items-center gap-3 text-left group max-w-[45%]">
-                              <ArrowLeft size={16} className="text-[#78716C] group-hover:text-[#EAE5D9] transition-colors shrink-0" />
+                              <ArrowLeft size={16} className="transition-colors shrink-0" style={{color:'var(--text-muted)'}} />
                               <div>
-                                <p className="text-[9px] uppercase tracking-widest text-[#78716C] mb-1">이전 글</p>
-                                <p className="text-[13px] font-light italic text-[#A8A29E] group-hover:text-[#EAE5D9] transition-colors line-clamp-1">{prevGear.name}</p>
+                                <p className="text-[9px] uppercase tracking-widest mb-1" style={{color:'var(--text-muted)'}}>이전 글</p>
+                                <p className="text-[13px] font-light italic transition-colors line-clamp-1" style={{color:'var(--text-secondary)'}}>{prevGear.name}</p>
                               </div>
                             </button>
                           ) : <div />}
                           {nextGear ? (
                             <button onClick={() => goToGear(nextGear)} className="flex items-center gap-3 text-right group max-w-[45%]">
                               <div>
-                                <p className="text-[9px] uppercase tracking-widest text-[#78716C] mb-1">다음 글</p>
-                                <p className="text-[13px] font-light italic text-[#A8A29E] group-hover:text-[#EAE5D9] transition-colors line-clamp-1">{nextGear.name}</p>
+                                <p className="text-[9px] uppercase tracking-widest mb-1" style={{color:'var(--text-muted)'}}>다음 글</p>
+                                <p className="text-[13px] font-light italic transition-colors line-clamp-1" style={{color:'var(--text-secondary)'}}>{nextGear.name}</p>
                               </div>
-                              <ArrowRight size={16} className="text-[#78716C] group-hover:text-[#EAE5D9] transition-colors shrink-0" />
+                              <ArrowRight size={16} className="transition-colors shrink-0" style={{color:'var(--text-muted)'}} />
                             </button>
                           ) : <div />}
                         </div>
@@ -1544,13 +1590,13 @@ export default function App() {
                 ) : (
                   /* ── Gear 목록 ── */
                   <div className="pt-28 max-w-5xl mx-auto">
-                    <div className="mb-16 flex flex-col justify-between items-start gap-8 border-b border-[#EAE5D9]/10 pb-8">
+                    <div className="mb-16 flex flex-col justify-between items-start gap-8 border-b pb-8" style={{borderColor:'var(--border)'}}>
                       <div>
-                        <h2 className="text-4xl font-light italic mb-3 text-[#EAE5D9]">Essential Tools</h2>
-                        <p className="text-[#A8A29E] text-sm italic tracking-wide">디렉터 제민의 시선으로 큐레이션된, 기능과 미학의 교차점.</p>
+                        <h2 className="text-4xl font-light italic mb-3" style={{color:'var(--text-primary)'}}>Essential Tools</h2>
+                        <p className="text-sm italic tracking-wide" style={{color:'var(--text-secondary)'}}>디렉터 제민의 시선으로 큐레이션된, 기능과 미학의 교차점.</p>
                       </div>
                       <div className="flex gap-6 overflow-x-auto whitespace-nowrap hide-scrollbar w-full">
-                        {['ALL', 'PACK', 'APPAREL', 'EYEWEAR', 'ACCESSORY'].map(cat => (<button key={cat} onClick={() => setGearFilter(cat)} className={`text-[11px] uppercase tracking-[0.3em] font-bold transition-all px-4 py-2 rounded-full border ${gearFilter === cat ? 'bg-[#EAE5D9] text-[#151413] border-[#EAE5D9]' : 'text-[#78716C] border-transparent hover:border-[#EAE5D9]/20'}`}>{cat}</button>))}
+                        {['ALL', 'PACK', 'APPAREL', 'EYEWEAR', 'ACCESSORY'].map(cat => (<button key={cat} onClick={() => setGearFilter(cat)} className={`text-[11px] uppercase tracking-[0.3em] font-bold transition-all px-4 py-2 rounded-full border`} style={gearFilter === cat ? {background:'var(--text-primary)', color:'var(--bg-base)', borderColor:'var(--text-primary)'} : {color:'var(--text-muted)', borderColor:'transparent'}}>{cat}</button>))}
                       </div>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-24">
@@ -1558,9 +1604,9 @@ export default function App() {
                         const saved = isItemSaved('gear', item._id);
                         return (
                           <div key={item._id} className="group relative cursor-pointer" onClick={() => { setSelectedGear(item); const slug = item.slug?.current || item._id; window.history.pushState({ gearId: item._id }, '', `/gear/${slug}`); }}>
-                            <div className="aspect-[4/5] bg-[#1A1918] border border-[#EAE5D9]/5 overflow-hidden rounded-sm mb-8 relative">
+                            <div className="aspect-[4/5] border overflow-hidden rounded-sm mb-8 relative" style={{background:'var(--bg-surface)', borderColor:'var(--border)'}}>
                               {item.image && <img src={urlFor(item.image)} className="w-full h-full object-cover transition-transform duration-[15s] group-hover:scale-105" alt={item.name} />}
-                              <div className="absolute inset-0 bg-[#151413]/10 group-hover:bg-transparent transition-colors duration-700"></div>
+                              <div className="absolute inset-0 group-hover:bg-transparent transition-colors duration-700"></div>
                               <button
                                 onClick={(e) => toggleSave(e, 'gear', item)}
                                 className={`absolute top-6 right-6 z-20 p-3 rounded-full backdrop-blur-md border transition-all ${saved ? 'bg-[#EAE5D9] text-[#151413] border-[#EAE5D9]' : 'bg-black/30 border-white/20 text-white hover:bg-black/60 opacity-0 group-hover:opacity-100'}`}
@@ -1569,19 +1615,20 @@ export default function App() {
                               </button>
                             </div>
                             <div>
-                              <p className="text-[10px] uppercase font-bold tracking-[0.3em] mb-3 text-[#A8A29E] flex items-center gap-2">
+                              <p className="text-[10px] uppercase font-bold tracking-[0.3em] mb-3 flex items-center gap-2" style={{color:'var(--text-secondary)'}}>
                                 <span className="w-1.5 h-1.5 bg-[#C2410C] rounded-full inline-block"></span>
                                 {item.brand}
                               </p>
-                              <h3 className="text-3xl font-light italic mb-6 text-[#EAE5D9] group-hover:text-white transition-colors">{item.name}</h3>
-                              <p className="text-[15px] leading-[1.8] text-[#78716C] italic font-light line-clamp-2">"{item.note}"</p>
+                              <h3 className="text-3xl font-light italic mb-6 transition-colors" style={{color:'var(--text-primary)'}}>{item.name}</h3>
+                              <p className="text-[15px] leading-[1.8] italic font-light line-clamp-2" style={{color:'var(--text-muted)'}}>"{item.note}"</p>
                               <button
                                 onClick={() => {
                                   setSelectedGear(item);
                                   const slug = item.slug?.current || item._id;
                                   window.history.pushState({ gearId: item._id }, '', `/gear/${slug}`);
                                 }}
-                                className="mt-3 text-[10px] uppercase tracking-[0.2em] text-[#A8A29E] hover:text-[#EAE5D9] border-b border-[#A8A29E]/40 hover:border-[#EAE5D9] pb-0.5 transition-colors"
+                                className="mt-3 text-[10px] uppercase tracking-[0.2em] border-b pb-0.5 transition-colors"
+                                style={{color:'var(--text-secondary)', borderColor:'var(--border-mid)'}}
                               >Read More</button>
                             </div>
                           </div>
@@ -1597,15 +1644,15 @@ export default function App() {
               <section className="px-6 pt-32 max-w-3xl mx-auto animate-in slide-in-from-bottom-8">
                 {/* 헤더 + Ritual Score 배너 */}
                 <div className="flex items-start justify-between mb-3">
-                  <h2 className="text-4xl font-light italic text-[#EAE5D9]">Recovery Ritual</h2>
+                  <h2 className="text-4xl font-light italic" style={{color:'var(--text-primary)'}}>Recovery Ritual</h2>
                   <div className="text-right shrink-0 ml-4">
-                    <p className="text-[9px] uppercase tracking-widest text-[#78716C] mb-1 font-bold">Ritual Score</p>
-                    <p className="text-3xl font-light text-[#EAE5D9]">
+                    <p className="text-[9px] uppercase tracking-widest mb-1 font-bold" style={{color:'var(--text-muted)'}}>Ritual Score</p>
+                    <p className="text-3xl font-light" style={{color:'var(--text-primary)'}}>
                       {ritualScore !== null ? ritualScore : '—'}
-                      <span className="text-sm text-[#78716C] ml-0.5">/100</span>
+                      <span className="text-sm ml-0.5" style={{color:'var(--text-muted)'}}>/100</span>
                     </p>
                     {ritualScore !== null && (
-                      <p className="text-[9px] text-[#5A5450] mt-1">
+                      <p className="text-[9px] mt-1" style={{color:'var(--text-dim)'}}>
                         {ritualScore >= 80 ? 'Excellent' : ritualScore >= 60 ? 'Good' : ritualScore >= 40 ? 'Building' : 'Getting Started'}
                       </p>
                     )}
@@ -1622,73 +1669,73 @@ export default function App() {
                 {stravaData ? (
                   <div className="animate-in fade-in space-y-6">
                     {/* Last Run Header */}
-                    <div className="bg-[#1A1918] border border-[#EAE5D9]/5 rounded-sm p-8">
+                    <div className="border rounded-sm p-8" style={{background:'var(--bg-surface)', borderColor:'var(--border)'}}>
                       <p className="text-[10px] uppercase tracking-widest text-[#FC4C02] mb-3 font-bold">Last Run</p>
                       {stravaData.lastRun ? (
                         <>
-                          <h3 className="text-2xl font-light italic text-[#EAE5D9] mb-1">{stravaData.lastRun.name}</h3>
-                          <p className="text-[11px] text-[#5A5450]">{new Date(stravaData.lastRun.start_date).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                          <h3 className="text-2xl font-light italic mb-1" style={{color:'var(--text-primary)'}}>{stravaData.lastRun.name}</h3>
+                          <p className="text-[11px]" style={{color:'var(--text-dim)'}}>{new Date(stravaData.lastRun.start_date).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
                           {/* 4-col metrics */}
                           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
                             <div className="text-center">
-                              <p className="text-[9px] uppercase tracking-widest text-[#78716C] mb-2 font-bold">Distance</p>
-                              <p className="text-3xl font-light text-[#EAE5D9]">{(stravaData.lastRun.distance / 1000).toFixed(1)}</p>
-                              <p className="text-[10px] text-[#78716C] mt-1">km</p>
+                              <p className="text-[9px] uppercase tracking-widest mb-2 font-bold" style={{color:'var(--text-muted)'}}>Distance</p>
+                              <p className="text-3xl font-light" style={{color:'var(--text-primary)'}}>{(stravaData.lastRun.distance / 1000).toFixed(1)}</p>
+                              <p className="text-[10px] mt-1" style={{color:'var(--text-muted)'}}>km</p>
                             </div>
                             <div className="text-center">
-                              <p className="text-[9px] uppercase tracking-widest text-[#78716C] mb-2 font-bold">Pace</p>
-                              <p className="text-3xl font-light text-[#EAE5D9]">{formatPace(stravaData.lastRun.paceSecsPerKm)}</p>
-                              <p className="text-[10px] text-[#78716C] mt-1">/km</p>
+                              <p className="text-[9px] uppercase tracking-widest mb-2 font-bold" style={{color:'var(--text-muted)'}}>Pace</p>
+                              <p className="text-3xl font-light" style={{color:'var(--text-primary)'}}>{formatPace(stravaData.lastRun.paceSecsPerKm)}</p>
+                              <p className="text-[10px] mt-1" style={{color:'var(--text-muted)'}}>/km</p>
                             </div>
                             <div className="text-center">
-                              <p className="text-[9px] uppercase tracking-widest text-[#78716C] mb-2 font-bold">Avg HR</p>
-                              <p className="text-3xl font-light text-[#EAE5D9]">{stravaData.lastRun.average_heartrate ? Math.round(stravaData.lastRun.average_heartrate) : '—'}</p>
-                              <p className="text-[10px] text-[#78716C] mt-1">bpm</p>
+                              <p className="text-[9px] uppercase tracking-widest mb-2 font-bold" style={{color:'var(--text-muted)'}}>Avg HR</p>
+                              <p className="text-3xl font-light" style={{color:'var(--text-primary)'}}>{stravaData.lastRun.average_heartrate ? Math.round(stravaData.lastRun.average_heartrate) : '—'}</p>
+                              <p className="text-[10px] mt-1" style={{color:'var(--text-muted)'}}>bpm</p>
                             </div>
                             <div className="text-center">
-                              <p className="text-[9px] uppercase tracking-widest text-[#78716C] mb-2 font-bold">Calories</p>
-                              <p className="text-3xl font-light text-[#EAE5D9]">{stravaData.lastRun.calories ?? '—'}</p>
-                              <p className="text-[10px] text-[#78716C] mt-1">kcal</p>
+                              <p className="text-[9px] uppercase tracking-widest mb-2 font-bold" style={{color:'var(--text-muted)'}}>Calories</p>
+                              <p className="text-3xl font-light" style={{color:'var(--text-primary)'}}>{stravaData.lastRun.calories ?? '—'}</p>
+                              <p className="text-[10px] mt-1" style={{color:'var(--text-muted)'}}>kcal</p>
                             </div>
                           </div>
                         </>
                       ) : (
-                        <p className="text-[#5A5450] italic mt-3">러닝 기록이 없습니다.</p>
+                        <p className="italic mt-3" style={{color:'var(--text-dim)'}}>러닝 기록이 없습니다.</p>
                       )}
                     </div>
 
                     {/* This Week */}
                     <div className="grid grid-cols-2 gap-4">
-                      <div className="bg-[#1A1918] border border-[#EAE5D9]/5 rounded-sm p-8">
-                        <p className="text-[9px] uppercase tracking-widest text-[#78716C] mb-4 font-bold">This Week · Distance</p>
-                        <p className="text-4xl font-light text-[#EAE5D9]">
+                      <div className="border rounded-sm p-8" style={{background:'var(--bg-surface)', borderColor:'var(--border)'}}>
+                        <p className="text-[9px] uppercase tracking-widest mb-4 font-bold" style={{color:'var(--text-muted)'}}>This Week · Distance</p>
+                        <p className="text-4xl font-light" style={{color:'var(--text-primary)'}}>
                           {stravaData.weeklyStats?.distanceM > 0 ? (stravaData.weeklyStats.distanceM / 1000).toFixed(1) : '—'}
                         </p>
-                        <p className="text-[10px] text-[#78716C] mt-2">km</p>
+                        <p className="text-[10px] mt-2" style={{color:'var(--text-muted)'}}>km</p>
                       </div>
-                      <div className="bg-[#1A1918] border border-[#EAE5D9]/5 rounded-sm p-8">
-                        <p className="text-[9px] uppercase tracking-widest text-[#78716C] mb-4 font-bold">This Week · Runs</p>
-                        <p className="text-4xl font-light text-[#EAE5D9]">
+                      <div className="border rounded-sm p-8" style={{background:'var(--bg-surface)', borderColor:'var(--border)'}}>
+                        <p className="text-[9px] uppercase tracking-widest mb-4 font-bold" style={{color:'var(--text-muted)'}}>This Week · Runs</p>
+                        <p className="text-4xl font-light" style={{color:'var(--text-primary)'}}>
                           {stravaData.weeklyStats?.count ?? '—'}
                         </p>
-                        <p className="text-[10px] text-[#78716C] mt-2">activities</p>
+                        <p className="text-[10px] mt-2" style={{color:'var(--text-muted)'}}>activities</p>
                       </div>
                     </div>
 
                     {/* Recent Runs */}
                     {stravaData.recentRuns?.length > 0 && (
-                      <div className="bg-[#1A1918] border border-[#EAE5D9]/5 rounded-sm p-8">
-                        <p className="text-[9px] uppercase tracking-widest text-[#78716C] mb-6 font-bold">Recent Runs</p>
+                      <div className="border rounded-sm p-8" style={{background:'var(--bg-surface)', borderColor:'var(--border)'}}>
+                        <p className="text-[9px] uppercase tracking-widest mb-6 font-bold" style={{color:'var(--text-muted)'}}>Recent Runs</p>
                         <div>
                           {stravaData.recentRuns.map((run, i) => (
-                            <div key={i} className="flex justify-between items-center py-4 border-b border-[#EAE5D9]/5 last:border-0">
+                            <div key={i} className="flex justify-between items-center py-4 border-b last:border-0" style={{borderColor:'var(--border)'}}>
                               <div>
-                                <p className="text-[13px] text-[#EAE5D9] font-light">{run.name}</p>
-                                <p className="text-[10px] text-[#5A5450] mt-0.5">{new Date(run.start_date).toLocaleDateString('ko-KR')}</p>
+                                <p className="text-[13px] font-light" style={{color:'var(--text-primary)'}}>{run.name}</p>
+                                <p className="text-[10px] mt-0.5" style={{color:'var(--text-dim)'}}>{new Date(run.start_date).toLocaleDateString('ko-KR')}</p>
                               </div>
                               <div className="text-right shrink-0 ml-4 space-y-0.5">
-                                <p className="text-[14px] text-[#A8A29E] font-light">{(run.distance / 1000).toFixed(1)} km</p>
-                                <p className="text-[10px] text-[#5A5450]">{formatPace(run.paceSecsPerKm)}{run.average_heartrate ? ` · ${Math.round(run.average_heartrate)} bpm` : ''}</p>
+                                <p className="text-[14px] font-light" style={{color:'var(--text-secondary)'}}>{(run.distance / 1000).toFixed(1)} km</p>
+                                <p className="text-[10px]" style={{color:'var(--text-dim)'}}>{formatPace(run.paceSecsPerKm)}{run.average_heartrate ? ` · ${Math.round(run.average_heartrate)} bpm` : ''}</p>
                               </div>
                             </div>
                           ))}
@@ -1700,25 +1747,27 @@ export default function App() {
                     <div className="text-center pt-8 pb-6">
                       <button
                         onClick={() => generateAiContent('recovery', `Strava 실데이터 기반 러너: 마지막 러닝 ${stravaData.lastRun ? (stravaData.lastRun.distance / 1000).toFixed(1) : '?'}km · 페이스 ${formatPace(stravaData.lastRun?.paceSecsPerKm)} · 평균 심박수 ${stravaData.lastRun?.average_heartrate ? Math.round(stravaData.lastRun.average_heartrate) : '?'}bpm · 이번 주 ${stravaData.weeklyStats ? (stravaData.weeklyStats.distanceM / 1000).toFixed(1) : '?'}km 완주. 이 러너를 위한 오늘의 회복(Recovery) 리추얼을 프리미엄 라이프스타일 매거진 톤으로 짧고 감각적이게 추천해줘.`)}
-                        className="px-12 py-5 bg-[#EAE5D9] text-[#151413] font-bold text-[11px] uppercase tracking-[0.2em] rounded-sm shadow-2xl hover:bg-white active:scale-95 transition-all"
+                        className="px-12 py-5 font-bold text-[11px] uppercase tracking-[0.2em] rounded-sm shadow-2xl active:scale-95 transition-all"
+                        style={{background:'var(--text-primary)', color:'var(--bg-base)'}}
                       >Curate My Ritual</button>
                       {activeAiTarget === 'recovery' && aiResponse && (
-                        <div className="mt-10 p-8 border border-[#EAE5D9]/5 bg-[#1A1918] text-[15px] italic text-[#EAE5D9]/90 font-light leading-[1.8] rounded-sm text-left">
+                        <div className="mt-10 p-8 border text-[15px] italic font-light leading-[1.8] rounded-sm text-left" style={{background:'var(--bg-surface)', borderColor:'var(--border)', color:'var(--text-secondary)'}}>
                           "{aiResponse}"
                         </div>
                       )}
                       <div className="mt-16">
                         <button
                           onClick={() => { sessionStorage.removeItem('strava_data'); setStravaData(null); }}
-                          className="text-[9px] uppercase tracking-[0.3em] text-[#3A3532] hover:text-[#78716C] transition-colors"
+                          className="text-[9px] uppercase tracking-[0.3em] transition-colors"
+                          style={{color:'var(--text-dim)'}}
                         >Disconnect Strava</button>
                       </div>
                     </div>
                   </div>
                 ) : (
-                  <div className="py-24 border border-dashed border-[#EAE5D9]/20 rounded-sm bg-[#1A1918]/50 animate-in fade-in">
-                    <WatchIcon size={48} className="mx-auto mb-8 text-[#5A5450] animate-pulse"/>
-                    <p className="text-[15px] text-[#A8A29E] mb-12 leading-[1.8] font-light italic max-w-sm mx-auto text-center">
+                  <div className="py-24 border border-dashed rounded-sm animate-in fade-in" style={{borderColor:'var(--border-mid)', background:'var(--bg-surface)'}}>
+                    <WatchIcon size={48} className="mx-auto mb-8 animate-pulse" style={{color:'var(--text-dim)'}}/>
+                    <p className="text-[15px] mb-12 leading-[1.8] font-light italic max-w-sm mx-auto text-center" style={{color:'var(--text-secondary)'}}>
                       거친 트레일의 끝,<br/>실제 러닝 데이터를 연동하여<br/>완벽한 회복의 서사를 완성하세요.
                     </p>
                     <div className="flex flex-col items-center gap-4 max-w-xs mx-auto">
@@ -1726,8 +1775,8 @@ export default function App() {
                         onClick={() => { if (!isLoggedIn) { setAuthMode('login'); } else { loginWithStrava(); } }}
                         className="w-full px-12 py-5 bg-[#FC4C02] text-white font-bold text-[11px] uppercase tracking-[0.2em] rounded-sm shadow-2xl hover:bg-[#e84402] active:scale-95 transition-all"
                       >Connect Strava</button>
-                      <p className="text-[10px] uppercase tracking-widest text-[#5A5450]">— or —</p>
-                      <button onClick={handleDeviceConnectClick} className="w-full px-12 py-5 border border-[#EAE5D9]/20 text-[#A8A29E] font-bold text-[11px] uppercase tracking-[0.2em] rounded-sm hover:border-[#EAE5D9]/50 hover:text-[#EAE5D9] transition-all">Connect Device</button>
+                      <p className="text-[10px] uppercase tracking-widest" style={{color:'var(--text-dim)'}}>— or —</p>
+                      <button onClick={handleDeviceConnectClick} className="w-full px-12 py-5 border font-bold text-[11px] uppercase tracking-[0.2em] rounded-sm transition-all" style={{borderColor:'var(--border-mid)', color:'var(--text-secondary)'}}>Connect Device</button>
                     </div>
                   </div>
                 )}
@@ -1737,19 +1786,19 @@ export default function App() {
         )}
       </main>
 
-      <div className="flex justify-center items-center gap-6 py-6 border-t border-[#EAE5D9]/5 bg-[#151413] mb-20">
+      <div className="flex justify-center items-center gap-6 py-6 border-t mb-20" style={{ background: 'var(--bg-surface)', borderColor: 'var(--border)' }}>
         <a href="/privacy" target="_blank" rel="noopener noreferrer"
-           className="text-[10px] uppercase tracking-widest text-[#5A5450] hover:text-[#A8A29E] transition-colors">
+           className="text-[10px] uppercase tracking-widest transition-colors" style={{color:'var(--text-dim)'}}>
           Privacy Policy
         </a>
-        <span className="text-[#5A5450]">·</span>
+        <span style={{color:'var(--text-dim)'}}>·</span>
         <a href="/privacy-ko" target="_blank" rel="noopener noreferrer"
-           className="text-[10px] uppercase tracking-widest text-[#5A5450] hover:text-[#A8A29E] transition-colors">
+           className="text-[10px] uppercase tracking-widest transition-colors" style={{color:'var(--text-dim)'}}>
           개인정보처리방침
         </a>
       </div>
 
-      <nav className="fixed bottom-0 w-full z-[1001] px-6 md:px-16 pt-4 pb-6 bg-[#151413]/95 backdrop-blur-2xl border-t border-[#EAE5D9]/5 flex justify-between items-center shadow-[0_-10px_40px_rgba(0,0,0,0.5)]" style={{paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom))'}}>
+      <nav className="fixed bottom-0 w-full z-[1001] px-6 md:px-16 pt-4 pb-6 backdrop-blur-2xl border-t flex justify-between items-center shadow-[0_-10px_40px_rgba(0,0,0,0.5)]" style={{background:'var(--bg-surface)', borderColor:'var(--border)', paddingBottom:'calc(1.5rem + env(safe-area-inset-bottom))'}}>
 
         <NavItem id="journal" icon={Wind} label="Journal" />
         <NavItem id="routes" icon={Compass} label="Routes" />
