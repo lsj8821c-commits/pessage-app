@@ -853,9 +853,9 @@ export default function App() {
       
       {isWatchModalOpen && (
         <div className="fixed inset-0 z-[2000] bg-black/95 backdrop-blur-xl flex items-center justify-center p-6 animate-in fade-in">
-          <div className="max-w-sm w-full border p-10 rounded-sm shadow-2xl" style={{background:'var(--bg-surface)', borderColor:'var(--border-mid)'}}>
-            <h3 className="text-2xl font-light italic mb-10 text-center" style={{color:'var(--text-primary)'}}>Sync Your Gear</h3>
-            <div className="space-y-4">
+          <div className="max-w-sm w-full bg-[#F0EDE8] rounded-sm shadow-2xl flex flex-col" style={{maxHeight: '80vh'}}>
+            <h3 className="text-2xl font-light italic pt-6 pb-4 px-6 text-center text-[#1B2A4A] border-b border-[#E8E4DF]">Sync Your Gear</h3>
+            <div className="flex-1 overflow-y-auto">
               {[
                 {name: 'Garmin', status: 'available'},
                 {name: 'COROS', status: 'available'},
@@ -863,16 +863,16 @@ export default function App() {
                 {name: 'Samsung Health', status: 'coming'},
                 {name: 'Apple Health', status: 'coming'},
               ].map(({name, status}) => (
-                <button key={name} onClick={() => { if(status === 'available') { setConnectedDevice(name); setIsWatchModalOpen(false); }}} className={`w-full flex justify-between items-center p-6 border transition-all group rounded-sm ${status === 'coming' ? 'bg-[#EAE5D9]/2 border-[#EAE5D9]/5 opacity-40 cursor-not-allowed' : 'bg-[#EAE5D9]/5 border-[#EAE5D9]/5 hover:border-[#EAE5D9]/30 cursor-pointer'}`}>
+                <button key={name} onClick={() => { if(status === 'available') { setConnectedDevice(name); setIsWatchModalOpen(false); }}} className={`w-full flex justify-between items-center px-6 border-b border-[#E8E4DF] transition-all group ${status === 'coming' ? 'text-[#C8C0B4] cursor-default' : 'text-[#3D3530] hover:bg-[#E8E4DF]'}`} style={{height: '56px'}}>
                   <div className="flex items-center gap-3">
-                    <span className="text-[11px] uppercase tracking-[0.2em] font-bold" style={{color:'var(--text-primary)'}}>{name}</span>
-                    {status === 'coming' && <span className="text-[9px] uppercase tracking-widest border px-2 py-0.5 rounded-full" style={{color:'var(--text-dim)', borderColor:'var(--border-mid)'}}>Coming Soon</span>}
+                    <span className="text-[13px] uppercase tracking-widest font-light">{name}</span>
+                    {status === 'coming' && <span className="text-[10px] uppercase tracking-[0.5px] border border-[#C8C0B4] px-2 py-0.5 rounded-full text-[#888888]" style={{whiteSpace: 'nowrap'}}>C.S</span>}
                   </div>
-                  <ChevronRight size={16} className={`transition-colors ${status === 'coming' ? 'text-[#3A3836]' : 'text-[#78716C] group-hover:text-[#EAE5D9]'}`} />
+                  <span className="text-[#3D3530]/30 group-hover:text-[#3D3530]/60 transition-colors">›</span>
                 </button>
               ))}
             </div>
-            <button onClick={() => setIsWatchModalOpen(false)} className="w-full mt-12 text-[10px] uppercase tracking-[0.3em] transition-colors" style={{color:'var(--text-muted)'}}>Close</button>
+            <button onClick={() => setIsWatchModalOpen(false)} className="w-full text-[10px] uppercase tracking-[0.3em] text-[#3D3530] hover:bg-[#E8E4DF] transition-colors border-t border-[#E8E4DF] bg-[#F0EDE8]" style={{height: '52px', flexShrink: 0}}>CLOSE</button>
           </div>
         </div>
       )}
