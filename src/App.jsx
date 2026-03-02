@@ -1384,7 +1384,7 @@ export default function App() {
                         {siteContent.routes.length > 0 ? siteContent.routes.filter(r => (routeTypeFilter === 'ALL' || r.type === routeTypeFilter) && (routeRegionFilter === 'ALL' || r.region === routeRegionFilter)).map(route => (
                           <div key={route._id} onClick={() => setSelectedRoute(route)} className="p-8 md:p-10 border cursor-pointer transition-all duration-300 group rounded-sm shadow-lg" style={{background:'var(--bg-surface)', borderColor:'var(--border)'}}>
                               <p className={`text-[10px] uppercase font-bold tracking-[0.3em] mb-3 ${route.type === 'TRAIL' ? 'text-[#C2410C]' : ''}`} style={route.type !== 'TRAIL' ? {color:'var(--text-secondary)'} : {}}>{route.type} / {route.region}</p>
-                              <h4 className="text-2xl md:text-3xl font-light not-italic transition-colors leading-tight mb-6" style={{color:'var(--text-primary)'}}>{route.name}</h4>
+                              <h4 className="text-2xl md:text-3xl font-normal not-italic transition-colors leading-tight mb-6" style={{color:'var(--text-primary)'}}>{route.name}</h4>
                               <div className="flex items-center gap-6">
                                 {route.distance && (
                                   <div>
