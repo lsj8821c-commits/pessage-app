@@ -885,27 +885,91 @@ export default function App() {
       )}
 
       <header
-        className={`fixed top-0 w-full z-[1000] transition-all duration-700 px-6 py-5 flex justify-between items-center ${scrolled ? 'backdrop-blur-lg' : ''}`}
-        style={scrolled
-          ? { background: 'var(--bg-surface)', borderBottom: '1px solid', borderColor: 'var(--border)' }
-          : { background: 'transparent' }
-        }
+        className={`fixed top-0 w-full z-[1000] transition-all duration-700 px-6 flex justify-between items-center ${scrolled ? 'backdrop-blur-lg' : ''}`}
+        style={{
+          height: '56px',
+          ...(scrolled
+            ? { background: 'var(--bg-surface)', borderBottom: '1px solid', borderColor: 'var(--border)' }
+            : { background: 'transparent' })
+        }}
       >
         <h1 className="text-2xl font-bold tracking-[0.3em] italic cursor-pointer" onClick={() => {setActiveTab('journal'); setSelectedArticle(null); setAuthMode(null); setIsProfileOpen(false);}}>PESSAGE</h1>
-        <div className="flex items-center gap-4 pr-5">
+        <div className="flex items-center" style={{gap: '16px', paddingRight: '20px'}}>
+          {/* 테마 슬라이더 토글 */}
           <button
             onClick={() => setTheme(t => t === 'light' ? 'dark' : 'light')}
-            className="flex items-center justify-center transition-all text-[#3D3530]"
-            style={{width: '44px', height: '44px', fontSize: '18px', cursor: 'pointer'}}
+            className="flex items-center justify-center"
+            style={{width: '44px', height: '44px', cursor: 'pointer', flexShrink: 0}}
+            aria-label="Toggle theme"
           >
-            {theme === 'light' ? '🌙' : '☀️'}
+            <div style={{
+              position: 'relative',
+              width: '36px',
+              height: '20px',
+              borderRadius: '4px',
+              border: `1px solid ${theme === 'dark' ? '#4A3F35' : '#C8C0B4'}`,
+              background: 'transparent',
+              transition: 'border-color 0.2s ease',
+            }}>
+              <div style={{
+                position: 'absolute',
+                top: '2px',
+                width: '14px',
+                height: '14px',
+                borderRadius: '2px',
+                background: theme === 'dark' ? '#E8E0D5' : '#1B2A4A',
+                transform: theme === 'dark' ? 'translateX(18px)' : 'translateX(2px)',
+                transition: 'transform 0.2s ease, background 0.2s ease',
+              }} />
+            </div>
           </button>
+
           {isLoggedIn ? (
             <>
-              <button onClick={handleDeviceConnectClick} className={`text-[10px] tracking-widest uppercase px-4 py-1.5 rounded-full border transition-all ${stravaData ? 'border-[#FC4C02]/50 text-[#FC4C02] bg-[#FC4C02]/10 font-bold' : connectedDevice ? 'border-[#C2410C]/40 text-[#C2410C] bg-[#C2410C]/10 font-bold' : 'border-[#EAE5D9]/20 text-[#78716C] hover:border-[#EAE5D9]/50 hover:text-[#A8A29E] cursor-pointer'}`}>
+              {/* 디바이스 상태 칩 */}
+              <button
+                onClick={handleDeviceConnectClick}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  height: '24px',
+                  padding: '0 8px',
+                  borderRadius: '20px',
+                  border: `1px solid ${
+                    stravaData
+                      ? '#FC4C02'
+                      : connectedDevice
+                        ? (theme === 'dark' ? '#8B6914' : '#C8941A')
+                        : (theme === 'dark' ? '#4A3F35' : '#C8C0B4')
+                  }`,
+                  background: 'transparent',
+                  fontSize: '10px',
+                  letterSpacing: '1px',
+                  color: stravaData
+                    ? '#FC4C02'
+                    : connectedDevice
+                      ? (theme === 'dark' ? '#C8941A' : '#A0720E')
+                      : '#888888',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  flexShrink: 0,
+                }}
+              >
+                <span style={{
+                  width: '5px',
+                  height: '5px',
+                  borderRadius: '50%',
+                  flexShrink: 0,
+                  background: stravaData
+                    ? '#FC4C02'
+                    : connectedDevice
+                      ? (theme === 'dark' ? '#C8941A' : '#C8941A')
+                      : '#888888',
+                }} />
                 {stravaData ? 'STRAVA' : connectedDevice ? connectedDevice.toUpperCase() : 'NO DEVICE'}
               </button>
-              <button onClick={() => {setIsProfileOpen(!isProfileOpen); setAuthMode(null);}} className={`flex items-center justify-center transition-all ${isProfileOpen ? 'text-[#EAE5D9] bg-[#EAE5D9]/10 rounded-full' : 'text-[#3D3530] hover:text-[#EAE5D9]'}`} style={{width: '44px', height: '44px'}}><User size={20} /></button>
+              <button onClick={() => {setIsProfileOpen(!isProfileOpen); setAuthMode(null);}} className={`flex items-center justify-center transition-all ${isProfileOpen ? 'text-[#EAE5D9] bg-[#EAE5D9]/10 rounded-full' : 'text-[#3D3530] hover:text-[#EAE5D9]'}`} style={{width: '44px', height: '44px', flexShrink: 0}}><User size={20} /></button>
             </>
           ) : (
             <button onClick={() => setAuthMode('login')} className="text-[10px] uppercase tracking-widest bg-[#EAE5D9] text-[#151413] px-6 py-2.5 rounded-full font-bold shadow-lg hover:bg-white active:scale-95 transition-all">SIGN IN</button>
