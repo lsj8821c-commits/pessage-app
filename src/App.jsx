@@ -885,7 +885,7 @@ export default function App() {
       )}
 
       <header
-        className={`fixed top-0 w-full z-[1000] transition-all duration-700 px-6 flex justify-between items-center ${scrolled ? 'backdrop-blur-lg' : ''}`}
+        className={`fixed top-0 w-full z-[1000] transition-all duration-700 px-4 flex justify-between items-center overflow-hidden ${scrolled ? 'backdrop-blur-lg' : ''}`}
         style={{
           height: '56px',
           ...(scrolled
@@ -894,7 +894,7 @@ export default function App() {
         }}
       >
         <h1 className="text-2xl font-bold tracking-[0.3em] italic cursor-pointer" onClick={() => {setActiveTab('journal'); setSelectedArticle(null); setAuthMode(null); setIsProfileOpen(false);}}>PESSAGE</h1>
-        <div className="flex items-center" style={{gap: '16px', paddingRight: '20px', flexShrink: 0}}>
+        <div className="flex gap-3 items-center" style={{flexShrink: 0, minWidth: 0}}>
           {/* 테마 슬라이더 토글 */}
           <button
             onClick={() => setTheme(t => t === 'light' ? 'dark' : 'light')}
