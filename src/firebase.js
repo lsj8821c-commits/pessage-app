@@ -7,6 +7,8 @@ import {
   onAuthStateChanged,
   updateProfile
 } from "firebase/auth";
+import { getFirestore, doc, getDoc, setDoc } from 'firebase/firestore';
+export { doc, getDoc, setDoc };
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -19,6 +21,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
+export const db = getFirestore(app);
 
 export const loginWithGoogle = async () => {
   const provider = new GoogleAuthProvider();

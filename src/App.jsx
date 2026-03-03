@@ -5,7 +5,7 @@ import {
   Map as MapIcon, List, Calendar, Smartphone as WatchIcon, Quote,
   Bookmark, BookmarkCheck, ExternalLink, Pencil, Download, MapPin
 } from 'lucide-react';
-import { loginWithGoogle, loginWithKakao, loginWithNaver, loginWithStrava, logout, onAuthChange, updateUserProfile } from './firebase';
+import { loginWithGoogle, loginWithKakao, loginWithNaver, loginWithStrava, logout, onAuthChange, updateUserProfile, auth, db, doc, getDoc, setDoc } from './firebase';
 
 const formatPace = (secsPerKm) => {
   if (!secsPerKm) return '—';
@@ -186,7 +186,7 @@ export default function App() {
   const [connectedDevice, setConnectedDevice] = useState(null);
   const [isWatchModalOpen, setIsWatchModalOpen] = useState(false);
   
-  const [savedItems, setSavedItems] = useState({ articles: [], gear: [] });
+  const [savedItems, setSavedItems] = useState({ articles: [], gear: [], routes: [], sessions: [] });
   const [selectedArticle, setSelectedArticle] = useState(null);
   const [selectedRoute, setSelectedRoute] = useState(null);
   const [selectedGear, setSelectedGear] = useState(null);
@@ -334,6 +334,35 @@ export default function App() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  const getCurrentUid = () => {
+    if (auth.currentUser) return auth.currentUser.uid;
+    const kakaoUser = sessionStorage.getItem('kakao_user');
+    if (kakaoUser) {
+      const parsed = JSON.parse(kakaoUser);
+      return `kakao_${parsed.id}`;
+    }
+    const naverUser = sessionStorage.getItem('naver_user');
+    if (naverUser) {
+      const parsed = JSON.parse(naverUser);
+      return `naver_${parsed.id}`;
+    }
+    return null;
+  };
+
+  const loadSavedItems = async (uid) => {
+    const resolvedUid = uid || getCurrentUid();
+    if (!resolvedUid) return;
+    try {
+      const ref = doc(db, 'users', resolvedUid, 'data', 'savedItems');
+      const snap = await getDoc(ref);
+      if (snap.exists()) {
+        setSavedItems(snap.data());
+      }
+    } catch (e) {
+      console.error('저장 데이터 불러오기 실패:', e);
+    }
+  };
+
   // --- ✅ Firebase 로그인 상태 감지 ---
   useEffect(() => {
     const unsubscribe = onAuthChange((user) => {
@@ -341,6 +370,7 @@ export default function App() {
         setIsLoggedIn(true);
         setCurrentUser(user);
         setAuthMode(null);
+        loadSavedItems(user.uid);
       } else {
         const kakaoUser = sessionStorage.getItem('kakao_user');
         const naverUser = sessionStorage.getItem('naver_user');
@@ -382,6 +412,8 @@ export default function App() {
           setCurrentUser({ displayName: user.name, email: user.email, photoURL: user.photo });
           setIsLoggedIn(true);
           setAuthMode(null);
+          const uid = getCurrentUid();
+          if (uid) loadSavedItems(uid);
         }
       } catch (e) {
         console.error('Kakao callback error:', e);
@@ -414,6 +446,8 @@ export default function App() {
           setCurrentUser({ displayName: user.name, email: user.email, photoURL: user.photo });
           setIsLoggedIn(true);
           setAuthMode(null);
+          const uid = getCurrentUid();
+          if (uid) loadSavedItems(uid);
         }
       } catch (e) {
         console.error('Naver callback error:', e);
@@ -638,12 +672,24 @@ export default function App() {
   };
 
   const toggleSave = (e, type, item) => {
-    e.stopPropagation(); 
+    e.stopPropagation();
     if (!isLoggedIn) { setAuthMode('login'); return; }
+
     setSavedItems(prev => {
-      const isSaved = prev[type].some(i => i._id === item._id);
-      if (isSaved) return { ...prev, [type]: prev[type].filter(i => i._id !== item._id) };
-      else return { ...prev, [type]: [...prev[type], item] };
+      const list = prev[type] || [];
+      const exists = list.some(i => i.id === item.id || i._id === item._id);
+      const updated = exists
+        ? list.filter(i => i.id !== item.id && i._id !== item._id)
+        : [...list, item];
+      const newState = { ...prev, [type]: updated };
+
+      const uid = getCurrentUid();
+      if (uid) {
+        setDoc(doc(db, 'users', uid, 'data', 'savedItems'), newState)
+          .catch(e => console.error('저장 실패:', e));
+      }
+
+      return newState;
     });
   };
 
@@ -1174,6 +1220,40 @@ export default function App() {
                       <p className="text-sm italic" style={{color:'var(--text-dim)'}}>아직 수집된 장비가 없습니다.</p>
                     )}
                   </div>
+                  <div>
+                    <h4 className="text-[11px] uppercase tracking-[0.3em] font-bold mb-6" style={{color:'var(--text-muted)'}}>Saved Routes ({savedItems.routes?.length || 0})</h4>
+                    {savedItems.routes?.length > 0 ? (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {savedItems.routes.map(route => (
+                          <div key={route._id} onClick={() => {setSelectedRoute(route); setIsProfileOpen(false); setActiveTab('routes');}} className="flex gap-4 p-4 border rounded-sm cursor-pointer transition-all" style={{background:'var(--bg-surface)', borderColor:'var(--border)'}}>
+                            <div className="flex flex-col justify-center">
+                              <p className="text-[9px] uppercase tracking-widest mb-2" style={{color:'var(--text-muted)'}}>{route.type}{route.region ? ` · ${route.region}` : ''}</p>
+                              <h5 className="text-lg font-light italic line-clamp-2" style={{color:'var(--text-primary)'}}>{route.name}</h5>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm italic" style={{color:'var(--text-dim)'}}>저장한 루트가 없어요.</p>
+                    )}
+                  </div>
+                  <div>
+                    <h4 className="text-[11px] uppercase tracking-[0.3em] font-bold mb-6" style={{color:'var(--text-muted)'}}>Saved Sessions ({savedItems.sessions?.length || 0})</h4>
+                    {savedItems.sessions?.length > 0 ? (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {savedItems.sessions.map(session => (
+                          <div key={session._id} className="flex gap-4 p-4 border rounded-sm cursor-pointer transition-all" style={{background:'var(--bg-surface)', borderColor:'var(--border)'}}>
+                            <div className="flex flex-col justify-center">
+                              <p className="text-[9px] uppercase tracking-widest mb-2" style={{color:'var(--text-muted)'}}>{session.type}</p>
+                              <h5 className="text-lg font-light italic line-clamp-2" style={{color:'var(--text-primary)'}}>{session.name}</h5>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm italic" style={{color:'var(--text-dim)'}}>저장한 세션이 없어요.</p>
+                    )}
+                  </div>
                 </div>
              </div>
              {/* ✅ 실제 로그아웃 함수 연결 */}
@@ -1456,7 +1536,13 @@ export default function App() {
                     ) : (
                       <div className="space-y-4">
                         {siteContent.routes.length > 0 ? siteContent.routes.filter(r => (routeTypeFilter === 'ALL' || r.type === routeTypeFilter) && (routeRegionFilter === 'ALL' || r.region === routeRegionFilter)).map(route => (
-                          <div key={route._id} onClick={() => setSelectedRoute(route)} className="p-8 md:p-10 border cursor-pointer transition-all duration-300 group rounded-sm shadow-lg" style={{background:'var(--bg-surface)', borderColor:'var(--border)'}}>
+                          <div key={route._id} onClick={() => setSelectedRoute(route)} className="p-8 md:p-10 border cursor-pointer transition-all duration-300 group rounded-sm shadow-lg relative" style={{background:'var(--bg-surface)', borderColor:'var(--border)'}}>
+                              <button
+                                onClick={(e) => toggleSave(e, 'routes', route)}
+                                className={`absolute top-6 right-6 z-20 p-2.5 rounded-full border transition-all ${isItemSaved('routes', route._id) ? 'bg-[#EAE5D9] text-[#151413] border-[#EAE5D9]' : 'opacity-0 group-hover:opacity-100 border-[#EAE5D9]/20 text-[#A8A29E]'}`}
+                              >
+                                {isItemSaved('routes', route._id) ? <BookmarkCheck size={16} /> : <Bookmark size={16} />}
+                              </button>
                               <p className={`text-[10px] uppercase font-bold tracking-[0.3em] mb-3 ${route.type === 'TRAIL' ? 'text-[#C2410C]' : ''}`} style={route.type !== 'TRAIL' ? {color:'var(--text-secondary)'} : {}}>{route.type} / {route.region}</p>
                               <h4 className="text-2xl md:text-3xl font-normal not-italic transition-colors leading-tight mb-6" style={{color:'var(--text-primary)'}}>{route.name}</h4>
                               <div className="flex items-center gap-6">
@@ -1542,7 +1628,15 @@ export default function App() {
                           {monthRaces.map(race => (
                             <div key={race._id || race.id} className="group border-l-2 pl-8 md:pl-12 relative transition-colors duration-500" style={{borderColor:'var(--border-mid)'}}>
                                <div className={`absolute left-[-5px] top-1.5 w-2 h-2 rounded-full ${race.type === 'TRAIL' ? 'bg-[#C2410C]' : ''}`} style={race.type !== 'TRAIL' ? {background:'var(--text-secondary)'} : {}}></div>
-                               <h3 className="text-3xl md:text-4xl font-light italic mb-5" style={{color:'var(--text-primary)'}}>{race.name}</h3>
+                               <div className="flex justify-between items-start mb-5">
+                                 <h3 className="text-3xl md:text-4xl font-light italic" style={{color:'var(--text-primary)'}}>{race.name}</h3>
+                                 <button
+                                   onClick={(e) => toggleSave(e, 'sessions', race)}
+                                   className={`p-2.5 rounded-full border transition-all shrink-0 ml-4 ${isItemSaved('sessions', race._id || race.id) ? 'bg-[#EAE5D9] text-[#151413] border-[#EAE5D9]' : 'border-[#EAE5D9]/20 text-[#A8A29E] opacity-0 group-hover:opacity-100'}`}
+                                 >
+                                   {isItemSaved('sessions', race._id || race.id) ? <BookmarkCheck size={16} /> : <Bookmark size={16} />}
+                                 </button>
+                               </div>
 
                                {race.date && (
                                  <p className="text-[11px] uppercase tracking-widest mb-3 flex items-center gap-1.5" style={{color:'var(--text-secondary)'}}>
