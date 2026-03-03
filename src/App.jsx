@@ -1292,7 +1292,7 @@ export default function App() {
                   <div className="pt-24 max-w-3xl mx-auto">
                     <button onClick={() => setSelectedArticle(null)} className="flex items-center gap-2 text-[11px] uppercase tracking-widest mb-12 transition-colors" style={{color:'var(--text-muted)'}}><ArrowLeft size={16} /> Back to Directory</button>
                     {selectedArticle.coverImage && (
-                      <div className="w-full overflow-hidden mb-16 rounded-sm border relative group" style={{borderColor:'var(--border)'}}>
+                      <div className="w-full overflow-hidden mb-16 rounded-sm relative group">
                         <img src={urlFor(selectedArticle.coverImage)} alt="" className="w-full h-auto block" />
                         <div className="absolute inset-0" style={{background:'linear-gradient(to top, var(--bg-base) 0%, transparent 30%)'}}></div>
                       </div>
