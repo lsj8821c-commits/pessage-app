@@ -1565,7 +1565,27 @@ export default function App() {
 
                                <p className="text-[15px] font-light leading-relaxed max-w-2xl mb-10" style={{color:'var(--text-secondary)'}}>{race.description}</p>
                                <div className="flex flex-wrap gap-4">
-                                  <button onClick={() => generateAiContent(race.name, `${race.name} 대회의 트레일/로드 전략을 어시(Earthy)하고 철학적인 톤앤매너 매거진 스타일로 3문장 이내로 작성해줘.`)} className="flex items-center gap-3 px-8 py-4 text-[10px] uppercase font-bold tracking-[0.2em] rounded-sm transition-all" style={{background:'var(--bg-surface)', color:'var(--text-primary)'}}><Sparkles size={14} /> AI Strategy</button>
+                                  <button onClick={() => generateAiContent(race.name,
+                                    `당신은 PESSAGE의 수석 에디터다.
+PESSAGE 문체: 짧은 현재형 문장, 경험 중심, 광고성 표현 금지, 기록보다 감각을 우선.
+
+대회 정보:
+- 이름: ${race.name}
+- 유형: ${race.type}
+- 날짜: ${race.date}
+- 장소: ${race.location || '미정'}
+- 설명: ${race.description}
+
+${stravaData ? `
+러너 현황:
+- 이번 주 ${(stravaData.weeklyStats?.distanceM / 1000).toFixed(1)}km / ${stravaData.weeklyStats?.count}회 훈련
+- 최근 페이스 ${formatPace(stravaData.lastRun?.paceSecsPerKm)} / 심박수 ${Math.round(stravaData.lastRun?.average_heartrate || 0)}bpm
+- Ritual Score ${ritualScore}/100
+` : ''}
+
+이 러너가 위 대회를 어떻게 접근해야 하는지, 전략보다 태도에 집중해서 3문장으로 써라.
+형식: 세 문장을 줄바꿈으로 구분. 번호나 마크다운 없이 순수 텍스트만.`
+                                  )} className="flex items-center gap-3 px-8 py-4 text-[10px] uppercase font-bold tracking-[0.2em] rounded-sm transition-all" style={{background:'var(--bg-surface)', color:'var(--text-primary)'}}><Sparkles size={14} /> AI Strategy</button>
 
                                   {race.registrationUrl && (
                                     <a href={race.registrationUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 px-8 py-4 text-[10px] uppercase font-bold tracking-[0.2em] rounded-sm transition-all shadow-lg" style={{background:'var(--text-primary)', color:'var(--bg-base)'}}>
@@ -1820,15 +1840,65 @@ export default function App() {
                     {/* AI Ritual */}
                     <div className="text-center pt-8 pb-6">
                       <button
-                        onClick={() => generateAiContent('recovery', `Strava 실데이터 기반 러너: 마지막 러닝 ${stravaData.lastRun ? (stravaData.lastRun.distance / 1000).toFixed(1) : '?'}km · 페이스 ${formatPace(stravaData.lastRun?.paceSecsPerKm)} · 평균 심박수 ${stravaData.lastRun?.average_heartrate ? Math.round(stravaData.lastRun.average_heartrate) : '?'}bpm · 이번 주 ${stravaData.weeklyStats ? (stravaData.weeklyStats.distanceM / 1000).toFixed(1) : '?'}km 완주. 이 러너를 위한 오늘의 회복(Recovery) 리추얼을 프리미엄 라이프스타일 매거진 톤으로 짧고 감각적이게 추천해줘.`)}
+                        onClick={() => generateAiContent('recovery', `당신은 웰니스 에디토리얼 브랜드 PESSAGE의 수석 에디터다.
+PESSAGE 문체 규칙:
+- 짧고 감각적인 현재형 문장
+- 광고성 표현, 과장 금지 ("최고", "완벽한" 같은 단어 사용 금지)
+- 한국어/영어 자연스럽게 혼용
+- 여백과 침묵을 활용하는 서사
+
+러너 데이터:
+- 마지막 러닝: ${(stravaData.lastRun?.distance / 1000).toFixed(1)}km / 페이스 ${formatPace(stravaData.lastRun?.paceSecsPerKm)} / 심박수 ${Math.round(stravaData.lastRun?.average_heartrate || 0)}bpm
+- 이번 주 누적: ${(stravaData.weeklyStats?.distanceM / 1000).toFixed(1)}km / ${stravaData.weeklyStats?.count}회
+- Ritual Score: ${ritualScore}/100
+
+위 데이터를 읽고 오늘 이 러너의 신체 상태를 판단한 뒤, 아래 형식으로 출력하라.
+형식 외 다른 텍스트는 절대 출력하지 마라.
+
+[TODAY'S READ]
+신체 상태를 감각적으로 묘사하는 한 문장.
+
+[RECOVERY SEQUENCE]
+1. 액션 — 시간/방법 포함 (1줄)
+2. 액션 — 시간/방법 포함 (1줄)
+3. 액션 — 시간/방법 포함 (1줄)
+
+[PESSAGE NOTE]
+달리기의 철학적 의미로 마무리하는 한 문장.`)}
                         className="px-12 py-5 font-bold text-[11px] uppercase tracking-[0.2em] rounded-sm shadow-2xl active:scale-95 transition-all"
                         style={{background:'var(--text-primary)', color:'var(--bg-base)'}}
                       >Curate My Ritual</button>
-                      {activeAiTarget === 'recovery' && aiResponse && (
-                        <div className="mt-10 p-8 border text-[15px] italic font-light leading-[1.8] rounded-sm text-left" style={{background:'var(--bg-surface)', borderColor:'var(--border)', color:'var(--text-secondary)'}}>
-                          "{aiResponse}"
-                        </div>
-                      )}
+                      {activeAiTarget === 'recovery' && aiResponse && (() => {
+                        const sections = {
+                          read: aiResponse.match(/\[TODAY'S READ\]([\s\S]*?)\[/)?.[1]?.trim(),
+                          sequence: aiResponse.match(/\[RECOVERY SEQUENCE\]([\s\S]*?)\[/)?.[1]?.trim(),
+                          note: aiResponse.match(/\[PESSAGE NOTE\]([\s\S]*?)$/)?.[1]?.trim()
+                        };
+                        return (
+                          <div className="mt-10 border rounded-sm text-left" style={{background:'var(--bg-surface)', borderColor:'var(--border)'}}>
+                            {sections.read && (
+                              <div className="p-8 border-b" style={{borderColor:'var(--border)'}}>
+                                <p className="text-[9px] uppercase tracking-[0.3em] mb-3 font-bold" style={{color:'var(--text-muted)'}}>Today's Read</p>
+                                <p className="text-[17px] italic font-light leading-[1.8]" style={{color:'var(--text-primary)'}}>{sections.read}</p>
+                              </div>
+                            )}
+                            {sections.sequence && (
+                              <div className="p-8 border-b" style={{borderColor:'var(--border)'}}>
+                                <p className="text-[9px] uppercase tracking-[0.3em] mb-4 font-bold" style={{color:'var(--text-muted)'}}>Recovery Sequence</p>
+                                {sections.sequence.split('\n').filter(Boolean).map((line, i) => (
+                                  <p key={i} className="text-[14px] font-light leading-[1.9] py-2 border-b last:border-0" style={{color:'var(--text-secondary)', borderColor:'var(--border)'}}>{line}</p>
+                                ))}
+                              </div>
+                            )}
+                            {sections.note && (
+                              <div className="p-8">
+                                <p className="text-[9px] uppercase tracking-[0.3em] mb-3 font-bold text-[#C2410C]">PESSAGE Note</p>
+                                <p className="text-[15px] italic font-light leading-[1.8]" style={{color:'var(--text-muted)'}}>— {sections.note}</p>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })()}
                       <div className="mt-16">
                         <button
                           onClick={() => { sessionStorage.removeItem('strava_data'); setStravaData(null); }}
