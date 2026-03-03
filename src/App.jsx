@@ -1337,8 +1337,7 @@ export default function App() {
                             <>
                               <div
                                 onClick={() => setSelectedArticle(heroArticle)}
-                                className="group cursor-pointer relative mb-24 md:mb-32 block overflow-hidden rounded-sm border"
-                                style={{borderColor:'var(--border-mid)'}}
+                                className="group cursor-pointer relative mb-24 md:mb-32 block overflow-hidden rounded-sm"
                               >
                                 <div className="w-full relative" style={{background:'var(--bg-surface)'}}>
                                   {heroArticle.coverImage && (
