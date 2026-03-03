@@ -185,6 +185,7 @@ export default function App() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [connectedDevice, setConnectedDevice] = useState(null);
   const [isWatchModalOpen, setIsWatchModalOpen] = useState(false);
+  const [showConnectModal, setShowConnectModal] = useState(false);
   
   const [savedItems, setSavedItems] = useState({ articles: [], gear: [], routes: [], sessions: [] });
   const [selectedArticle, setSelectedArticle] = useState(null);
@@ -897,6 +898,30 @@ export default function App() {
         ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
       `}</style>
       
+      {showConnectModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center"
+          style={{background: 'rgba(0,0,0,0.5)'}}
+          onClick={() => setShowConnectModal(false)}
+        >
+          <div
+            className="mx-6 p-8 rounded-sm text-center"
+            style={{background: 'var(--bg-surface)', maxWidth: '320px'}}
+            onClick={e => e.stopPropagation()}
+          >
+            <p className="text-[11px] uppercase tracking-[0.3em] mb-4 font-bold" style={{color: 'var(--text-muted)'}}>AI Strategy</p>
+            <p className="text-[15px] font-light leading-[1.8] mb-6" style={{color: 'var(--text-primary)'}}>운동 기록을 연동하면 나만의 전략을 받을 수 있어요.</p>
+            <button
+              className="text-[11px] uppercase tracking-[0.2em] px-6 py-3 rounded-sm"
+              style={{background: 'var(--text-primary)', color: 'var(--bg-surface)'}}
+              onClick={() => setShowConnectModal(false)}
+            >
+              확인
+            </button>
+          </div>
+        </div>
+      )}
+
       {isWatchModalOpen && (
         <div className="fixed inset-0 z-[2000] bg-black/95 backdrop-blur-xl flex items-center justify-center p-6 animate-in fade-in">
           <div className="max-w-sm w-full bg-[#F0EDE8] rounded-sm shadow-2xl flex flex-col" style={{maxHeight: '80vh'}}>
@@ -1660,7 +1685,10 @@ export default function App() {
                                <p className="text-[15px] font-light leading-relaxed max-w-2xl mb-10" style={{color:'var(--text-secondary)'}}>{race.description}</p>
                                <div className="flex flex-wrap gap-4">
                                   <button onClick={() => {
-                                    if (!stravaData) return;
+                                    if (!stravaData) {
+                                      setShowConnectModal(true);
+                                      return;
+                                    }
                                     generateAiContent(race.name,
                                       `당신은 PESSAGE의 수석 에디터다.
 PESSAGE 문체: 짧은 현재형 문장, 경험 중심, 광고성 표현 금지, 기록보다 감각을 우선.
@@ -1684,11 +1712,6 @@ PESSAGE 문체: 짧은 현재형 문장, 경험 중심, 광고성 표현 금지,
 형식: 줄바꿈으로 구분된 3~4문장. 번호나 마크다운 없이 순수 텍스트만.`
                                     );
                                   }} className="flex items-center gap-3 px-8 py-4 text-[10px] uppercase font-bold tracking-[0.2em] rounded-sm transition-all" style={{background:'var(--bg-surface)', color:'var(--text-primary)'}}><Sparkles size={14} /> AI Strategy</button>
-                                  {!stravaData && (
-                                    <p className="text-[11px] mt-2 tracking-wide" style={{color:'var(--text-muted)'}}>
-                                      Strava 연동 후 사용할 수 있어요.
-                                    </p>
-                                  )}
 
                                   {race.registrationUrl && (
                                     <a href={race.registrationUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 px-8 py-4 text-[10px] uppercase font-bold tracking-[0.2em] rounded-sm transition-all shadow-lg" style={{background:'var(--text-primary)', color:'var(--bg-base)'}}>
