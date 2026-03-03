@@ -1565,9 +1565,12 @@ export default function App() {
 
                                <p className="text-[15px] font-light leading-relaxed max-w-2xl mb-10" style={{color:'var(--text-secondary)'}}>{race.description}</p>
                                <div className="flex flex-wrap gap-4">
-                                  <button onClick={() => generateAiContent(race.name,
-                                    `당신은 PESSAGE의 수석 에디터다.
+                                  <button onClick={() => {
+                                    if (!stravaData) return;
+                                    generateAiContent(race.name,
+                                      `당신은 PESSAGE의 수석 에디터다.
 PESSAGE 문체: 짧은 현재형 문장, 경험 중심, 광고성 표현 금지, 기록보다 감각을 우선.
+러너 데이터를 반드시 해석해서 반영할 것 — 제네릭한 답변 금지.
 
 대회 정보:
 - 이름: ${race.name}
@@ -1576,16 +1579,22 @@ PESSAGE 문체: 짧은 현재형 문장, 경험 중심, 광고성 표현 금지,
 - 장소: ${race.location || '미정'}
 - 설명: ${race.description}
 
-${stravaData ? `
-러너 현황:
-- 이번 주 ${(stravaData.weeklyStats?.distanceM / 1000).toFixed(1)}km / ${stravaData.weeklyStats?.count}회 훈련
-- 최근 페이스 ${formatPace(stravaData.lastRun?.paceSecsPerKm)} / 심박수 ${Math.round(stravaData.lastRun?.average_heartrate || 0)}bpm
-- Ritual Score ${ritualScore}/100
-` : ''}
+러너 현황 (이 데이터를 반드시 전략에 반영할 것):
+- 이번 주 훈련: ${(stravaData.weeklyStats?.distanceM / 1000).toFixed(1)}km / ${stravaData.weeklyStats?.count}회
+- 최근 페이스: ${formatPace(stravaData.lastRun?.paceSecsPerKm)} /km
+- 최근 심박수: ${Math.round(stravaData.lastRun?.average_heartrate || 0)}bpm
+- Ritual Score: ${ritualScore}/100
 
-이 러너가 위 대회를 어떻게 접근해야 하는지, 전략보다 태도에 집중해서 3문장으로 써라.
-형식: 세 문장을 줄바꿈으로 구분. 번호나 마크다운 없이 순수 텍스트만.`
-                                  )} className="flex items-center gap-3 px-8 py-4 text-[10px] uppercase font-bold tracking-[0.2em] rounded-sm transition-all" style={{background:'var(--bg-surface)', color:'var(--text-primary)'}}><Sparkles size={14} /> AI Strategy</button>
+위 러너의 현재 훈련 수준과 컨디션을 분석해서, 이 대회를 어떻게 접근해야 하는지 태도와 전략을 함께 3~4문장으로 써라.
+페이스나 심박수 수치를 직접 언급하면서 이 러너에게만 해당하는 구체적인 조언을 줄 것.
+형식: 줄바꿈으로 구분된 3~4문장. 번호나 마크다운 없이 순수 텍스트만.`
+                                    );
+                                  }} className="flex items-center gap-3 px-8 py-4 text-[10px] uppercase font-bold tracking-[0.2em] rounded-sm transition-all" style={{background:'var(--bg-surface)', color:'var(--text-primary)'}}><Sparkles size={14} /> AI Strategy</button>
+                                  {!stravaData && (
+                                    <p className="text-[11px] mt-2 tracking-wide" style={{color:'var(--text-muted)'}}>
+                                      Strava 연동 후 사용할 수 있어요.
+                                    </p>
+                                  )}
 
                                   {race.registrationUrl && (
                                     <a href={race.registrationUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 px-8 py-4 text-[10px] uppercase font-bold tracking-[0.2em] rounded-sm transition-all shadow-lg" style={{background:'var(--text-primary)', color:'var(--bg-base)'}}>
@@ -1842,29 +1851,30 @@ ${stravaData ? `
                       <button
                         onClick={() => generateAiContent('recovery', `당신은 웰니스 에디토리얼 브랜드 PESSAGE의 수석 에디터다.
 PESSAGE 문체 규칙:
-- 짧고 감각적인 현재형 문장
+- 짧고 감각적인 현재형 문장, 단 각 섹션은 충분한 깊이로 써라
 - 광고성 표현, 과장 금지 ("최고", "완벽한" 같은 단어 사용 금지)
 - 한국어/영어 자연스럽게 혼용
 - 여백과 침묵을 활용하는 서사
+- 러너 데이터를 반드시 해석해서 반영할 것 — 제네릭한 답변 금지
 
 러너 데이터:
 - 마지막 러닝: ${(stravaData.lastRun?.distance / 1000).toFixed(1)}km / 페이스 ${formatPace(stravaData.lastRun?.paceSecsPerKm)} / 심박수 ${Math.round(stravaData.lastRun?.average_heartrate || 0)}bpm
 - 이번 주 누적: ${(stravaData.weeklyStats?.distanceM / 1000).toFixed(1)}km / ${stravaData.weeklyStats?.count}회
 - Ritual Score: ${ritualScore}/100
 
-위 데이터를 읽고 오늘 이 러너의 신체 상태를 판단한 뒤, 아래 형식으로 출력하라.
+위 데이터를 분석해서 이 러너의 신체 상태를 구체적으로 판단한 뒤, 아래 형식으로 출력하라.
 형식 외 다른 텍스트는 절대 출력하지 마라.
 
 [TODAY'S READ]
-신체 상태를 감각적으로 묘사하는 한 문장.
+이 러너의 현재 신체 상태와 피로도를 데이터 기반으로 감각적으로 묘사하는 2~3문장. 페이스와 심박수를 해석해서 오늘 몸이 어떤 상태인지 구체적으로 표현할 것.
 
 [RECOVERY SEQUENCE]
-1. 액션 — 시간/방법 포함 (1줄)
-2. 액션 — 시간/방법 포함 (1줄)
-3. 액션 — 시간/방법 포함 (1줄)
+1. 액션 — 구체적인 시간/방법/이유 포함 (2줄 이내)
+2. 액션 — 구체적인 시간/방법/이유 포함 (2줄 이내)
+3. 액션 — 구체적인 시간/방법/이유 포함 (2줄 이내)
 
 [PESSAGE NOTE]
-달리기의 철학적 의미로 마무리하는 한 문장.`)}
+이 러너의 데이터와 연결된 달리기의 철학적 의미. 2~3문장으로 깊이 있게 마무리할 것.`)}
                         className="px-12 py-5 font-bold text-[11px] uppercase tracking-[0.2em] rounded-sm shadow-2xl active:scale-95 transition-all"
                         style={{background:'var(--text-primary)', color:'var(--bg-base)'}}
                       >Curate My Ritual</button>
