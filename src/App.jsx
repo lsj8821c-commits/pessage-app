@@ -1370,7 +1370,7 @@ CLOSING
                     {selectedArticle.coverImage && (
                       <div className="w-full overflow-hidden mb-16 rounded-sm border relative group" style={{borderColor:'var(--border)'}}>
                         <img src={urlFor(selectedArticle.coverImage)} alt="" className="w-full h-auto block" />
-                        <div className="absolute inset-0 opacity-80" style={{background:'linear-gradient(to top, var(--bg-base), transparent)'}}></div>
+                        <div className="absolute bottom-0 left-0 right-0 h-[30%]" style={{background: 'linear-gradient(to top, var(--bg-base) 0%, transparent 100%)'}}></div>
                       </div>
                     )}
                     <div className="flex justify-between items-start mb-16">
