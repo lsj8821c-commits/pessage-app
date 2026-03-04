@@ -185,7 +185,6 @@ export default function App() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [connectedDevice, setConnectedDevice] = useState(null);
   const [isWatchModalOpen, setIsWatchModalOpen] = useState(false);
-  const [showConnectModal, setShowConnectModal] = useState(false);
   
   const [savedItems, setSavedItems] = useState({ articles: [], gear: [], routes: [], sessions: [] });
   const [selectedArticle, setSelectedArticle] = useState(null);
@@ -209,6 +208,8 @@ export default function App() {
   const [activeAiTarget, setActiveAiTarget] = useState(null);
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncSuccess, setSyncSuccess] = useState(false);
+  const [raceStrategyModal, setRaceStrategyModal] = useState(null);
+  const [raceDistanceInput, setRaceDistanceInput] = useState('');
   
   const [isMapLoaded, setIsMapLoaded] = useState(false);
   const [mapPopup, setMapPopup] = useState(null);
@@ -447,8 +448,6 @@ export default function App() {
           setCurrentUser({ displayName: user.name, email: user.email, photoURL: user.photo });
           setIsLoggedIn(true);
           setAuthMode(null);
-          const uid = getCurrentUid();
-          if (uid) loadSavedItems(uid);
         }
       } catch (e) {
         console.error('Naver callback error:', e);
@@ -684,9 +683,9 @@ export default function App() {
         : [...list, item];
       const newState = { ...prev, [type]: updated };
 
-      const uid = getCurrentUid();
-      if (uid) {
-        setDoc(doc(db, 'users', uid, 'data', 'savedItems'), newState)
+      const user = auth.currentUser;
+      if (user) {
+        setDoc(doc(db, 'users', user.uid, 'data', 'savedItems'), newState)
           .catch(e => console.error('저장 실패:', e));
       }
 
@@ -898,29 +897,70 @@ export default function App() {
         ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
       `}</style>
       
-      {showConnectModal && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center"
-          style={{background: 'rgba(0,0,0,0.5)'}}
-          onClick={() => setShowConnectModal(false)}
-        >
-          <div
-            className="mx-6 p-8 rounded-sm text-center"
-            style={{background: 'var(--bg-surface)', maxWidth: '320px'}}
-            onClick={e => e.stopPropagation()}
+      {raceStrategyModal && (
+  <div className="fixed inset-0 z-[2000] bg-black/95 backdrop-blur-xl flex items-center justify-center p-6 animate-in fade-in">
+    <div className="max-w-sm w-full bg-[#1A1918] border border-[#EAE5D9]/10 p-10 rounded-sm shadow-2xl">
+      <p className="text-[9px] uppercase tracking-[0.3em] text-[#78716C] mb-2 font-bold">AI Strategy</p>
+      <h3 className="text-2xl font-light italic mb-2 text-[#EAE5D9]">{raceStrategyModal.raceName}</h3>
+      <p className="text-[11px] text-[#5A5450] mb-8">참여할 거리를 선택하거나 직접 입력하세요</p>
+      <div className="grid grid-cols-3 gap-2 mb-6">
+        {['5K', '10K', '하프 21K', '풀 42K', '50K', '100K'].map(dist => (
+          <button
+            key={dist}
+            onClick={() => setRaceDistanceInput(dist)}
+            className={`py-3 text-[10px] uppercase tracking-widest font-bold border rounded-sm transition-all ${
+              raceDistanceInput === dist
+                ? 'border-[#EAE5D9] text-[#EAE5D9] bg-[#EAE5D9]/10'
+                : 'border-[#EAE5D9]/15 text-[#78716C] hover:border-[#EAE5D9]/40 hover:text-[#A8A29E]'
+            }`}
           >
-            <p className="text-[11px] uppercase tracking-[0.3em] mb-4 font-bold" style={{color: 'var(--text-muted)'}}>AI Strategy</p>
-            <p className="text-[15px] font-light leading-[1.8] mb-6" style={{color: 'var(--text-primary)'}}>운동 기록을 연동하면 나만의 전략을 받을 수 있어요.</p>
-            <button
-              className="text-[11px] uppercase tracking-[0.2em] px-6 py-3 rounded-sm"
-              style={{background: 'var(--text-primary)', color: 'var(--bg-surface)'}}
-              onClick={() => setShowConnectModal(false)}
-            >
-              확인
-            </button>
-          </div>
+            {dist}
+          </button>
+        ))}
+      </div>
+      <div className="mb-8">
+        <input
+          type="text"
+          placeholder="직접 입력 (예: 30K, 버티컬 킬로미터)"
+          value={['5K','10K','하프 21K','풀 42K','50K','100K'].includes(raceDistanceInput) ? '' : raceDistanceInput}
+          onChange={e => setRaceDistanceInput(e.target.value)}
+          className="w-full bg-transparent border border-[#EAE5D9]/15 rounded-sm px-4 py-3 text-[12px] text-[#EAE5D9] placeholder:text-[#5A5450] focus:outline-none focus:border-[#EAE5D9]/40 transition-colors"
+        />
+      </div>
+      {stravaData && (
+        <div className="flex items-center gap-2 mb-8 px-4 py-3 bg-[#FC4C02]/10 border border-[#FC4C02]/20 rounded-sm">
+          <div className="w-1.5 h-1.5 rounded-full bg-[#FC4C02]"></div>
+          <p className="text-[10px] text-[#FC4C02] font-bold uppercase tracking-widest">Strava 데이터 연동됨 — 맞춤 분석 적용</p>
         </div>
       )}
+      <div className="flex gap-3">
+        <button
+          onClick={() => { setRaceStrategyModal(null); setRaceDistanceInput(''); }}
+          className="flex-1 py-4 text-[10px] uppercase tracking-[0.2em] font-bold border border-[#EAE5D9]/15 text-[#78716C] rounded-sm hover:text-[#A8A29E] hover:border-[#EAE5D9]/30 transition-all"
+        >
+          Cancel
+        </button>
+        <button
+          onClick={() => {
+            if (!raceDistanceInput.trim()) return;
+            const dist = raceDistanceInput.trim();
+            const stravaContext = stravaData
+              ? `러너 현재 컨디션: 최근 러닝 ${(stravaData.lastRun.distance / 1000).toFixed(1)}km · 페이스 ${formatPace(stravaData.lastRun?.paceSecsPerKm)} · 심박수 ${stravaData.lastRun?.average_heartrate ? Math.round(stravaData.lastRun.average_heartrate) : '미측정'}bpm · 이번 주 누적 ${(stravaData.weeklyStats.distanceM / 1000).toFixed(1)}km.`
+              : '';
+            const prompt = `${raceStrategyModal.raceName} 대회에서 ${dist} 코스를 완주하려는 러너를 위한 레이스 전략을 써줘. ${stravaContext} 페이스 배분, 에너지 관리, 심리적 준비를 포함해서 어시(Earthy)하고 철학적인 톤앤매너 매거진 스타일로 3~4문장으로 작성해줘. 영어 단어는 최소화하고, 대회 유형(${raceStrategyModal.raceType || 'ROAD'})에 맞는 전략을 줘.`;
+            generateAiContent(raceStrategyModal.raceName, prompt);
+            setRaceStrategyModal(null);
+            setRaceDistanceInput('');
+          }}
+          disabled={!raceDistanceInput.trim()}
+          className="flex-grow py-4 text-[10px] uppercase tracking-[0.2em] font-bold bg-[#EAE5D9] text-[#151413] rounded-sm hover:bg-white transition-all disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+        >
+          <Sparkles size={12} /> Analyze
+        </button>
+      </div>
+    </div>
+  </div>
+)}
 
       {isWatchModalOpen && (
         <div className="fixed inset-0 z-[2000] bg-black/95 backdrop-blur-xl flex items-center justify-center p-6 animate-in fade-in">
@@ -1292,9 +1332,9 @@ export default function App() {
                   <div className="pt-24 max-w-3xl mx-auto">
                     <button onClick={() => setSelectedArticle(null)} className="flex items-center gap-2 text-[11px] uppercase tracking-widest mb-12 transition-colors" style={{color:'var(--text-muted)'}}><ArrowLeft size={16} /> Back to Directory</button>
                     {selectedArticle.coverImage && (
-                      <div className="w-full overflow-hidden mb-16 rounded-sm relative group">
+                      <div className="w-full overflow-hidden mb-16 rounded-sm border relative group" style={{borderColor:'var(--border)'}}>
                         <img src={urlFor(selectedArticle.coverImage)} alt="" className="w-full h-auto block" />
-                        <div className="absolute inset-0" style={{background:'linear-gradient(to top, var(--bg-base) 0%, transparent 30%)'}}></div>
+                        <div className="absolute inset-0 opacity-80" style={{background:'linear-gradient(to top, var(--bg-base), transparent)'}}></div>
                       </div>
                     )}
                     <div className="flex justify-between items-start mb-16">
@@ -1337,7 +1377,8 @@ export default function App() {
                             <>
                               <div
                                 onClick={() => setSelectedArticle(heroArticle)}
-                                className="group cursor-pointer relative mb-24 md:mb-32 block overflow-hidden rounded-sm"
+                                className="group cursor-pointer relative mb-24 md:mb-32 block overflow-hidden rounded-sm border"
+                                style={{borderColor:'var(--border-mid)'}}
                               >
                                 <div className="w-full relative" style={{background:'var(--bg-surface)'}}>
                                   {heroArticle.coverImage && (
@@ -1683,34 +1724,24 @@ export default function App() {
 
                                <p className="text-[15px] font-light leading-relaxed max-w-2xl mb-10" style={{color:'var(--text-secondary)'}}>{race.description}</p>
                                <div className="flex flex-wrap gap-4">
-                                  <button onClick={() => {
-                                    if (!stravaData) {
-                                      setShowConnectModal(true);
-                                      return;
-                                    }
-                                    generateAiContent(race.name,
-                                      `당신은 PESSAGE의 수석 에디터다.
-PESSAGE 문체: 짧은 현재형 문장, 경험 중심, 광고성 표현 금지, 기록보다 감각을 우선.
-러너 데이터를 반드시 해석해서 반영할 것 — 제네릭한 답변 금지.
-
-대회 정보:
-- 이름: ${race.name}
-- 유형: ${race.type}
-- 날짜: ${race.date}
-- 장소: ${race.location || '미정'}
-- 설명: ${race.description}
-
-러너 현황 (이 데이터를 반드시 전략에 반영할 것):
-- 이번 주 훈련: ${(stravaData.weeklyStats?.distanceM / 1000).toFixed(1)}km / ${stravaData.weeklyStats?.count}회
-- 최근 페이스: ${formatPace(stravaData.lastRun?.paceSecsPerKm)} /km
-- 최근 심박수: ${Math.round(stravaData.lastRun?.average_heartrate || 0)}bpm
-- Ritual Score: ${ritualScore}/100
-
-위 러너의 현재 훈련 수준과 컨디션을 분석해서, 이 대회를 어떻게 접근해야 하는지 태도와 전략을 함께 3~4문장으로 써라.
-페이스나 심박수 수치를 직접 언급하면서 이 러너에게만 해당하는 구체적인 조언을 줄 것.
-형식: 줄바꿈으로 구분된 3~4문장. 번호나 마크다운 없이 순수 텍스트만.`
-                                    );
-                                  }} className="flex items-center gap-3 px-8 py-4 text-[10px] uppercase font-bold tracking-[0.2em] rounded-sm transition-all" style={{background:'var(--bg-surface)', color:'var(--text-primary)'}}><Sparkles size={14} /> AI Strategy</button>
+                                  <button
+                                    onClick={() => {
+                                      if (race.type === 'TRAIL' || race.type === 'ROAD') {
+                                        setRaceStrategyModal({ raceName: race.name, raceType: race.type });
+                                        setRaceDistanceInput('');
+                                      } else {
+                                        generateAiContent(race.name, `${race.name} 이벤트의 그룹런 전략을 어시(Earthy)하고 철학적인 톤앤매너 매거진 스타일로 3문장 이내로 작성해줘.`);
+                                      }
+                                    }}
+                                    className="flex items-center gap-3 bg-[#EAE5D9]/5 px-8 py-4 text-[10px] uppercase font-bold tracking-[0.2em] rounded-sm hover:bg-[#EAE5D9]/10 transition-all text-[#EAE5D9]"
+                                  >
+                                    <Sparkles size={14} /> AI Strategy
+                                  </button>
+                                  {!stravaData && (
+                                    <p className="text-[11px] mt-2 tracking-wide" style={{color:'var(--text-muted)'}}>
+                                      Strava 연동 후 사용할 수 있어요.
+                                    </p>
+                                  )}
 
                                   {race.registrationUrl && (
                                     <a href={race.registrationUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 px-8 py-4 text-[10px] uppercase font-bold tracking-[0.2em] rounded-sm transition-all shadow-lg" style={{background:'var(--text-primary)', color:'var(--bg-base)'}}>
