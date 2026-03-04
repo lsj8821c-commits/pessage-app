@@ -947,7 +947,43 @@ export default function App() {
             const stravaContext = stravaData
               ? `러너 현재 컨디션: 최근 러닝 ${(stravaData.lastRun.distance / 1000).toFixed(1)}km · 페이스 ${formatPace(stravaData.lastRun?.paceSecsPerKm)} · 심박수 ${stravaData.lastRun?.average_heartrate ? Math.round(stravaData.lastRun.average_heartrate) : '미측정'}bpm · 이번 주 누적 ${(stravaData.weeklyStats.distanceM / 1000).toFixed(1)}km.`
               : '';
-            const prompt = `${raceStrategyModal.raceName} 대회에서 ${dist} 코스를 완주하려는 러너를 위한 레이스 전략을 써줘. ${stravaContext} 페이스 배분, 에너지 관리, 심리적 준비를 포함해서 어시(Earthy)하고 철학적인 톤앤매너 매거진 스타일로 3~4문장으로 작성해줘. 영어 단어는 최소화하고, 대회 유형(${raceStrategyModal.raceType || 'ROAD'})에 맞는 전략을 줘.`;
+            const prompt = `너는 PESSAGE 러닝 전략 어시스턴트다.
+아래 데이터를 기반으로 ${raceStrategyModal.raceName} 대회 ${dist} 코스 레이스 전략을 반드시 아래 4개 섹션 순서대로 출력하라.
+절대 산문 에세이 형식으로 쓰지 말 것.
+
+[러너 데이터]
+${stravaContext || '개인 데이터 없음 — 일반 권장값 기준으로 제시할 것'}
+대회 유형: ${raceStrategyModal.raceType || 'ROAD'}
+
+출력 형식을 반드시 아래와 같이 따를 것:
+
+OPENING
+(레이스와 오늘의 컨디션을 감각적으로 요약하는 단 한 문장. 짧고 날카롭게.)
+
+STRATEGY
+PACING | [초반 페이스] / [중반 페이스] / [후반 페이스]
+NUTRITION | [수분·에너지 보충 타이밍 — 몇 km마다]
+WALK ZONE | [에너지 점검 및 워킹 전환 권장 구간]
+(이 섹션은 반드시 위 형식으로만 출력. 설명 문장 추가 금지.)
+
+RITUAL
+완주 직후 —
+"[한 줄 감성 문장]"
+→ [구체 행동 1] / [구체 행동 2]
+
+그날 밤 —
+"[한 줄 감성 문장]"
+→ [구체 행동 1] / [구체 행동 2]
+
+다음날 아침 —
+"[한 줄 감성 문장]"
+→ [구체 행동 1] / [구체 행동 2]
+
+CLOSING
+(전체를 감싸는 짧은 마무리 한 문장. "Running is not just movement. It's a ritual." 톤 반영.)
+
+길이 제한: 전체 출력은 모바일 기준 스크롤 1-2회 이내.
+한국어로 출력. 영어는 섹션 라벨(OPENING/STRATEGY/RITUAL/CLOSING/PACING/NUTRITION/WALK ZONE)만 허용.`;
             generateAiContent(raceStrategyModal.raceName, prompt);
             setRaceStrategyModal(null);
             setRaceDistanceInput('');
@@ -1730,7 +1766,21 @@ export default function App() {
                                         setRaceStrategyModal({ raceName: race.name, raceType: race.type });
                                         setRaceDistanceInput('');
                                       } else {
-                                        generateAiContent(race.name, `${race.name} 이벤트의 그룹런 전략을 어시(Earthy)하고 철학적인 톤앤매너 매거진 스타일로 3문장 이내로 작성해줘.`);
+                                        generateAiContent(race.name, `너는 PESSAGE 러닝 전략 어시스턴트다.
+${race.name} 그룹런 이벤트 전략을 반드시 아래 형식으로 출력하라.
+
+OPENING
+(이 그룹런의 분위기를 감각적으로 요약하는 단 한 문장.)
+
+STRATEGY
+PACING | [초반 페이스] / [중반 페이스] / [후반 페이스]
+NUTRITION | [수분·에너지 보충 타이밍]
+GROUP TIP | [그룹런에서 특히 주의할 점 한 줄]
+
+CLOSING
+(짧은 마무리 한 문장. "Running is not just movement. It's a ritual." 톤 반영.)
+
+한국어로 출력. 영어는 섹션 라벨만 허용.`);
                                       }
                                     }}
                                     className="flex items-center gap-3 bg-[#EAE5D9]/5 px-8 py-4 text-[10px] uppercase font-bold tracking-[0.2em] rounded-sm hover:bg-[#EAE5D9]/10 transition-all text-[#EAE5D9]"
