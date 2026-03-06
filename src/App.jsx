@@ -251,6 +251,7 @@ export default function App() {
 
   const [isMapLoaded, setIsMapLoaded] = useState(false);
   const [isMapExpanded, setIsMapExpanded] = useState(false);
+  const mapResizeObserverRef = useRef(null);
   const [mapPopup, setMapPopup] = useState(null);
   const [stravaData, setStravaData] = useState(() => {
     try { const s = sessionStorage.getItem('strava_data'); return s ? JSON.parse(s) : null; } catch { return null; }
@@ -676,9 +677,14 @@ export default function App() {
         drawPreviewLine();
       }
 
-      const t1 = setTimeout(() => { if (leafletMap.current) leafletMap.current.invalidateSize(); }, 100);
-      const t2 = setTimeout(() => { if (leafletMap.current) leafletMap.current.invalidateSize(); }, 500);
-      return () => { clearTimeout(t1); clearTimeout(t2); };
+      if (mapResizeObserverRef.current) mapResizeObserverRef.current.disconnect();
+      if (mapRef.current) {
+        mapResizeObserverRef.current = new ResizeObserver(() => {
+          if (leafletMap.current) leafletMap.current.invalidateSize();
+        });
+        mapResizeObserverRef.current.observe(mapRef.current);
+      }
+      return () => { if (mapResizeObserverRef.current) mapResizeObserverRef.current.disconnect(); };
     } else if (leafletMap.current && (activeTab !== 'routes' || routeViewMode !== 'MAP' || selectedRoute)) {
       leafletMap.current.remove();
       leafletMap.current = null;
@@ -1747,7 +1753,7 @@ CLOSING
                           }}
                         />
                         {/* 맵 컨트롤 버튼 */}
-                        <div className="absolute bottom-5 right-5 z-[1000] flex flex-col gap-2">
+                        <div className="absolute top-3 right-3 z-[1000] flex flex-col gap-2">
                           {/* 확대/축소 버튼 */}
                           <button
                             onClick={() => leafletMap.current?.zoomIn()}
