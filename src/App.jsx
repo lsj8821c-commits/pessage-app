@@ -566,16 +566,16 @@ export default function App() {
               html: `<div style="
                 background:${s.color};
                 color:#151413;
-                width:24px; height:24px;
+                width:16px; height:16px;
                 border-radius:50%;
-                border:2px solid #1A1918;
+                border:1.5px solid #1A1918;
                 display:flex; align-items:center; justify-content:center;
-                font-size:11px;
-                box-shadow:0 0 10px ${s.color}88;
+                font-size:8px;
+                box-shadow:0 0 6px ${s.color}88;
                 cursor:pointer;
               ">${s.emoji}</div>`,
-              iconSize: [24, 24],
-              iconAnchor: [12, 12],
+              iconSize: [16, 16],
+              iconAnchor: [8, 8],
             });
             const spotMarker = L.marker([spot.lat, spot.lng], { icon: spotIcon });
             spotMarker.bindTooltip(`
@@ -680,7 +680,8 @@ export default function App() {
       }
 
       const t1 = setTimeout(() => { if (leafletMap.current) leafletMap.current.invalidateSize(); }, 100);
-      return () => clearTimeout(t1);
+      const t2 = setTimeout(() => { if (leafletMap.current) leafletMap.current.invalidateSize(); }, 500);
+      return () => { clearTimeout(t1); clearTimeout(t2); };
     } else if (leafletMap.current && (activeTab !== 'routes' || routeViewMode !== 'MAP' || selectedRoute)) {
       leafletMap.current.remove();
       leafletMap.current = null;
