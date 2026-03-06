@@ -250,7 +250,7 @@ export default function App() {
   }, [selectedArticle]);
 
   const [isMapLoaded, setIsMapLoaded] = useState(false);
-  const [isMapExpanded, setIsMapExpanded] = useState(false);
+  const [isMapModalOpen, setIsMapModalOpen] = useState(false);
   const mapResizeObserverRef = useRef(null);
   const [mapPopup, setMapPopup] = useState(null);
   const [stravaData, setStravaData] = useState(() => {
@@ -277,6 +277,8 @@ export default function App() {
 
   // Map Refs
   const mapRef = useRef(null);
+  const modalMapRef = useRef(null);
+  const modalLeafletMap = useRef(null);
   const leafletMap = useRef(null);
   const markerGroupRef = useRef(null);
   const gpxLayerRef = useRef(null);
@@ -693,6 +695,49 @@ export default function App() {
     }
   }, [activeTab, routeViewMode, isMapLoaded, updateMapMarkers, mapPopup, selectedRoute]);
 
+  // 모달 맵 초기화
+  useEffect(() => {
+    if (!isMapModalOpen || !modalMapRef.current || !isMapLoaded) return;
+    const L = window.L;
+    setTimeout(() => {
+      if (modalLeafletMap.current) {
+        modalLeafletMap.current.remove();
+        modalLeafletMap.current = null;
+      }
+      if (!modalMapRef.current) return;
+      const map = L.map(modalMapRef.current, {
+        center: leafletMap.current?.getCenter() || [36.5, 127.8],
+        zoom: leafletMap.current?.getZoom() || 7,
+        zoomControl: false,
+        attributionControl: false,
+      });
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 20 }).addTo(map);
+      modalLeafletMap.current = map;
+      const filtered = siteContent.routes.filter(r =>
+        (routeTypeFilter === 'ALL' || r.type === routeTypeFilter) &&
+        (routeRegionFilter === 'ALL' || r.region === routeRegionFilter)
+      );
+      filtered.forEach(route => {
+        if (!route.lat || !route.lng) return;
+        const pinColor = route.type === 'TRAIL' ? '#C2410C' : route.type === 'ROAD' ? '#78716C' : '#ffffff';
+        const icon = L.divIcon({
+          className: 'custom-pin',
+          html: `<div style="background-color:${pinColor};width:12px;height:12px;border-radius:50%;border:2px solid #1A1918;box-shadow:0 0 15px ${pinColor}88;"></div>`,
+          iconSize: [12, 12],
+        });
+        L.marker([route.lat, route.lng], { icon }).addTo(map)
+          .on('click', () => { setMapPopup(route); setIsMapModalOpen(false); });
+      });
+      map.invalidateSize();
+    }, 100);
+    return () => {
+      if (modalLeafletMap.current) {
+        modalLeafletMap.current.remove();
+        modalLeafletMap.current = null;
+      }
+    };
+  }, [isMapModalOpen, isMapLoaded, siteContent.routes, routeTypeFilter, routeRegionFilter]);
+
   // 맵 확대/축소 전용 ResizeObserver
   useEffect(() => {
     if (!mapRef.current || !leafletMap.current) return;
@@ -701,7 +746,7 @@ export default function App() {
     });
     observer.observe(mapRef.current);
     return () => observer.disconnect();
-  }, [isMapExpanded, routeViewMode, activeTab]);
+  }, [isMapModalOpen, routeViewMode, activeTab]);
 
   // --- 5. 상세 페이지 시네마틱 맵 렌더링 ---
   useEffect(() => {
@@ -1126,6 +1171,47 @@ CLOSING
     </div>
   </div>
 )}
+
+      {/* 맵 전체화면 모달 */}
+      {isMapModalOpen && (
+        <div
+          className="fixed inset-0 z-[9000] flex flex-col"
+          style={{background:'var(--bg-base)'}}
+        >
+          {/* 모달 헤더 */}
+          <div
+            className="flex items-center justify-between px-5 py-4 border-b shrink-0"
+            style={{borderColor:'var(--border)'}}
+          >
+            <p className="text-[10px] uppercase tracking-[0.3em] font-bold" style={{color:'var(--text-muted)'}}>MAP VIEW</p>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => modalMapRef.current && window.L?.map && modalLeafletMap.current?.zoomIn()}
+                className="w-8 h-8 flex items-center justify-center rounded-sm border text-base font-light"
+                style={{background:'var(--bg-surface)', borderColor:'var(--border)', color:'var(--text-primary)'}}
+              >+</button>
+              <button
+                onClick={() => modalLeafletMap.current?.zoomOut()}
+                className="w-8 h-8 flex items-center justify-center rounded-sm border text-base font-light"
+                style={{background:'var(--bg-surface)', borderColor:'var(--border)', color:'var(--text-primary)'}}
+              >−</button>
+              <button
+                onClick={() => setIsMapModalOpen(false)}
+                className="w-8 h-8 flex items-center justify-center rounded-sm border ml-2"
+                style={{background:'var(--bg-surface)', borderColor:'var(--border)', color:'var(--text-primary)'}}
+              >
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+            </div>
+          </div>
+          {/* 모달 맵 */}
+          <div
+            ref={modalMapRef}
+            className="flex-1 w-full"
+            style={{background:'var(--bg-surface)'}}
+          />
+        </div>
+      )}
 
       {isWatchModalOpen && (
         <div className="fixed inset-0 z-[2000] bg-black/95 backdrop-blur-xl flex items-center justify-center p-6 animate-in fade-in">
@@ -1753,16 +1839,13 @@ CLOSING
 
                     {routeViewMode === 'MAP' ? (
                       <div className="relative animate-in fade-in duration-700 min-h-[500px]">
+                        {/* 일반 맵 */}
                         <div
                           ref={mapRef}
-                          className={`w-full rounded-sm overflow-hidden border shadow-2xl z-0 transition-all duration-300 ${isMapExpanded ? '' : 'aspect-square md:aspect-[21/9]'}`}
-                          style={{
-                            background: 'var(--bg-surface)',
-                            borderColor: 'var(--border)',
-                            height: isMapExpanded ? '85vh' : undefined,
-                          }}
+                          className="w-full aspect-square md:aspect-[21/9] rounded-sm overflow-hidden border shadow-2xl z-0"
+                          style={{background:'var(--bg-surface)', borderColor:'var(--border)'}}
                         />
-                        {/* 맵 컨트롤 버튼 — 우측 상단 */}
+                        {/* 컨트롤 버튼 — 우측 상단 */}
                         <div className="absolute top-3 right-3 z-[1000] flex flex-col gap-1.5">
                           <button
                             onClick={() => leafletMap.current?.zoomIn()}
@@ -1775,17 +1858,15 @@ CLOSING
                             style={{background:'var(--bg-surface)', borderColor:'var(--border)', color:'var(--text-primary)'}}
                           >−</button>
                           <button
-                            onClick={() => setIsMapExpanded(prev => !prev)}
+                            onClick={() => setIsMapModalOpen(true)}
                             className="w-8 h-8 flex items-center justify-center rounded-sm border transition-all hover:opacity-80"
                             style={{background:'var(--bg-surface)', borderColor:'var(--border)', color:'var(--text-primary)'}}
+                            title="크게 보기"
                           >
-                            {isMapExpanded ? (
-                              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 0 2-2h3M3 16h3a2 2 0 0 0 2 2v3"/></svg>
-                            ) : (
-                              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
-                            )}
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
                           </button>
                         </div>
+                        {/* mapPopup 팝업 */}
                         {mapPopup && (
                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 backdrop-blur-md border p-8 rounded-sm shadow-2xl z-[2000] animate-in zoom-in-95 text-center" style={{background:'var(--bg-surface)', borderColor:'var(--border-mid)'}}>
                               <p className={`text-[9px] uppercase tracking-[0.3em] mb-3 font-bold ${mapPopup.type === 'TRAIL' ? 'text-[#C2410C]' : ''}`} style={mapPopup.type !== 'TRAIL' ? {color:'var(--text-secondary)'} : {}}>{mapPopup.type} • {mapPopup.region}</p>
