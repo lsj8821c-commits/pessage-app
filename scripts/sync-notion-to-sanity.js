@@ -5,6 +5,8 @@
  * 사용법:
  *   node scripts/sync-notion-to-sanity.js --input scripts/data.json --type journal
  *   node scripts/sync-notion-to-sanity.js --input scripts/data.json --type session
+ *   node scripts/sync-notion-to-sanity.js --input scripts/data.json --type route
+ *   node scripts/sync-notion-to-sanity.js --input scripts/data.json --type gear
  */
 
 import { createClient } from '@sanity/client';
@@ -35,7 +37,7 @@ const inputPath = getArg('--input');
 const type = getArg('--type');
 
 if (!inputPath || !type) {
-  console.error('사용법: node scripts/sync-notion-to-sanity.js --input [파일경로] --type [journal|session]');
+  console.error('사용법: node scripts/sync-notion-to-sanity.js --input [파일경로] --type [journal|session|route|gear]');
   process.exit(1);
 }
 if (!process.env.SANITY_WRITE_TOKEN) {
@@ -62,51 +64,63 @@ try {
   process.exit(1);
 }
 
-// ── 유틸: 텍스트 → Portable Text ──────────────────────────────────
+// ── 유틸 ──────────────────────────────────────────────────────────
+function rkey() {
+  return Math.random().toString(36).slice(2, 10);
+}
+
 function textToPortableText(text) {
   if (!text) return [];
   return text.split('\n').flatMap((line) => {
     if (!line.trim()) return [];
     let style = 'normal';
     let content = line;
-    if (line.startsWith('### ')) { style = 'h3'; content = line.slice(4); }
-    else if (line.startsWith('## '))  { style = 'h2'; content = line.slice(3); }
-    else if (line.startsWith('# '))   { style = 'h1'; content = line.slice(2); }
-    else if (line.startsWith('> '))   { style = 'blockquote'; content = line.slice(2); }
+    if (line.startsWith('### '))     { style = 'h3'; content = line.slice(4); }
+    else if (line.startsWith('## ')) { style = 'h2'; content = line.slice(3); }
+    else if (line.startsWith('# '))  { style = 'h1'; content = line.slice(2); }
+    else if (line.startsWith('> '))  { style = 'blockquote'; content = line.slice(2); }
     return [{
-      _type: 'block',
-      _key: Math.random().toString(36).slice(2, 10),
-      style,
-      children: [{ _type: 'span', _key: Math.random().toString(36).slice(2, 10), text: content.trim(), marks: [] }],
-      markDefs: [],
+      _type: 'block', _key: rkey(), style, markDefs: [],
+      children: [{ _type: 'span', _key: rkey(), text: content.trim(), marks: [] }],
     }];
   });
 }
 
-// ── JOURNAL 업로드 ─────────────────────────────────────────────────
+function makeSlug(text) {
+  return (text || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9가-힣\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .slice(0, 96);
+}
+
+function omitEmpty(obj) {
+  return Object.fromEntries(Object.entries(obj).filter(([, v]) => v !== '' && v !== undefined && v !== null));
+}
+
+// ── JOURNAL ───────────────────────────────────────────────────────
 async function syncJournal(d) {
   if (!d.title) { console.error('title 필드가 필요합니다.'); process.exit(1); }
 
-  const slug = d.slug || d.title.toLowerCase().replace(/[^a-z0-9가-힣\s-]/g, '').replace(/\s+/g, '-').slice(0, 96);
-
-  const doc = {
+  const slug = d.slug || makeSlug(d.title);
+  const doc = omitEmpty({
     _type: 'journal',
     title: d.title,
-    ...(d.subtitle    && { subtitle: d.subtitle }),
-    ...(d.category    && { category: d.category }),
-    ...(d.publishedAt && { publishedAt: d.publishedAt }),
+    subtitle: d.subtitle,
+    category: d.category,
+    publishedAt: d.publishedAt,
     slug: { _type: 'slug', current: slug },
-    ...(d.playlistUrl && { playlistUrl: d.playlistUrl }),
+    playlistUrl: d.playlistUrl,
     content: textToPortableText(d.content || ''),
-  };
+  });
 
-  const existing = await sanity.fetch(
+  const existingId = await sanity.fetch(
     `*[_type == "journal" && slug.current == $slug][0]._id`,
     { slug }
   );
 
-  if (existing) {
-    await sanity.patch(existing).set(doc).commit();
+  if (existingId) {
+    await sanity.patch(existingId).set(doc).commit();
     console.log(`✓ Journal 업데이트됨 (slug: ${slug})`);
   } else {
     const created = await sanity.create(doc);
@@ -114,36 +128,36 @@ async function syncJournal(d) {
   }
 }
 
-// ── SESSION 업로드 ─────────────────────────────────────────────────
+// ── SESSION ───────────────────────────────────────────────────────
 async function syncSessions(sessions) {
-  if (!Array.isArray(sessions)) { sessions = [sessions]; }
+  if (!Array.isArray(sessions)) sessions = [sessions];
   let success = 0;
 
   for (const d of sessions) {
     if (!d.name) { console.warn('  ⚠ name 없는 항목 스킵'); continue; }
 
-    const doc = {
+    const doc = omitEmpty({
       _type: 'session',
       name: d.name,
-      ...(d.date            && { date: d.date }),
-      ...(d.type            && { type: d.type }),
-      ...(d.location        && { location: d.location }),
-      ...(d.description     && { description: d.description }),
-      ...(d.registrationUrl && { registrationUrl: d.registrationUrl }),
-      ...(d.status          && { status: d.status }),
-    };
+      date: d.date,
+      type: d.type,
+      location: d.location,
+      description: d.description,
+      registrationUrl: d.registrationUrl,
+      status: d.status,
+    });
 
-    const existing = await sanity.fetch(
+    const existingId = await sanity.fetch(
       `*[_type == "session" && name == $name && date == $date][0]._id`,
-      { name: doc.name, date: doc.date || '' }
+      { name: d.name, date: d.date || '' }
     );
 
-    if (existing) {
-      await sanity.patch(existing).set(doc).commit();
-      console.log(`  ✓ Session 업데이트됨: ${doc.name}`);
+    if (existingId) {
+      await sanity.patch(existingId).set(doc).commit();
+      console.log(`  ✓ Session 업데이트됨: ${d.name}`);
     } else {
       const created = await sanity.create(doc);
-      console.log(`  ✓ Session 생성됨: ${doc.name} (ID: ${created._id})`);
+      console.log(`  ✓ Session 생성됨: ${d.name} (ID: ${created._id})`);
     }
     success++;
   }
@@ -151,14 +165,76 @@ async function syncSessions(sessions) {
   console.log(`\n완료: ${success}/${sessions.length} Session 처리됨`);
 }
 
+// ── ROUTE ─────────────────────────────────────────────────────────
+async function syncRoute(d) {
+  if (!d.name) { console.error('name 필드가 필요합니다.'); process.exit(1); }
+
+  const doc = omitEmpty({
+    _type: 'route',
+    name: d.name,
+    title: d.title,
+    region: d.region,
+    type: d.type,
+    difficulty: d.difficulty,
+    distance: d.distance,
+    elevationGain: d.elevationGain,
+    description: d.description,
+    playlistUrl: d.playlistUrl,
+    body: textToPortableText(d.body || ''),
+  });
+
+  const existingId = await sanity.fetch(
+    `*[_type == "route" && name == $name][0]._id`,
+    { name: d.name }
+  );
+
+  if (existingId) {
+    await sanity.patch(existingId).set(doc).commit();
+    console.log(`✓ Route 업데이트됨: ${d.name}`);
+  } else {
+    const created = await sanity.create(doc);
+    console.log(`✓ Route 생성됨: ${d.name} (ID: ${created._id})`);
+  }
+}
+
+// ── GEAR ──────────────────────────────────────────────────────────
+async function syncGear(d) {
+  if (!d.name) { console.error('name 필드가 필요합니다.'); process.exit(1); }
+
+  const slug = d.slug || makeSlug(d.name);
+  const doc = omitEmpty({
+    _type: 'gear',
+    name: d.name,
+    brand: d.brand,
+    category: d.category,
+    slug: { _type: 'slug', current: slug },
+    publishedAt: d.publishedAt,
+    note: d.note,
+    body: textToPortableText(d.body || ''),
+  });
+
+  const existingId = await sanity.fetch(
+    `*[_type == "gear" && slug.current == $slug][0]._id`,
+    { slug }
+  );
+
+  if (existingId) {
+    await sanity.patch(existingId).set(doc).commit();
+    console.log(`✓ Gear 업데이트됨 (slug: ${slug})`);
+  } else {
+    const created = await sanity.create(doc);
+    console.log(`✓ Gear 생성됨: ${d.name} (ID: ${created._id}, slug: ${slug})`);
+  }
+}
+
 // ── 메인 ──────────────────────────────────────────────────────────
 try {
-  if (type === 'journal') {
-    await syncJournal(data);
-  } else if (type === 'session') {
-    await syncSessions(data);
-  } else {
-    console.error(`알 수 없는 type: "${type}". journal 또는 session을 사용해주세요.`);
+  if      (type === 'journal') await syncJournal(data);
+  else if (type === 'session') await syncSessions(data);
+  else if (type === 'route')   await syncRoute(data);
+  else if (type === 'gear')    await syncGear(data);
+  else {
+    console.error(`알 수 없는 type: "${type}". journal / session / route / gear 중 하나를 사용해주세요.`);
     process.exit(1);
   }
   console.log('\n✅ 동기화 완료');
