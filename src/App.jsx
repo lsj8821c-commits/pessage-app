@@ -713,23 +713,73 @@ export default function App() {
       });
       L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 20 }).addTo(map);
       modalLeafletMap.current = map;
+
       const filtered = siteContent.routes.filter(r =>
         (routeTypeFilter === 'ALL' || r.type === routeTypeFilter) &&
         (routeRegionFilter === 'ALL' || r.region === routeRegionFilter)
       );
+
       filtered.forEach(route => {
         if (!route.lat || !route.lng) return;
+
+        // Key Spots 핀
+        const spotIcons = {
+          CAFE:       { color: '#D4A96A' },
+          SAUNA:      { color: '#4A9EBF' },
+          RESTAURANT: { color: '#A8A29E' },
+          VIEWPOINT:  { color: '#EAE5D9' },
+        };
+        if (route.spots?.length > 0) {
+          route.spots.forEach(spot => {
+            if (!spot.lat || !spot.lng) return;
+            const s = spotIcons[spot.category] || { color: '#EAE5D9' };
+            const spotIcon = L.divIcon({
+              className: '',
+              html: `<div style="background:${s.color};width:12px;height:12px;border-radius:50%;border:2px solid #1A1918;box-shadow:0 0 8px ${s.color}88;cursor:pointer;"></div>`,
+              iconSize: [12, 12],
+              iconAnchor: [6, 6],
+            });
+            const spotMarker = L.marker([spot.lat, spot.lng], { icon: spotIcon });
+            spotMarker.bindTooltip(`
+              <div style="font-size:11px;padding:4px 6px;line-height:1.6;">
+                <strong>${spot.name}</strong><br/>
+                <span style="color:#A8A29E">${spot.category} · ${spot.address || ''}</span>
+              </div>
+            `, { direction: 'top', offset: [0, -8] });
+            spotMarker.addTo(map);
+          });
+        }
+
+        // 루트 핀
         const pinColor = route.type === 'TRAIL' ? '#C2410C' : route.type === 'ROAD' ? '#78716C' : '#ffffff';
         const icon = L.divIcon({
           className: 'custom-pin',
           html: `<div style="background-color:${pinColor};width:12px;height:12px;border-radius:50%;border:2px solid #1A1918;box-shadow:0 0 15px ${pinColor}88;"></div>`,
           iconSize: [12, 12],
         });
+        // 핀 클릭 시 모달 유지 — setMapPopup만 호출
         L.marker([route.lat, route.lng], { icon }).addTo(map)
-          .on('click', () => { setMapPopup(route); setIsMapModalOpen(false); });
+          .on('click', () => setMapPopup(route));
+
+        // GPX 라인
+        if (route.gpxUrl) {
+          fetch(route.gpxUrl).then(r => r.text()).then(text => {
+            const xml = new DOMParser().parseFromString(text, 'text/xml');
+            const trkpts = xml.getElementsByTagName('trkpt');
+            const coords = [];
+            for (let i = 0; i < trkpts.length; i++) {
+              coords.push([parseFloat(trkpts[i].getAttribute('lat')), parseFloat(trkpts[i].getAttribute('lon'))]);
+            }
+            if (coords.length > 0 && modalLeafletMap.current) {
+              const lineColor = route.type === 'TRAIL' ? '#C2410C' : '#A8A29E';
+              L.polyline(coords, { color: lineColor, weight: 2.5, opacity: 0.6, dashArray: '5, 8', lineCap: 'round' }).addTo(map);
+            }
+          }).catch(() => {});
+        }
       });
+
       map.invalidateSize();
-    }, 100);
+    }, 150);
     return () => {
       if (modalLeafletMap.current) {
         modalLeafletMap.current.remove();
@@ -1175,8 +1225,18 @@ CLOSING
       {/* 맵 전체화면 모달 */}
       {isMapModalOpen && (
         <div
-          className="fixed inset-0 z-[9000] flex flex-col"
-          style={{background:'var(--bg-base)'}}
+          className="fixed inset-0 z-[9000] flex items-center justify-center p-4 md:p-8"
+          style={{background:'rgba(0,0,0,0.7)', backdropFilter:'blur(4px)'}}
+          onClick={(e) => { if (e.target === e.currentTarget) setIsMapModalOpen(false); }}
+        >
+        <div
+          className="relative flex flex-col rounded-sm border overflow-hidden w-full"
+          style={{
+            background:'var(--bg-base)',
+            borderColor:'var(--border)',
+            height:'80vh',
+            maxWidth:'900px',
+          }}
         >
           {/* 모달 헤더 */}
           <div
@@ -1210,6 +1270,7 @@ CLOSING
             className="flex-1 w-full"
             style={{background:'var(--bg-surface)'}}
           />
+        </div>
         </div>
       )}
 
