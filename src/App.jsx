@@ -210,7 +210,45 @@ export default function App() {
   const [syncSuccess, setSyncSuccess] = useState(false);
   const [raceStrategyModal, setRaceStrategyModal] = useState(null);
   const [raceDistanceInput, setRaceDistanceInput] = useState('');
-  
+
+  // JSON-LD: 아티클 상세 페이지 구조화 데이터
+  useEffect(() => {
+    const existing = document.querySelector('script[data-json-ld="article"]');
+    if (existing) existing.remove();
+
+    if (!selectedArticle) return;
+
+    const script = document.createElement('script');
+    script.type = 'application/ld+json';
+    script.setAttribute('data-json-ld', 'article');
+    script.text = JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "headline": selectedArticle.title || '',
+      "description": selectedArticle.subtitle || '',
+      "image": selectedArticle.coverImage
+        ? `https://cdn.sanity.io/images/1pnkcp2x/production/${selectedArticle.coverImage?.asset?._ref?.replace('image-', '')?.replace('-jpg', '.jpg')?.replace('-jpeg', '.jpeg')?.replace('-png', '.png')}`
+        : 'https://pessage.run/og_cover.jpg',
+      "author": {
+        "@type": "Organization",
+        "name": "PESSAGE"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "PESSAGE",
+        "url": "https://pessage.run"
+      },
+      "datePublished": selectedArticle.publishedAt || selectedArticle._createdAt || '',
+      "url": `https://pessage.run/journal/${selectedArticle.slug?.current || selectedArticle._id}`
+    });
+    document.head.appendChild(script);
+
+    return () => {
+      const el = document.querySelector('script[data-json-ld="article"]');
+      if (el) el.remove();
+    };
+  }, [selectedArticle]);
+
   const [isMapLoaded, setIsMapLoaded] = useState(false);
   const [mapPopup, setMapPopup] = useState(null);
   const [stravaData, setStravaData] = useState(() => {
