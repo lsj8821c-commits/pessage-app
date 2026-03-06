@@ -1760,11 +1760,11 @@ CLOSING
                                 className="group cursor-pointer relative mb-24 md:mb-32 block overflow-hidden rounded-sm border"
                                 style={{borderColor:'var(--border-mid)'}}
                               >
-                                <div className="w-full relative" style={{background:'var(--bg-surface)'}}>
+                                <div className="w-full aspect-[3/2] md:aspect-[16/9] relative overflow-hidden" style={{background:'var(--bg-surface)'}}>
                                   {heroArticle.coverImage && (
                                     <img
                                       src={urlFor(heroArticle.coverImage)}
-                                      className="w-full h-auto block"
+                                      className="absolute inset-0 w-full h-full object-cover object-center"
                                       alt={heroArticle.title}
                                     />
                                   )}
@@ -1793,7 +1793,7 @@ CLOSING
                                           {article.coverImage && (
                                             <img
                                               src={urlFor(article.coverImage)}
-                                              className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700"
+                                              className="absolute inset-0 w-full h-full object-cover object-center grayscale group-hover:grayscale-0 transition-all duration-700"
                                               alt={article.title}
                                             />
                                           )}
