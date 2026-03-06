@@ -565,17 +565,14 @@ export default function App() {
               className: '',
               html: `<div style="
                 background:${s.color};
-                color:#151413;
-                width:10px; height:10px;
+                width:12px; height:12px;
                 border-radius:50%;
-                border:1.5px solid #1A1918;
-                display:flex; align-items:center; justify-content:center;
-                font-size:6px;
-                box-shadow:0 0 5px ${s.color}88;
+                border:2px solid #1A1918;
+                box-shadow:0 0 8px ${s.color}88;
                 cursor:pointer;
-              ">${s.emoji}</div>`,
-              iconSize: [10, 10],
-              iconAnchor: [5, 5],
+              "></div>`,
+              iconSize: [12, 12],
+              iconAnchor: [6, 6],
             });
             const spotMarker = L.marker([spot.lat, spot.lng], { icon: spotIcon });
             spotMarker.bindTooltip(`
@@ -1766,12 +1763,11 @@ CLOSING
                           <button
                             onClick={() => {
                               setIsMapExpanded(prev => !prev);
-                              setTimeout(() => {
-                                if (leafletMap.current) {
-                                  leafletMap.current.invalidateSize();
-                                  leafletMap.current.invalidateSize();
-                                }
-                              }, 400);
+                              [100, 300, 500, 800].forEach(delay => {
+                                setTimeout(() => {
+                                  if (leafletMap.current) leafletMap.current.invalidateSize();
+                                }, delay);
+                              });
                             }}
                             className="w-9 h-9 flex items-center justify-center rounded-sm border transition-all hover:opacity-80"
                             style={{background:'var(--bg-surface)', borderColor:'var(--border)', color:'var(--text-primary)'}}
