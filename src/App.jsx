@@ -163,7 +163,7 @@ const EditorialRenderer = ({ blocks }) => {
           return (
             <div key={index} className="py-16 border-y my-20 text-center animate-in slide-in-from-bottom-2" style={{borderColor:'var(--border-mid)'}}>
               <Quote size={24} className="mx-auto mb-8" style={{color:'var(--text-dim)'}} />
-              <p className="text-2xl md:text-3xl font-light italic leading-relaxed mb-6 px-4" style={{color:'var(--text-primary)'}}>"{block.text}"</p>
+              <p className="text-xl md:text-2xl font-light italic leading-relaxed mb-6 px-4" style={{color:'var(--text-primary)'}}>"{block.text}"</p>
               {block.author && <cite className="text-[10px] uppercase tracking-[0.3em] font-bold" style={{color:'var(--text-muted)'}}>— {block.author}</cite>}
             </div>
           );
@@ -1657,7 +1657,7 @@ CLOSING
                         {selectedArticle.subtitle && (
                           <p className="text-[11px] tracking-[0.3em] uppercase mb-4 font-bold" style={{color:'var(--text-secondary)'}}>{selectedArticle.subtitle}</p>
                         )}
-                        <h2 className="text-5xl md:text-6xl font-light italic leading-[1.1]" style={{color:'var(--text-primary)'}}>{selectedArticle.title}</h2>
+                        <h2 className="text-4xl md:text-5xl font-light italic leading-[1.1]" style={{color:'var(--text-primary)'}}>{selectedArticle.title}</h2>
                       </div>
                       <button
                         onClick={(e) => toggleSave(e, 'articles', selectedArticle)}
