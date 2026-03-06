@@ -76,6 +76,16 @@ const route = {
           { name: 'category', title: '유형', type: 'string', options: { list: ['CAFE', 'SAUNA', 'RESTAURANT', 'VIEWPOINT'] } },
           { name: 'address', title: '주소', type: 'string' },
           {
+            name: 'lat',
+            title: '위도 (Latitude)',
+            type: 'number',
+          },
+          {
+            name: 'lng',
+            title: '경도 (Longitude)',
+            type: 'number',
+          },
+          {
             name: 'body',
             title: '스팟 설명',
             type: 'array',
