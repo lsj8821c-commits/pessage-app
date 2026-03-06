@@ -566,16 +566,16 @@ export default function App() {
               html: `<div style="
                 background:${s.color};
                 color:#151413;
-                width:16px; height:16px;
+                width:10px; height:10px;
                 border-radius:50%;
                 border:1.5px solid #1A1918;
                 display:flex; align-items:center; justify-content:center;
-                font-size:8px;
-                box-shadow:0 0 6px ${s.color}88;
+                font-size:6px;
+                box-shadow:0 0 5px ${s.color}88;
                 cursor:pointer;
               ">${s.emoji}</div>`,
-              iconSize: [16, 16],
-              iconAnchor: [8, 8],
+              iconSize: [10, 10],
+              iconAnchor: [5, 5],
             });
             const spotMarker = L.marker([spot.lat, spot.lng], { icon: spotIcon });
             spotMarker.bindTooltip(`
@@ -1742,12 +1742,11 @@ CLOSING
                       <div className="relative animate-in fade-in duration-700 min-h-[500px]">
                         <div
                           ref={mapRef}
-                          className="w-full rounded-sm overflow-hidden border shadow-2xl z-0 transition-all duration-500"
+                          className={`w-full rounded-sm overflow-hidden border shadow-2xl z-0 transition-all duration-500 ${isMapExpanded ? '' : 'aspect-square md:aspect-[21/9]'}`}
                           style={{
                             background:'var(--bg-surface)',
                             borderColor:'var(--border)',
                             height: isMapExpanded ? '85vh' : undefined,
-                            aspectRatio: isMapExpanded ? 'unset' : undefined,
                           }}
                         />
                         {/* 맵 컨트롤 버튼 */}
