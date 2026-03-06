@@ -291,7 +291,7 @@ export default function App() {
     const fetchCmsData = async () => {
       const query = encodeURIComponent(`{
         "articles": *[_type == "journal"] { ..., category, subtitle } | order(publishedAt desc),
-        "routes": *[_type == "route"] { ..., "gpxUrl": gpxFile.asset->url, "gallery": images[].asset->url, elevationGain, difficulty, body, "spots": spots[]{ name, category, address, body } },
+        "routes": *[_type == "route"] { ..., "gpxUrl": gpxFile.asset->url, "gallery": images[].asset->url, elevationGain, difficulty, body, "spots": spots[]{ name, category, address, lat, lng, body } },
         "gearItems": *[_type == "gear"] { ..., slug, body } | order(publishedAt desc),
         "races": *[_type == "session"] { ..., location } | order(date asc)
       }`);
@@ -1745,10 +1745,9 @@ CLOSING
                           style={{
                             background:'var(--bg-surface)',
                             borderColor:'var(--border)',
-                            aspectRatio: isMapExpanded ? 'unset' : undefined,
                             height: isMapExpanded ? '85vh' : undefined,
+                            aspectRatio: isMapExpanded ? 'unset' : undefined,
                           }}
-                          {...(!isMapExpanded && { className: "w-full aspect-square md:aspect-[21/9] rounded-sm overflow-hidden border shadow-2xl z-0 transition-all duration-500" })}
                         />
                         {/* 맵 컨트롤 버튼 */}
                         <div className="absolute bottom-5 right-5 z-[1000] flex flex-col gap-2">
@@ -1767,7 +1766,12 @@ CLOSING
                           <button
                             onClick={() => {
                               setIsMapExpanded(prev => !prev);
-                              setTimeout(() => leafletMap.current?.invalidateSize(), 300);
+                              setTimeout(() => {
+                                if (leafletMap.current) {
+                                  leafletMap.current.invalidateSize();
+                                  leafletMap.current.invalidateSize();
+                                }
+                              }, 400);
                             }}
                             className="w-9 h-9 flex items-center justify-center rounded-sm border transition-all hover:opacity-80"
                             style={{background:'var(--bg-surface)', borderColor:'var(--border)', color:'var(--text-primary)'}}
