@@ -693,6 +693,16 @@ export default function App() {
     }
   }, [activeTab, routeViewMode, isMapLoaded, updateMapMarkers, mapPopup, selectedRoute]);
 
+  // 맵 확대/축소 전용 ResizeObserver
+  useEffect(() => {
+    if (!mapRef.current || !leafletMap.current) return;
+    const observer = new ResizeObserver(() => {
+      if (leafletMap.current) leafletMap.current.invalidateSize();
+    });
+    observer.observe(mapRef.current);
+    return () => observer.disconnect();
+  }, [isMapExpanded, routeViewMode, activeTab]);
+
   // --- 5. 상세 페이지 시네마틱 맵 렌더링 ---
   useEffect(() => {
     if (activeTab === 'routes' && selectedRoute && detailMapRef.current && isMapLoaded) {
@@ -1745,44 +1755,34 @@ CLOSING
                       <div className="relative animate-in fade-in duration-700 min-h-[500px]">
                         <div
                           ref={mapRef}
-                          className={`w-full rounded-sm overflow-hidden border shadow-2xl z-0 transition-all duration-500 ${isMapExpanded ? '' : 'aspect-square md:aspect-[21/9]'}`}
+                          className={`w-full rounded-sm overflow-hidden border shadow-2xl z-0 transition-all duration-300 ${isMapExpanded ? '' : 'aspect-square md:aspect-[21/9]'}`}
                           style={{
-                            background:'var(--bg-surface)',
-                            borderColor:'var(--border)',
+                            background: 'var(--bg-surface)',
+                            borderColor: 'var(--border)',
                             height: isMapExpanded ? '85vh' : undefined,
                           }}
                         />
-                        {/* 맵 컨트롤 버튼 */}
-                        <div className="absolute top-3 right-3 z-[1000] flex flex-col gap-2">
-                          {/* 확대/축소 버튼 */}
+                        {/* 맵 컨트롤 버튼 — 우측 상단 */}
+                        <div className="absolute top-3 right-3 z-[1000] flex flex-col gap-1.5">
                           <button
                             onClick={() => leafletMap.current?.zoomIn()}
-                            className="w-9 h-9 flex items-center justify-center rounded-sm border text-lg font-light transition-all hover:opacity-80"
+                            className="w-8 h-8 flex items-center justify-center rounded-sm border text-base font-light transition-all hover:opacity-80"
                             style={{background:'var(--bg-surface)', borderColor:'var(--border)', color:'var(--text-primary)'}}
                           >+</button>
                           <button
                             onClick={() => leafletMap.current?.zoomOut()}
-                            className="w-9 h-9 flex items-center justify-center rounded-sm border text-lg font-light transition-all hover:opacity-80"
+                            className="w-8 h-8 flex items-center justify-center rounded-sm border text-base font-light transition-all hover:opacity-80"
                             style={{background:'var(--bg-surface)', borderColor:'var(--border)', color:'var(--text-primary)'}}
                           >−</button>
-                          {/* 맵 크기 확장 버튼 */}
                           <button
-                            onClick={() => {
-                              setIsMapExpanded(prev => !prev);
-                              [100, 300, 500, 800].forEach(delay => {
-                                setTimeout(() => {
-                                  if (leafletMap.current) leafletMap.current.invalidateSize();
-                                }, delay);
-                              });
-                            }}
-                            className="w-9 h-9 flex items-center justify-center rounded-sm border transition-all hover:opacity-80"
+                            onClick={() => setIsMapExpanded(prev => !prev)}
+                            className="w-8 h-8 flex items-center justify-center rounded-sm border transition-all hover:opacity-80"
                             style={{background:'var(--bg-surface)', borderColor:'var(--border)', color:'var(--text-primary)'}}
-                            title={isMapExpanded ? '축소' : '전체 보기'}
                           >
                             {isMapExpanded ? (
-                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 0 2-2h3M3 16h3a2 2 0 0 0 2 2v3"/></svg>
+                              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 0 2-2h3M3 16h3a2 2 0 0 0 2 2v3"/></svg>
                             ) : (
-                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+                              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
                             )}
                           </button>
                         </div>
