@@ -2143,8 +2143,8 @@ CLOSING
                           <ArrowLeft size={16} /> Back to Gear
                         </button>
                         {selectedGear.image && (
-                          <div className="aspect-[4/3] md:aspect-[16/9] overflow-hidden mb-16" style={{background:'var(--bg-base)', width: '100vw', marginLeft: 'calc(50% - 50vw)'}}>
-                            <img src={urlFor(selectedGear.image)} alt={selectedGear.name} className="w-full h-full object-contain" />
+                          <div className="w-full overflow-hidden rounded-sm mb-16 border" style={{background:'var(--bg-base)', borderColor:'var(--border)', maxHeight:'70vh'}}>
+                            <img src={urlFor(selectedGear.image)} alt={selectedGear.name} className="w-full object-contain" />
                           </div>
                         )}
                         <p className="text-[10px] uppercase font-bold tracking-[0.3em] mb-4 flex items-center gap-2" style={{color:'var(--text-secondary)'}}>
