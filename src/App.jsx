@@ -293,7 +293,7 @@ export default function App() {
   useEffect(() => {
     const fetchCmsData = async () => {
       const query = encodeURIComponent(`{
-        "articles": *[_type == "journal"] { ..., category, subtitle } | order(publishedAt desc),
+        "articles": *[_type == "journal"] { ..., category, subtitle, "slug": slug.current, playlistUrl, "relatedSessions": relatedSessions[]->{ _id, name, date, type, location, description, registrationUrl, status } } | order(publishedAt desc),
         "routes": *[_type == "route"] { ..., "gpxUrl": gpxFile.asset->url, "gallery": images[].asset->url, elevationGain, difficulty, body, "spots": spots[]{ name, category, address, lat, lng, body } },
         "gearItems": *[_type == "gear"] { ..., slug, body } | order(publishedAt desc),
         "races": *[_type == "session"] { ..., location } | order(date asc)
@@ -1667,6 +1667,74 @@ CLOSING
                       </button>
                     </div>
                     <EditorialRenderer blocks={selectedArticle.body || selectedArticle.content} />
+
+                    {/* 플레이리스트 링크 */}
+                    {selectedArticle.playlistUrl && (
+                      <div className="mt-16 pt-8 border-t" style={{borderColor:'var(--border)'}}>
+                        <a
+                          href={selectedArticle.playlistUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-3 px-6 py-3 rounded-sm border text-[11px] uppercase tracking-[0.2em] font-bold transition-all hover:opacity-80"
+                          style={{borderColor:'var(--border)', color:'var(--text-primary)', background:'var(--bg-surface)'}}
+                        >
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                          이 아티클의 플레이리스트
+                        </a>
+                      </div>
+                    )}
+
+                    {/* 관련 세션 카드 */}
+                    {selectedArticle.relatedSessions?.length > 0 && (
+                      <div className="mt-20 pt-10 border-t" style={{borderColor:'var(--border)'}}>
+                        <p className="text-[9px] uppercase tracking-[0.4em] font-bold mb-8" style={{color:'var(--text-muted)'}}>이달의 레이스</p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {selectedArticle.relatedSessions.map(session => {
+                            const isClosed = session.status === '접수마감' || session.status === '종료';
+                            const typeColor = session.type === 'TRAIL' ? 'text-[#C2410C]' : '';
+                            return (
+                              <div key={session._id} className="p-6 rounded-sm border" style={{background:'var(--bg-surface)', borderColor:'var(--border)'}}>
+                                <div className="flex items-start justify-between mb-4">
+                                  <p className={`text-[9px] uppercase tracking-[0.3em] font-bold ${typeColor}`} style={!typeColor ? {color:'var(--text-secondary)'} : {}}>{session.type}</p>
+                                  <span
+                                    className="text-[9px] uppercase tracking-[0.2em] font-bold px-2 py-0.5 rounded-sm"
+                                    style={isClosed
+                                      ? {background:'var(--bg-base)', color:'var(--text-muted)', border:'1px solid var(--border)'}
+                                      : {background:'#C2410C22', color:'#C2410C', border:'1px solid #C2410C44'}}
+                                  >{session.status || '접수중'}</span>
+                                </div>
+                                <h4 className="text-lg font-light leading-tight mb-2" style={{color:'var(--text-primary)'}}>{session.name}</h4>
+                                {session.date && (
+                                  <p className="text-[11px] mb-1" style={{color:'var(--text-secondary)'}}>{session.date}</p>
+                                )}
+                                {session.location && (
+                                  <p className="text-[11px] mb-4" style={{color:'var(--text-dim)'}}>{session.location}</p>
+                                )}
+                                {session.registrationUrl ? (
+                                  <a
+                                    href={isClosed ? undefined : session.registrationUrl}
+                                    target={isClosed ? undefined : '_blank'}
+                                    rel="noopener noreferrer"
+                                    className={`inline-block w-full text-center py-2.5 text-[10px] uppercase tracking-[0.2em] font-bold rounded-sm transition-all ${isClosed ? 'opacity-40 cursor-not-allowed' : 'hover:opacity-80'}`}
+                                    style={isClosed
+                                      ? {background:'var(--bg-base)', color:'var(--text-muted)', border:'1px solid var(--border)', pointerEvents:'none'}
+                                      : {background:'var(--text-primary)', color:'var(--bg-base)'}}
+                                    onClick={isClosed ? (e) => e.preventDefault() : undefined}
+                                  >
+                                    {isClosed ? '접수 마감' : '접수 바로가기'}
+                                  </a>
+                                ) : (
+                                  <div className="w-full text-center py-2.5 text-[10px] uppercase tracking-[0.2em] font-bold rounded-sm opacity-40" style={{background:'var(--bg-base)', color:'var(--text-muted)', border:'1px solid var(--border)'}}>
+                                    링크 없음
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
                     <div className="h-40" />
                   </div>
                 ) : (
