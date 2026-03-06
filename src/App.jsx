@@ -278,7 +278,9 @@ export default function App() {
   const mapRef = useRef(null);
   const leafletMap = useRef(null);
   const markerGroupRef = useRef(null);
-  const gpxLayerRef = useRef(null); 
+  const gpxLayerRef = useRef(null);
+  const hoverLayerRef = useRef(null);
+  const gpxCacheRef = useRef({});
 
   const detailMapRef = useRef(null);
   const detailLeafletMap = useRef(null);
@@ -550,6 +552,42 @@ export default function App() {
         });
         const marker = L.marker([route.lat, route.lng], { icon: customIcon });
         marker.on('click', () => setMapPopup(route));
+
+        // 마우스 오버 시 GPX 루트 미리보기
+        marker.on('mouseover', async () => {
+          if (hoverLayerRef.current) {
+            hoverLayerRef.current.remove();
+            hoverLayerRef.current = null;
+          }
+          let coords = gpxCacheRef.current[route._id] || route.mockCoords || [];
+          if (coords.length === 0 && route.gpxUrl) {
+            try {
+              const res = await fetch(route.gpxUrl);
+              const text = await res.text();
+              const xml = new DOMParser().parseFromString(text, 'text/xml');
+              const trkpts = xml.getElementsByTagName('trkpt');
+              for (let i = 0; i < trkpts.length; i++) {
+                coords.push([parseFloat(trkpts[i].getAttribute('lat')), parseFloat(trkpts[i].getAttribute('lon'))]);
+              }
+              gpxCacheRef.current[route._id] = coords;
+            } catch(e) { console.error('GPX hover error', e); }
+          }
+          if (coords.length > 0 && leafletMap.current) {
+            const lineColor = route.type === 'TRAIL' ? '#C2410C' : '#A8A29E';
+            hoverLayerRef.current = L.polyline(coords, {
+              color: lineColor, weight: 2.5, opacity: 0.6, dashArray: '5, 8', lineCap: 'round'
+            }).addTo(leafletMap.current);
+          }
+        });
+
+        // 마우스 아웃 시 호버 라인 제거
+        marker.on('mouseout', () => {
+          if (hoverLayerRef.current) {
+            hoverLayerRef.current.remove();
+            hoverLayerRef.current = null;
+          }
+        });
+
         markerGroupRef.current.addLayer(marker);
         bounds.extend([route.lat, route.lng]);
       });
