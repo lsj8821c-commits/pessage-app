@@ -1416,11 +1416,11 @@ CLOSING
                                 className="group cursor-pointer relative mb-24 md:mb-32 block overflow-hidden rounded-sm border"
                                 style={{borderColor:'var(--border-mid)'}}
                               >
-                                <div className="w-full relative" style={{background:'var(--bg-surface)'}}>
+                                <div className="w-full relative max-h-[55vh] md:max-h-[70vh] overflow-hidden" style={{background:'var(--bg-surface)'}}>
                                   {heroArticle.coverImage && (
                                     <img
                                       src={urlFor(heroArticle.coverImage)}
-                                      className="w-full h-auto block"
+                                      className="w-full h-full object-cover object-top block max-h-[55vh] md:max-h-[70vh]"
                                       alt={heroArticle.title}
                                     />
                                   )}
