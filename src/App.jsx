@@ -1760,7 +1760,7 @@ CLOSING
                                 className="group cursor-pointer relative mb-24 md:mb-32 block overflow-hidden rounded-sm border"
                                 style={{borderColor:'var(--border-mid)'}}
                               >
-                                <div className="w-full aspect-[3/2] md:aspect-[16/9] relative overflow-hidden" style={{background:'var(--bg-surface)'}}>
+                                <div className="w-full aspect-[3/4] relative overflow-hidden" style={{background:'var(--bg-surface)'}}>
                                   {heroArticle.coverImage && (
                                     <img
                                       src={urlFor(heroArticle.coverImage)}
@@ -1789,7 +1789,7 @@ CLOSING
                                     const saved = isItemSaved('articles', article._id);
                                     return (
                                       <div key={article._id} onClick={() => setSelectedArticle(article)} className="group cursor-pointer flex flex-col relative">
-                                        <div className="w-full aspect-[4/3] overflow-hidden rounded-sm mb-6 border relative" style={{background:'var(--bg-surface)', borderColor:'var(--border)'}}>
+                                        <div className="w-full aspect-[3/4] overflow-hidden rounded-sm mb-6 border relative" style={{background:'var(--bg-surface)', borderColor:'var(--border)'}}>
                                           {article.coverImage && (
                                             <img
                                               src={urlFor(article.coverImage)}
