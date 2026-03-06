@@ -2086,7 +2086,7 @@ CLOSING
 한국어로 출력. 영어는 섹션 라벨만 허용.`);
                                       }
                                     }}
-                                    className="flex items-center gap-3 bg-[#EAE5D9]/5 px-8 py-4 text-[10px] uppercase font-bold tracking-[0.2em] rounded-sm hover:bg-[#EAE5D9]/10 transition-all text-[#EAE5D9]"
+                                    className="flex items-center gap-3 px-8 py-4 text-[10px] uppercase font-bold tracking-[0.2em] rounded-sm transition-all shadow-sm border" style={{borderColor:'var(--border)', color:'var(--text-primary)', background:'var(--bg-surface)'}}
                                   >
                                     <Sparkles size={14} /> AI Strategy
                                   </button>
