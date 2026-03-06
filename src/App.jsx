@@ -250,6 +250,7 @@ export default function App() {
   }, [selectedArticle]);
 
   const [isMapLoaded, setIsMapLoaded] = useState(false);
+  const [isMapExpanded, setIsMapExpanded] = useState(false);
   const [mapPopup, setMapPopup] = useState(null);
   const [stravaData, setStravaData] = useState(() => {
     try { const s = sessionStorage.getItem('strava_data'); return s ? JSON.parse(s) : null; } catch { return null; }
@@ -1662,7 +1663,47 @@ CLOSING
 
                     {routeViewMode === 'MAP' ? (
                       <div className="relative animate-in fade-in duration-700 min-h-[500px]">
-                        <div ref={mapRef} className="w-full aspect-square md:aspect-[21/9] rounded-sm overflow-hidden border shadow-2xl z-0" style={{background:'var(--bg-surface)', borderColor:'var(--border)'}} />
+                        <div
+                          ref={mapRef}
+                          className="w-full rounded-sm overflow-hidden border shadow-2xl z-0 transition-all duration-500"
+                          style={{
+                            background:'var(--bg-surface)',
+                            borderColor:'var(--border)',
+                            aspectRatio: isMapExpanded ? 'unset' : undefined,
+                            height: isMapExpanded ? '85vh' : undefined,
+                          }}
+                          {...(!isMapExpanded && { className: "w-full aspect-square md:aspect-[21/9] rounded-sm overflow-hidden border shadow-2xl z-0 transition-all duration-500" })}
+                        />
+                        {/* 맵 컨트롤 버튼 */}
+                        <div className="absolute bottom-5 right-5 z-[1000] flex flex-col gap-2">
+                          {/* 확대/축소 버튼 */}
+                          <button
+                            onClick={() => leafletMap.current?.zoomIn()}
+                            className="w-9 h-9 flex items-center justify-center rounded-sm border text-lg font-light transition-all hover:opacity-80"
+                            style={{background:'var(--bg-surface)', borderColor:'var(--border)', color:'var(--text-primary)'}}
+                          >+</button>
+                          <button
+                            onClick={() => leafletMap.current?.zoomOut()}
+                            className="w-9 h-9 flex items-center justify-center rounded-sm border text-lg font-light transition-all hover:opacity-80"
+                            style={{background:'var(--bg-surface)', borderColor:'var(--border)', color:'var(--text-primary)'}}
+                          >−</button>
+                          {/* 맵 크기 확장 버튼 */}
+                          <button
+                            onClick={() => {
+                              setIsMapExpanded(prev => !prev);
+                              setTimeout(() => leafletMap.current?.invalidateSize(), 300);
+                            }}
+                            className="w-9 h-9 flex items-center justify-center rounded-sm border transition-all hover:opacity-80"
+                            style={{background:'var(--bg-surface)', borderColor:'var(--border)', color:'var(--text-primary)'}}
+                            title={isMapExpanded ? '축소' : '전체 보기'}
+                          >
+                            {isMapExpanded ? (
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 0 2-2h3M3 16h3a2 2 0 0 0 2 2v3"/></svg>
+                            ) : (
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+                            )}
+                          </button>
+                        </div>
                         {mapPopup && (
                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 backdrop-blur-md border p-8 rounded-sm shadow-2xl z-[2000] animate-in zoom-in-95 text-center" style={{background:'var(--bg-surface)', borderColor:'var(--border-mid)'}}>
                               <p className={`text-[9px] uppercase tracking-[0.3em] mb-3 font-bold ${mapPopup.type === 'TRAIL' ? 'text-[#C2410C]' : ''}`} style={mapPopup.type !== 'TRAIL' ? {color:'var(--text-secondary)'} : {}}>{mapPopup.type} • {mapPopup.region}</p>
