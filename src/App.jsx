@@ -550,6 +550,44 @@ export default function App() {
           html: `<div style="background-color: ${pinColor}; width: 12px; height: 12px; border-radius: 50%; border: 2px solid #1A1918; box-shadow: 0 0 15px ${pinColor}88;"></div>`, 
           iconSize: [12, 12] 
         });
+        // Key Spots 핀
+        const spotIcons = {
+          CAFE:       { emoji: '☕', color: '#D4A96A' },
+          SAUNA:      { emoji: '♨',  color: '#4A9EBF' },
+          RESTAURANT: { emoji: '🍽', color: '#A8A29E' },
+          VIEWPOINT:  { emoji: '◎',  color: '#EAE5D9' },
+        };
+        if (route.spots?.length > 0) {
+          route.spots.forEach(spot => {
+            if (!spot.lat || !spot.lng) return;
+            const s = spotIcons[spot.category] || { emoji: '●', color: '#EAE5D9' };
+            const spotIcon = L.divIcon({
+              className: '',
+              html: `<div style="
+                background:${s.color};
+                color:#151413;
+                width:24px; height:24px;
+                border-radius:50%;
+                border:2px solid #1A1918;
+                display:flex; align-items:center; justify-content:center;
+                font-size:11px;
+                box-shadow:0 0 10px ${s.color}88;
+                cursor:pointer;
+              ">${s.emoji}</div>`,
+              iconSize: [24, 24],
+              iconAnchor: [12, 12],
+            });
+            const spotMarker = L.marker([spot.lat, spot.lng], { icon: spotIcon });
+            spotMarker.bindTooltip(`
+              <div style="font-size:11px; font-family:sans-serif; padding:4px 6px; line-height:1.6;">
+                <strong>${spot.name}</strong><br/>
+                <span style="color:#A8A29E">${spot.category} · ${spot.address || ''}</span>
+              </div>
+            `, { direction: 'top', offset: [0, -14] });
+            markerGroupRef.current.addLayer(spotMarker);
+          });
+        }
+
         const marker = L.marker([route.lat, route.lng], { icon: customIcon });
         marker.on('click', () => setMapPopup(route));
 
