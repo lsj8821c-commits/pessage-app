@@ -2196,7 +2196,7 @@ CLOSING
                     <div className="mb-16 flex flex-col justify-between items-start gap-8 border-b pb-8" style={{borderColor:'var(--border)'}}>
                       <div>
                         <h2 className="text-4xl font-light italic mb-3" style={{color:'var(--text-primary)'}}>Essential Tools</h2>
-                        <p className="text-sm italic tracking-wide" style={{color:'var(--text-secondary)'}}>디렉터 제민의 시선으로 큐레이션된, 기능과 미학의 교차점.</p>
+                        <p className="text-sm italic tracking-wide" style={{color:'var(--text-secondary)'}}>PESSAGE의 시선으로 큐레이션된, 기능과 미학의 교차점.</p>
                       </div>
                       <div className="flex gap-6 overflow-x-auto whitespace-nowrap hide-scrollbar w-full">
                         {['ALL', 'PACK', 'APPAREL', 'EYEWEAR', 'ACCESSORY'].map(cat => (<button key={cat} onClick={() => setGearFilter(cat)} className={`text-[11px] uppercase tracking-[0.3em] font-bold transition-all px-4 py-2 rounded-full border`} style={gearFilter === cat ? {background:'var(--text-primary)', color:'var(--bg-base)', borderColor:'var(--text-primary)'} : {color:'var(--text-muted)', borderColor:'transparent'}}>{cat}</button>))}
