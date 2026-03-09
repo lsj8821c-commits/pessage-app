@@ -1670,12 +1670,12 @@ CLOSING
 
                     {/* 플레이리스트 링크 */}
                     {selectedArticle.playlistUrl && (
-                      <div className="mt-16 pt-8 border-t flex flex-wrap gap-3" style={{borderColor:'var(--border)'}}>
+                      <div className="mt-16 pt-8 border-t grid grid-cols-2 gap-3" style={{borderColor:'var(--border)'}}>
                         <a
                           href={selectedArticle.playlistUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-4 px-10 py-5 rounded-sm border text-[13px] uppercase tracking-[0.2em] font-bold transition-all hover:opacity-80"
+                          className="flex items-center justify-center gap-4 px-10 py-5 rounded-sm border text-[13px] uppercase tracking-[0.2em] font-bold transition-all hover:opacity-80"
                           style={{borderColor:'var(--border)', color:'var(--text-primary)', background:'var(--bg-surface)'}}
                         >
                           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
@@ -1685,7 +1685,7 @@ CLOSING
                           href={selectedArticle.playlistUrl.replace('www.youtube.com', 'music.youtube.com')}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-4 px-10 py-5 rounded-sm border text-[13px] uppercase tracking-[0.2em] font-bold transition-all hover:opacity-80"
+                          className="flex items-center justify-center gap-4 px-10 py-5 rounded-sm border text-[13px] uppercase tracking-[0.2em] font-bold transition-all hover:opacity-80"
                           style={{borderColor:'var(--border)', color:'var(--text-primary)', background:'var(--bg-surface)'}}
                         >
                           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
