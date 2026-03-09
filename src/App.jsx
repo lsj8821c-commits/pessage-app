@@ -1317,8 +1317,7 @@ CLOSING
         }}
       >
         <div className="cursor-pointer" onClick={() => {setActiveTab('journal'); setSelectedArticle(null); setAuthMode(null); setIsProfileOpen(false);}}>
-          <img src="/pessage_logo_TX_LT.svg" alt="PESSAGE" className="h-6 md:h-7 w-auto block dark:hidden" />
-          <img src="/pessage_logo_TX_DK.svg" alt="PESSAGE" className="h-6 md:h-7 w-auto hidden dark:block" />
+          <img src={theme === 'dark' ? '/pessage_logo_TX_DK.svg' : '/pessage_logo_TX_LT.svg'} alt="PESSAGE" className="h-6 md:h-7 w-auto" />
         </div>
         <div className="flex gap-3 items-center" style={{flexShrink: 0, minWidth: 0}}>
           {/* 테마 슬라이더 토글 */}
