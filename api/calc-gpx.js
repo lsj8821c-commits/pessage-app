@@ -6,7 +6,7 @@ const client = createClient({
   dataset: 'production',
   apiVersion: '2024-01-01',
   token: process.env.SANITY_TOKEN,
-  useCdn: false,
+  useCdn: true,
 })
 
 function haversine(lat1,lon1,lat2,lon2){

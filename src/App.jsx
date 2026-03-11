@@ -44,7 +44,7 @@ const SANITY_CONFIG = {
   projectId: "1pnkcp2x", 
   dataset: "production",
   apiVersion: "2024-02-20",
-  useCdn: false,
+  useCdn: true,
 };
 
 const getSafeApiKey = () => {

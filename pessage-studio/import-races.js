@@ -6,7 +6,7 @@ import csv from 'csv-parser';
 const client = createClient({
   projectId: '1pnkcp2x',
   dataset: 'production',
-  useCdn: false,
+  useCdn: true,
   apiVersion: '2024-02-20',
   token: process.env.SANITY_TOKEN
 });
